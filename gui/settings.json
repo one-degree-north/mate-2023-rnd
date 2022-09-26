@@ -1,0 +1,10 @@
+{
+    "camera-ports": {
+        "cam-1": 0,
+        "cam-2": 1
+    },
+
+    "metric": true,
+    "region": "Singapore",
+    "timezone": "GMT+8" // automatically selected based on region
+}
