@@ -1,0 +1,1 @@
+# include map, compass, and buttons

@@ -1,10 +1,23 @@
 {
-    "camera-ports": {
-        "cam-1": 0,
-        "cam-2": 1
+    "ip": "8.8.8.8", // update only when clicked
+
+    "location-data": { // update only when clicked
+        "latitude": 37.42240, // used for calc for map
+        "longitude": -122.08421,
+
+        "country": "United States", // country_name
+        "flag": "https://ipgeolocation.io/static/flags/us_64.png", // country_flag
+
+        "state": "California", // state_prov
+        "city": "Mountain View",
+
+        "timezone": "America/Los_Angeles", // time_zone["name"]
+        "utc_offset": -8 // time_zone["offset"]
     },
 
-    "metric": true,
-    "region": "Singapore",
-    "timezone": "GMT+8" // automatically selected based on region
+    "weather-data": { // update whenever possibe
+        // forecast (weather), temp, windspeeds, etc
+    },
+
+    "metric": true
 }
