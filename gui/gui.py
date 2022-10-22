@@ -1,11 +1,10 @@
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton
-from PyQt6.QtGui import QFontDatabase, QFont
+from PyQt6.QtGui import QFontDatabase
 
-from frame import menu
+from frame import menu, navigation
 import tabs
 import widgets
 
-from assets.fonts import *
 from utils import Color
 
 import sys
@@ -16,11 +15,13 @@ class LowerSection(QWidget):
         super().__init__()
 
         self.menu = menu.Menu()
+        self.navigation = navigation.Navigation()
 
         self.layout = QHBoxLayout()
 
         self.layout.addWidget(self.menu)
         self.layout.addStretch()
+        self.layout.addWidget(self.navigation)
 
         self.layout.setContentsMargins(0,0,0,0)
         self.layout.setSpacing(0)
@@ -30,6 +31,7 @@ class LowerSection(QWidget):
 class UpperSection(QWidget):
     def __init__(self):
         super().__init__()
+
 
 class MainWindow(QMainWindow):
     def __init__(self, cam_port_1, cam_port_2):
@@ -55,8 +57,8 @@ class MainWindow(QMainWindow):
         # layout
         self.layout = QVBoxLayout()
 
-        self.layout.addWidget(self.upper_section)
-        self.layout.addStretch()
+        self.layout.addWidget(self.upper_section,)
+        self.layout.addStretch(1)
         self.layout.addWidget(self.lower_section)
 
         self.layout.setContentsMargins(0,0,0,0)

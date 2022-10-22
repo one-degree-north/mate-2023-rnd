@@ -19,6 +19,8 @@ class IconButton(QPushButton): # tooltip style
         self.setStyleSheet("""
             QToolTip {
                 background: %s;
+                color: black;
+                font-family: Inter;
             }
 
             QPushButton {

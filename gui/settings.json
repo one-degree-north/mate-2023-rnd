@@ -6,7 +6,7 @@
         "longitude": -122.08421,
 
         "country": "United States", // country_name
-        "flag": "https://ipgeolocation.io/static/flags/us_64.png", // country_flag
+        "flag": "https://ipgeolocation.io/static/flags/us_64.png", // country_flag -- maybe get rid of later & just save in assets/saved-data
 
         "state": "California", // state_prov
         "city": "Mountain View",
@@ -17,6 +17,14 @@
 
     "weather-data": { // update whenever possibe
         // forecast (weather), temp, windspeeds, etc
+        "weather": "Clouds",
+        "description": "overcast clouds",
+
+        "temp": 288.08, // kelvin
+        "humidity": 86, // percentage
+
+        "wind-speed": 6.26, // meters/second
+        "wind-direction": 247
     },
 
     "metric": true

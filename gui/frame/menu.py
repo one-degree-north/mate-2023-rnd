@@ -2,8 +2,6 @@ from PyQt6.QtWidgets import QWidget, QGridLayout, QHBoxLayout, QVBoxLayout, QLab
 from PyQt6.QtGui import QIcon, QPixmap
 from PyQt6.QtCore import Qt
 
-# import cv2
-
 from utils import *
 
 class Menu(QWidget):
