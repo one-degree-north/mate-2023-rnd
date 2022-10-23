@@ -1,8 +1,8 @@
-from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton
+from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QTabWidget
 from PyQt6.QtGui import QFontDatabase
 
 from frame import menu, navigation
-import tabs
+from tabs import camera
 import widgets
 
 from utils import Color
@@ -33,6 +33,29 @@ class UpperSection(QWidget):
         super().__init__()
 
 
+
+class Tabs(QTabWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.setStyleSheet("""
+            QWidget {
+                background: %s;
+                border-radius: 10px;
+            }
+        """ % Color.dark_violet)
+
+        self.camera_tab = camera.CameraTab()
+
+        self.addTab(self.camera_tab, "o")
+        self.addTab(QWidget(), "ok")
+
+        
+        self.setDocumentMode(True)
+        self.tabBar().hide()
+
+
+
 class MainWindow(QMainWindow):
     def __init__(self, cam_port_1, cam_port_2):
         super().__init__()
@@ -53,15 +76,25 @@ class MainWindow(QMainWindow):
 
         self.lower_section = LowerSection()
         self.upper_section = UpperSection()
+        self.tabs = Tabs()
+
+        # tab
+
+        self.tab_layout = QWidget()
+        self.tab_layout.layout = QVBoxLayout()
+        self.tab_layout.layout.addWidget(self.tabs)
+        self.tab_layout.setLayout(self.tab_layout.layout)
 
         # layout
         self.layout = QVBoxLayout()
 
-        self.layout.addWidget(self.upper_section,)
+        self.layout.addWidget(self.upper_section)
         self.layout.addStretch(1)
+        self.layout.addWidget(self.tab_layout)
         self.layout.addWidget(self.lower_section)
 
         self.layout.setContentsMargins(0,0,0,0)
+        # self.layout.setSpacing(0)
 
         # parent layout
         self.parent = QWidget()
