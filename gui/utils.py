@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QPushButton
+from PyQt6.QtWidgets import QPushButton, QSlider
 from PyQt6.QtGui import QIcon
 from PyQt6.QtCore import QSize
 
@@ -33,9 +33,15 @@ class IconButton(QPushButton): # tooltip style
             }
         """ % (Color.tinted_white, background, hover))
 
-        self.setIcon(icon)
+        # self.setIcon(icon)
         self.setToolTip(tooltip)
 
         self.setIconSize(QSize(40,40))
         self.setFixedSize(40,40)
+
+class Slider(QSlider):
+    def __init__(self):
+        super().__init__()
+
+        
 

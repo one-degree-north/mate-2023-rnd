@@ -33,17 +33,15 @@ class UpperSection(QWidget):
         super().__init__()
 
 
-
 class Tabs(QTabWidget):
     def __init__(self):
         super().__init__()
 
         self.setStyleSheet("""
-            QWidget {
-                background: %s;
-                border-radius: 10px;
+            QTabWidget::pane {
+                padding: 20px;
             }
-        """ % Color.dark_violet)
+        """)# % Color.dark_violet)
 
         self.camera_tab = camera.CameraTab()
 
@@ -51,8 +49,8 @@ class Tabs(QTabWidget):
         self.addTab(QWidget(), "ok")
 
         
-        self.setDocumentMode(True)
-        self.tabBar().hide()
+        # self.setDocumentMode(True)
+        # self.tabBar().hide()
 
 
 
@@ -61,6 +59,7 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         self.setWindowTitle("User Interface")
+        # self.setMinimumWidth(800)
 
         self.setStyleSheet("""
             QMainWindow {
@@ -80,21 +79,21 @@ class MainWindow(QMainWindow):
 
         # tab
 
-        self.tab_layout = QWidget()
-        self.tab_layout.layout = QVBoxLayout()
-        self.tab_layout.layout.addWidget(self.tabs)
-        self.tab_layout.setLayout(self.tab_layout.layout)
+        # self.tab_layout = QWidget()
+        # self.tab_layout.layout = QVBoxLayout()
+        # self.tab_layout.layout.addWidget(self.tabs)
+        # self.tab_layout.setLayout(self.tab_layout.layout)
 
         # layout
         self.layout = QVBoxLayout()
 
         self.layout.addWidget(self.upper_section)
-        self.layout.addStretch(1)
-        self.layout.addWidget(self.tab_layout)
+        # self.layout.addStretch(0)
+        self.layout.addWidget(self.tabs)
         self.layout.addWidget(self.lower_section)
 
         self.layout.setContentsMargins(0,0,0,0)
-        # self.layout.setSpacing(0)
+        self.layout.setSpacing(0)
 
         # parent layout
         self.parent = QWidget()
@@ -107,6 +106,11 @@ class MainWindow(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+
+    # os.system('sass gui/style-sheet/scss/main.scss gui/style-sheet/css/main.css') # compile sass
+
+    # with open('gui/style-sheet/css/main.css', 'r') as f:
+    #     app.setStyleSheet(f.read())
 
     QFontDatabase.addApplicationFont(f"{os.path.dirname(__file__)}/assets/fonts/Montserrat/Montserrat-VariableFont_wght.ttf")
     QFontDatabase.addApplicationFont(f"{os.path.dirname(__file__)}/assets/fonts/Inter/Inter-VariableFont_slnt,wght.ttf")
