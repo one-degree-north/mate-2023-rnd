@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QTabWidget
-from PyQt6.QtGui import QFontDatabase
+from PyQt6.QtGui import QFontDatabase, QFont
 from PyQt6.QtCore import Qt
 
 from frame import menu, navigation, time, stopwatch
@@ -129,9 +129,12 @@ if __name__ == "__main__":
 
     QFontDatabase.addApplicationFont(f"{os.path.dirname(__file__)}/assets/fonts/Montserrat/Montserrat-VariableFont_wght.ttf")
     QFontDatabase.addApplicationFont(f"{os.path.dirname(__file__)}/assets/fonts/Inter/Inter-VariableFont_slnt,wght.ttf")
+    x = QFont("Montserrat")
+    QFont.setHintingPreference(x, QFont.HintingPreference.PreferNoHinting)
 
     window = MainWindow(0, 1)
     window.show()
+    # window.sethint
 
 
     app.exec()
