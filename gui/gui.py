@@ -124,8 +124,10 @@ if __name__ == "__main__":
     # with open('gui/style-sheet/css/main.css', 'r') as f:
     #     app.setStyleSheet(f.read())
 
-    QFontDatabase.addApplicationFont(f"{os.path.dirname(__file__)}/assets/fonts/Montserrat/Montserrat-VariableFont_wght.ttf")
-    QFontDatabase.addApplicationFont(f"{os.path.dirname(__file__)}/assets/fonts/Inter/Inter-VariableFont_slnt,wght.ttf")
+    print(f"{os.path.dirname(__file__)}/assets/fonts/Montserrat/Montserrat-VariableFont_wght.ttf")
+
+    # QFontDatabase.addApplicationFont(f"{os.path.dirname(__file__)}/assets/fonts/Montserrat/Montserrat-VariableFont_wght.ttf")
+    # QFontDatabase.addApplicationFont(f"{os.path.dirname(__file__)}/assets/fonts/Inter/Inter-VariableFont_slnt,wght.ttf")
 
     window = MainWindow(0, 1)
     window.show()
