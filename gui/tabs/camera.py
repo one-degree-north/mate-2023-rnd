@@ -4,6 +4,7 @@ from PyQt6.QtCore import Qt, QThread, pyqtSignal, pyqtSlot
 
 import cv2
 from numpy import ndarray
+from pathlib import Path
 
 from utils import *
 
@@ -90,7 +91,9 @@ class ControlBar(QWidget):
             }
         """ % Color.cyber_grape)
 
-        self.capture_button = IconButton(QIcon("gui/assets/icons/camera.png"), "Capture", 35)
+
+        # print(f"{os.path.dirname(__name__)}/assets/icons/camera.png")
+        self.capture_button = IconButton(QIcon(str(Path("gui/assets/icons/camera.png").absolute())), "Capture", 35)
         self.reset_zoom_button = IconButton(QIcon("gui/assets/icons/reload.png"), "Reset Zoom", 35)
 
         self.zoom = QSlider(Qt.Orientation.Horizontal)

@@ -1,5 +1,6 @@
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QTabWidget
 from PyQt6.QtGui import QFontDatabase
+from PyQt6.QtCore import Qt
 
 from frame import menu, navigation, time, stopwatch
 from tabs import camera
@@ -131,5 +132,6 @@ if __name__ == "__main__":
 
     window = MainWindow(0, 1)
     window.show()
+
 
     app.exec()
