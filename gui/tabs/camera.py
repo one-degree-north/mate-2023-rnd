@@ -7,6 +7,7 @@ from numpy import ndarray
 from pathlib import Path
 
 from utils import *
+from time import sleep
 
 class CameraTab(QWidget):
     def __init__(self):
@@ -158,6 +159,8 @@ class VideoThread(QThread):
             ret, image = cap.read()
             if ret:
                 self.change_pixmap_signal.emit(image)
+
+            sleep(0.05)
                 
         cap.release()
         
