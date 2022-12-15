@@ -9,7 +9,7 @@ from utils import *
 
 import io
 
-import folium # requirements.txt
+# import folium # requirements.txt
 
 class Navigation(QWidget):
     def __init__(self):
