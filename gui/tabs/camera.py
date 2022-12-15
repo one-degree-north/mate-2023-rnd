@@ -160,7 +160,7 @@ class VideoThread(QThread):
             if ret:
                 self.change_pixmap_signal.emit(image)
 
-            sleep(0.05)
+            sleep(0.5)
                 
         cap.release()
         
