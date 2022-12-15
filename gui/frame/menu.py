@@ -34,24 +34,25 @@ class TabButtons(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.quit_button = IconButton(QIcon("gui/assets/icons/test.png"), "Quit")
+        self.quit_button = IconButton(QIcon("gui/assets/icons/quit.png"), "Quit")
         self.quit_button.clicked.connect(self.quit_event)
 
-        self.emergency_stop_button = IconButton(QIcon("gui/assets/icons/test.png"), "Emergency stop")#, "#F54242", "#F56A6A")
+        self.emergency_stop_button = IconButton(QIcon("gui/assets/icons/emergency-stop.png"), "Emergency stop")#, "#F54242", "#F56A6A")
         self.emergency_stop_button.clicked.connect(self.emergency_stop_event)
 
-        self.settings_button = IconButton(QIcon("gui/assets/icons/test.png"), "Settings tab")
+        self.settings_button = IconButton(QIcon("gui/assets/icons/settings.png"), "Settings tab")
         self.settings_button.clicked.connect(self.settings_event)
 
-        self.camera_button = IconButton(QIcon("gui/assets/icons/test.png"), "Camera tab")
+        self.camera_button = IconButton(QIcon("gui/assets/icons/camera.png"), "Camera tab")
         self.camera_button.clicked.connect(self.camera_event)
 
-        self.visualize_button = IconButton(QIcon("gui/assets/icons/test.png"), "Visualize tab")
+        self.visualize_button = IconButton(QIcon("gui/assets/icons/draw.png"), "Draw tab")
         self.visualize_button.clicked.connect(self.visualize_event)
 
-        self.analyze_button = IconButton(QIcon("gui/assets/icons/test.png"), "Analyze tab")
+        self.analyze_button = IconButton(QIcon("gui/assets/icons/chart.png"), "Chart tab")
         self.analyze_button.clicked.connect(self.analyze_event)
 
+        self.camera_button.setDisabled(True)
 
         self.layout = QGridLayout()
 
@@ -67,22 +68,39 @@ class TabButtons(QWidget):
 
         self.setLayout(self.layout)
 
+    def show_buttons(self):
+        for v in self.children():
+            if type(v) == IconButton:
+                v.setDisabled(False)
+
     def quit_event(self):
-        pass
+        quit() ## make it so that it properly closes camera ports, etc
 
     def emergency_stop_event(self):
         pass
 
     def settings_event(self):
+        self.show_buttons()
+        self.settings_button.setDisabled(True)
+
         pass
 
     def camera_event(self):
+        self.show_buttons()
+        self.camera_button.setDisabled(True)
+
         pass
 
     def visualize_event(self):
+        self.show_buttons()
+        self.visualize_button.setDisabled(True)
+
         pass
 
     def analyze_event(self):
+        self.show_buttons()
+        self.analyze_button.setDisabled(True)
+
         pass
 
 class Information(QWidget):

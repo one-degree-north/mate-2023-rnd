@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QTabWidget
 from PyQt6.QtGui import QFontDatabase
 
-from frame import menu, navigation
+from frame import menu, navigation, time, stopwatch
 from tabs import camera
 import widgets
 
@@ -32,6 +32,19 @@ class UpperSection(QWidget):
     def __init__(self):
         super().__init__()
 
+        self.time = time.Time()
+        self.stopwatch_menu = stopwatch.StopwatchMenu()
+
+        self.layout = QHBoxLayout()
+
+        self.layout.addWidget(self.time)
+        self.layout.addStretch()
+        self.layout.addWidget(self.stopwatch_menu)
+
+        self.layout.setContentsMargins(0,0,0,0)
+
+        self.setLayout(self.layout)
+
 
 class Tabs(QTabWidget):
     def __init__(self):
@@ -49,8 +62,8 @@ class Tabs(QTabWidget):
         self.addTab(QWidget(), "ok")
 
         
-        # self.setDocumentMode(True)
-        # self.tabBar().hide()
+        self.setDocumentMode(True)
+        self.tabBar().hide()
 
 
 
@@ -88,7 +101,6 @@ class MainWindow(QMainWindow):
         self.layout = QVBoxLayout()
 
         self.layout.addWidget(self.upper_section)
-        # self.layout.addStretch(0)
         self.layout.addWidget(self.tabs)
         self.layout.addWidget(self.lower_section)
 

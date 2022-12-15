@@ -95,17 +95,17 @@ class WidgetButtons(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.console_button = IconButton(QIcon("gui/assets/icons/test.png"), "Console widget")
-        self.console_button.clicked.connect(self.console_event)
+        self.weather_button = IconButton(QIcon("gui/assets/icons/weather.png"), "Weather widget")
+        self.weather_button.clicked.connect(self.simulation_event)
 
-        self.simulation_button = IconButton(QIcon("gui/assets/icons/test.png"), "Simulation widget")
-        self.simulation_button.clicked.connect(self.simulation_event)
+        self.console_button = IconButton(QIcon("gui/assets/icons/console.png"), "Console widget")
+        self.console_button.clicked.connect(self.console_event)
 
 
         self.layout = QHBoxLayout()
 
-        self.layout.addWidget(self.simulation_button)
         self.layout.addWidget(self.console_button)
+        self.layout.addWidget(self.weather_button)
 
         self.layout.setContentsMargins(10,10,10,10)
         self.layout.setSpacing(8)

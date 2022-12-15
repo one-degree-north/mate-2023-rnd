@@ -13,7 +13,7 @@ class Color:
 
 
 class IconButton(QPushButton): # tooltip style
-    def __init__(self, icon: QIcon, tooltip, background="#6C52A3", hover="#8066b7"):
+    def __init__(self, icon: QIcon, tooltip, size=40):
         super().__init__()
 
         self.setStyleSheet("""
@@ -29,19 +29,12 @@ class IconButton(QPushButton): # tooltip style
             }
 
             QPushButton:hover {
-                background: %s;
+                background: #8066b7;
             }
-        """ % (Color.tinted_white, background, hover))
+        """ % (Color.tinted_white, Color.grape))
 
-        # self.setIcon(icon)
+        self.setIcon(icon)
         self.setToolTip(tooltip)
 
-        self.setIconSize(QSize(40,40))
-        self.setFixedSize(40,40)
-
-class Slider(QSlider):
-    def __init__(self):
-        super().__init__()
-
-        
-
+        self.setIconSize(QSize(size,size))
+        self.setFixedSize(size,size)

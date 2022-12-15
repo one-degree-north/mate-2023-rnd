@@ -15,7 +15,7 @@ class CameraTab(QWidget):
         self.setStyleSheet("""
             QWidget {
                 background: %s;
-                border-radius: 10px;
+                border-radius: 20px;
             }
 
         # """ % Color.dark_violet)
@@ -41,7 +41,6 @@ class CameraTab(QWidget):
 class Camera(QWidget):
     def __init__(self, parent, name, port):
         super().__init__()
-        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
 
         self.parent = parent
 
@@ -53,9 +52,12 @@ class Camera(QWidget):
         self.thread.change_pixmap_signal.connect(self.update_image)
         self.thread.start()
 
+        self.control = ControlBar()
+
 
         self.layout = QVBoxLayout()
-        self.layout.addWidget(self.viewfinder)
+        self.layout.addWidget(self.viewfinder, 1)
+        self.layout.addWidget(self.control)
         self.setLayout(self.layout)
 
 
@@ -76,6 +78,66 @@ class Camera(QWidget):
         p = convert_to_Qt_format.scaled(self.parent.cam_width, self.parent.cam_height, Qt.AspectRatioMode.KeepAspectRatio)
         return QPixmap.fromImage(p)
 
+class ControlBar(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+
+        self.setStyleSheet("""
+            QWidget {
+                background: %s;
+                border-radius: 10px;
+            }
+        """ % Color.cyber_grape)
+
+        self.capture_button = IconButton(QIcon("gui/assets/icons/camera.png"), "Capture", 35)
+        self.reset_zoom_button = IconButton(QIcon("gui/assets/icons/reload.png"), "Reset Zoom", 35)
+
+        self.zoom = QSlider(Qt.Orientation.Horizontal)
+
+        self.zoom.setStyleSheet("""
+            QSlider:groove {
+                background: %s;
+                height: 15px;
+                border-radius: 5px;
+            }
+            
+            QSlider:handle {
+                background: %s;
+                width: 20px;
+                border-radius: 5px;
+            }
+        """ % (Color.grape, Color.tinted_white))
+
+        # self.zoom.setDisabled(True)
+
+        self.record_time = QLabel("00:00")
+        self.record_time.setStyleSheet("""
+            QLabel {
+                color: %s;
+                font-family: Montserrat;
+                font-weight: 700;
+                font-size: 20px;
+            }
+        """ % Color.tinted_white)
+
+        self.record_button = IconButton(QIcon("gui/assets/icons/record.png"), "Record", 35)
+        self.record_button.clicked.connect(self.record_event)
+
+        self.layout = QHBoxLayout()
+
+        self.layout.addWidget(self.capture_button)
+        self.layout.addWidget(self.reset_zoom_button)
+        self.layout.addWidget(self.zoom)
+        self.layout.addStretch()
+        self.layout.addWidget(self.record_time)
+        self.layout.addWidget(self.record_button)
+        
+        self.setLayout(self.layout)
+
+    def record_event(self):
+        self.record_button.setToolTip("Stop")
+        self.record_button.setIcon(QIcon("gui/assets/icons/stop.png"))
 
 class VideoThread(QThread):
     change_pixmap_signal = pyqtSignal(ndarray)
