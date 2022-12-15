@@ -4,6 +4,8 @@ from PyQt6.QtCore import Qt
 
 from utils import *
 
+from pathlib import Path
+
 class Menu(QWidget):
     def __init__(self):
         super().__init__()
@@ -34,7 +36,7 @@ class TabButtons(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.quit_button = IconButton(QIcon("gui/assets/icons/quit.png"), "Quit")
+        self.quit_button = IconButton(QIcon(str(Path("gui/assets/icons/quit.png"))), "Quit")
         self.quit_button.clicked.connect(self.quit_event)
 
         self.emergency_stop_button = IconButton(QIcon("gui/assets/icons/emergency-stop.png"), "Emergency stop")#, "#F54242", "#F56A6A")
