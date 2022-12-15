@@ -132,7 +132,7 @@ if __name__ == "__main__":
     # x = QFont("Montserrat")
     # QFont.setHintingPreference(x, QFont.HintingPreference.PreferNoHinting)
 
-    window = MainWindow(0, 1)
+    window = MainWindow(0, 0)
     window.show()
     # window.sethint
 
