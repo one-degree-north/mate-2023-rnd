@@ -153,7 +153,7 @@ class VideoThread(QThread):
         self.port = port
 
     def run(self):
-        cap = cv2.VideoCapture(self.port, cv2.CAP_DSHOW)
+        cap = cv2.VideoCapture(self.port, cv2.CAP_MSMF)
 
         while self.running:
             ret, image = cap.read()
