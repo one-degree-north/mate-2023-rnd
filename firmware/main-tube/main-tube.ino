@@ -14,6 +14,7 @@
 int thrusterPins[] = {5, 6, 9, 10, 11, 12, 13, 0};
 int CAN_ID = 0x32;
 Servo thrusters[8];
+bool serialDebug = false;
 
 typedef struct canInput{
   byte id;
@@ -24,8 +25,6 @@ typedef struct canInput{
 } input_t;
 
 // increasing thruster speed over time (instead of changing PWM instantly)
-
-
 typedef struct Movement{
   float f;
   float s;
@@ -45,7 +44,6 @@ typedef struct PID{
   float targetVal;
   float totalError;
   float pastError;
-  float pastValue;
 } pidc_t;
 
 byte commandValues[8];
@@ -113,7 +111,9 @@ void sensorUpdateLoop(){
   updateClock -= deltaTime;
   if (updateClock <= 0){
     updateClock = BNO_RATE;
-    updateSensorReadings();
+    bno.getEvent(&orientationData, Adafruit_BNO055::VECTOR_EULER);
+    bno.getEvent(&accelData, Adafruit_BNO055::VECTOR_LINEARACCEL);
+    bno.getEvent(&gyroData, Adafruit_BNO055::VECTOR_GYROSCOPE);
     if (pidEnabled){
       allPidLoop();
     }
@@ -156,12 +156,6 @@ void sendSensorData(){
         }
     }
   }
-}
-
-void updateSensorReadings(){
-  bno.getEvent(&orientationData, Adafruit_BNO055::VECTOR_EULER);
-  bno.getEvent(&accelData, Adafruit_BNO055::VECTOR_LINEARACCEL);
-  bno.getEvent(&gyroData, Adafruit_BNO055::VECTOR_GYROSCOPE);
 }
 
 void readCan(int packetLength){
@@ -243,8 +237,6 @@ float getAngleError(float currAngle, float targetAngle){
 
 float pidLoop(float error, pidc_t *pidVals){
   float combined = 0;
-//  pidVals->pastError = (pidVals->targetVal - currVal);
-//  pidVals->pastValue = currVal;
 //  float error = pidVals->targetVal - pidVals->pastValue;
   pidVals->totalError += error*(float)(BNO_RATE)/1000.0;
 //  calc proportional
@@ -259,90 +251,20 @@ float pidLoop(float error, pidc_t *pidVals){
   return combined;
 }
 
-void printPid(pidc_t){
-  
-}
-
-//NEED TO CHECK IF THIS WORKS WELL, I DON'T THINK IT WILL (average may screw things up)
-void parseManualMoveCommand(float f, float s, float u, float p, float r, float y){
-  float frontSideTotal = abs(f) + abs(s) + abs(y);
-  float upTotal = abs(u) + abs(p) + abs(r);
-//  thruster totals used to average movement
-  int thrusterVals[8];
-  thrusterVals[0] = (int)floor(f - s - y);
-  thrusterVals[1] = (int)floor(f + s + y);
-  thrusterVals[2] = (int)floor(f - s + y);
-  thrusterVals[3] = (int)floor(f + s - y);
-
-  thrusterVals[4] = (int)floor(u + p - r);
-  thrusterVals[5] = (int)floor(u + p + r);
-  thrusterVals[6] = (int)floor(u - p + r);
-  thrusterVals[7] = (int)floor(u - p - r);
-  int maxVal = 0;
-  for (int i = 0; i < 8; i++){
-    int currVal = abs(thrusterVals[i]);
-    if (currVal > maxVal){
-      maxVal = currVal;
-    }
-  }
-  // adjusting for ratio when over 100, todo
-  if (maxVal > 100){
-    for (int i = 0; i < 8; i++){
-      thrusterVals[i] = (int)floor((float)thrusterVals[i]/maxVal)*100;
-    }
-  }
-  moveAllThrusters(thrusterVals);
-}
-
-void moveAllThrusters(int* thrusterVals){
-//  thrusterVals between -100 and 100
-  for (int i = 0; i < 8; i++){
-    Serial.print(i);
-    Serial.print(": ");
-    Serial.print(thrusterVals[i]);
-    Serial.print(" ");
-    Serial.println((int)(1500.0 + 5.0*(float)thrusterVals[i]));
-    thrusters[i].writeMicroseconds((int)(1500.0 + 5.0*(float)thrusterVals[i]));
-  }
-}
-
-void parseManualMoveCommand(int f, int s, int u, int p, int r, int y){
-  Serial.println("WTFFFF");
-//  forward, side, up, pitch, roll, yaw
-//arguments are between 0 and 200 (turn into -100 - 100)
-//  forward -= 100;
-//  side -= 100;
-//  up -= 100;
-//  pitch -= 100;
-//  roll -= 100;
-//  yaw -= 100;
-//
-  int frontSideTotal = abs(f) + abs(s) + abs(y);
-  int upTotal = abs(u) + abs(p) + abs(r);
-//  thruster totals used to average movement
-  int thrusterVals[8];
-  thrusterVals[0] = f - s -y;
-  thrusterVals[1] = f + s + y;
-  thrusterVals[2] = f - s + y;
-  thrusterVals[3] = f + s - y;
-
-  thrusterVals[4] = u + p - r;
-  thrusterVals[5] = u + p + r;
-  thrusterVals[6] = u - p + r;
-  thrusterVals[7] = u - p - r;
-
-  for (int i = 0; i < 4; i++){
-    Serial.println(frontSideTotal);
-    Serial.println(thrusterVals[i]);
-    thrusterVals[i] /= frontSideTotal;
-    Serial.println(thrusterVals[i]);
-    Serial.println("---");
-    thrusterVals[4+i] /= upTotal;
-  }
-  moveAllThrusters(thrusterVals);
+void printPid(pidc_t pidVal, float error, float currValue){
+  Serial.println("x - orientation");
+  Serial.print("target: "); Serial.print(pidVal.targetVal); Serial.print(" | "); Serial.print("current: "); Serial.print(currValue); Serial.print(" | ");
+  Serial.print(" error: "); Serial.print(error); Serial.print(" | "); Serial.print("total error: "); Serial.println(pidVal.totalError);
 }
 
 void moveThrusters(move_t tMov){
+  if (serialDebug){
+    Serial.println("----- current thruster target -----")
+    Serial.print("forward: "); Serial.print(tMov.f); Serial.print(" | "); Serial.print("side: "); Serial.print(tMov.s) + Serial.print(" | ");
+    Serial.print("up: "); Serial.print(tMov.u); Serial.print(" | "); Serial.print("roll: "); Serial.println(tMov.r); 
+    Serial.print("pitch: "); Serial.print(tMov.p); Serial.print(" | "); Serial.print(" yaw: "); Serial.println(tMov.y);
+  }
+
   float thrusterVals[8];
   thrusterVals[0] = tMov.f - tMov.s - tMov.y;
   thrusterVals[1] = tMov.f + tMov.s + tMov.y;
@@ -403,6 +325,7 @@ void moveThrust(){
   }
   moveThrusters(pMov);
   // all increase independently
+
   // for (int i = 0; i < 8; i++){
   //   float currT = ((float*)&tMov)[i];
   //   float currP = ((float*)&pMov)[i];
