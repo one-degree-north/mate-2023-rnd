@@ -184,16 +184,40 @@ void readCan(int packetLength){
     }
 //    commandPayload = ((input_t*)commandValues)[0];
     switch (command){
-      case 0x09:  // set settings
+      case 0x01:  // set settings ()
       break;
-      case 0x0A:  // set x acceleration
+      case 0x02:  
+      break;
+      case 0x0A:  // set front acceleration
         pidF.targetVal = ((float*)commandValues)[0];
       break;
-      case 0x0B:  // set y acceleration
+      case 0x0B:  // set side acceleration
         pidS.targetVal = ((float*)commandValues)[0];
       break;
-      case 0x0C:  // set z acceleration
+      case 0x0C:  // set up acceleration
         pidU.targetVal = ((float*)commandValues)[0];
+      break;
+      case 0x0D:  // set roll acceleration
+        pidR.targetVal = ((float*)commandValues)[0];
+      break;
+      case 0x0E:  // set pitch acceleration
+        pidP.targetVal = ((float*)commandValues)[0];
+      break;
+      case 0x0F:  // set yaw acceleration
+        pidY.targetVal = ((float*)commandValues)[0];
+      break;
+      case 0x10:  // set front percent (manual)
+
+      break;
+      case 0x11:  // set side percent (manual)
+      break;
+      case 0x12:  // set up percent (manual)
+      break;
+      case 0x13:  // set roll percent (manual)
+      break;
+      case 0x14:  // set pitch percent (manual)
+      break;
+      case 0x15:  // set yaw percent (manual)
       break;
     }
 //  }
