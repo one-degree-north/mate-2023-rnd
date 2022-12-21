@@ -3,28 +3,23 @@ Note: I'm not too sure if this is appropriate, but I am currently using canbus I
 CAN bus packet ID: 11 bits
 CAN bus packet max size: 8 bytes
 Low ID numbers have a higher priority (PROBABLY INCORPORATE THIS!!!, REDUCE PRIORITY OF RETURN DATA?)
-### CANBUS packet ID (11 bits):
+## CANBUS packet ID (11 bits):
 (numbers are inclusive with both bottom and upper)
 
-## Bits:
-### 0-1: sending device
-### 2-3: receiving device
-### 4-10: command (or data type in sending data, see list of commands below)
+### Bits:
+0-1: sending device
+2-3: receiving device
+4-10: command (or data type in sending data, see list of commands below)
 
-## Devices:
-### 00: main-tube
-### 01: right arm
-### 10: left arm
-### 11: onshore device
+### Devices:
+00: main-tube
+01: right arm
+10: left arm
+11: onshore device
 
 
 ### Command format:
-# Sending data (ROV -> onshore)
-(in bytes (max 8 bytes))
-# 0-3: data value (all values floats)
-
-# Acting on command (onshore -> ROV)
-Depends on command
+## Sending data (ROV -> onshore)
 
 ### Commands for control station (return data)
 Value in packet will be a single float
@@ -37,7 +32,7 @@ Command bits 5-6: specifies the axis (eg. front, side, up). The value in axis wi
 | acceleration data | 0x03 | x, y, z | float, accel |
 | settings | 0x04 | none (default 00) | int, sensor send rate (in 10s of ms) | bool, pid enabled |
 
-
+## Acting on command (onshore -> ROV)
 ### Commands for main tube
 NOTE: Writing NO PID commands will disable using PID and instead switch to regular thrust (all existing PID targets will be set to 0)
 | command description | command id | byte values |
