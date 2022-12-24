@@ -51,6 +51,7 @@ public class NetworkTest : MonoBehaviour
         }
         if (sock.Poll(10, SelectMode.SelectWrite)){
             if (connected && writeQueue.Count > 0){
+                Debug.Log("sending...");
                 sock.SendTo(writeQueue.Dequeue(), userEndPoint);
             }
             if (!connected && (currConnectDelay < 0)){

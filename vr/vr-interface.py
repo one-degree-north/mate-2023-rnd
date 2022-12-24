@@ -9,7 +9,6 @@ class UnityCommProtocol:
         self.transport = transport
     
     def datagram_received(self, data, addr):
-        print("data received")
         if not self.unity_comms.connected_event.is_set():
             print("now connected")
             self.unity_comms.connected_event.set()
@@ -80,10 +79,13 @@ class UnityComms:
 
     def decipher_input(self, input_bytes):
         match input_bytes[0]:
-            case 0x1b:  # headset thing
-                pass
-            case 0x3a:  # headset rotation
-                print(input_bytes[1:])
+            case 0x02:  # headset position
+                print("position: " + str(struct.unpack("@cfff", input_bytes)))
+            case 0x03:  # headset rotation
+                print("rotation: " + str(struct.unpack("@cfff", input_bytes)))
+            case 0x04:
+                print("rotation (quat): ")
+            
 
 def read_thread(in_queue, vr_comms):
     while True:
