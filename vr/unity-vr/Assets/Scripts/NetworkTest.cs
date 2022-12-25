@@ -9,6 +9,7 @@ using System;
 public class NetworkTest : MonoBehaviour
 {
     // Start is called before the first frame update
+    public RenderManager renderManager;
     Socket sock = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
     // UdpClient 
     IPEndPoint vrEndPoint;
@@ -79,7 +80,8 @@ public class NetworkTest : MonoBehaviour
 
             break;
             case 0x02:  // change vr picture
-            
+                Debug.Log("changing view");
+                renderManager.updateView();
             break;
             case 0x03:  // haptic feedback
                 
