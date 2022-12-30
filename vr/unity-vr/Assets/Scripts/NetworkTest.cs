@@ -81,7 +81,9 @@ public class NetworkTest : MonoBehaviour
             break;
             case 0x02:  // change vr picture
                 Debug.Log("changing view");
-                renderManager.updateView();
+                renderManager.updateView(System.BitConverter.ToSingle(input, 1)
+                , System.BitConverter.ToSingle(input, 5),
+                System.BitConverter.ToSingle(input, 9));
             break;
             case 0x03:  // haptic feedback
                 

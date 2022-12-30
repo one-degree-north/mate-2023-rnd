@@ -7,6 +7,7 @@ public class RenderManager : MonoBehaviour
     public RenderTexture background;
     public Renderer render;
     public Texture2D texture;
+    public GameObject view;
     int pixelNum;
     int currPhotoNum = 0;
     void Start()
@@ -50,7 +51,8 @@ public class RenderManager : MonoBehaviour
         RenderTexture.active = null;
     }
     // just writing to the given file with python cv2
-    public void updateView(){
+    public void updateView(float x, float y, float z){
+        view.transform.localEulerAngles = new Vector3(x, y, z);
         texture.SetPixels(Resources.Load<Texture2D>("viewImage").GetPixels());
         texture.Apply();
     }

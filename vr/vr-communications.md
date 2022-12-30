@@ -21,7 +21,7 @@ When number ranges are given, both numbers are inclusive!
 | --- | --- | --- | --- | --- |
 | ask to establish connection | 0x01 |
 | close connection | 0x10 | 
-| headset position| 0x02 |
+| headset position| 0x02 | float, x rotation | float, y rotation | float, z rotation |
 | headset rotation (degrees) | 0x03 |
 | headset rotation (quaternions) | 0x04 |
 | send all data (when not set to only send on data change) |
@@ -37,3 +37,5 @@ Goals:/
 ### Packet Format:
 | Data type | byte 0 | bytes 1-4 | bytes 5-8 | bytes 9-12 |
 | --- | --- | --- | --- | --- |
+| confirm connection | 0x01
+| update view | 0x02 | float, x rotation | float, y rotation | float, z rotation |

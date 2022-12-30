@@ -1,4 +1,4 @@
-import socket, queue, threading, select, asyncio, struct
+import socket, queue, threading, select, asyncio, struct, cv2
 
 class UnityCommProtocol:
     def __init__(self, unity_comms):
@@ -14,7 +14,7 @@ class UnityCommProtocol:
             self.unity_comms.connected_event.set()
             self.unity_comms.connected = True
             self.unity_comms.vr_addr = addr
-            self.transport.sendto("why".encode("ascii"), self.unity_comms.vr_addr)
+            self.transport.sendto(0x01, self.unity_comms.vr_addr)
         self.unity_comms.out_queue.put(data)
         print("data received: " + str(data))
 
@@ -68,9 +68,14 @@ class UnityComms:
         else:
             return False
 
+    def update_image(self):
+        self.write(bytearray(struct.pack("=cfff", [0x02, 0, 0, 0])))
+
     def read(self): # probably can make a better version of this
-        input_bytes = bytearray(self.out_queue.get())
-        self.decipher_input(input_bytes)
+        while True:
+            if not self.out_queue.empty:
+                input_bytes = bytearray(self.out_queue.get())
+                self.decipher_input(input_bytes)
         # print(out_queue.qsize())
         # read_future = asyncio.run_coroutine_threadsafe(out_queue.get(), self.loop)
         # while not read_future.done():
@@ -85,24 +90,30 @@ class UnityComms:
                 print("rotation: " + str(struct.unpack("@cfff", input_bytes)))
             case 0x04:
                 print("rotation (quat): ")
-            
 
-def read_thread(in_queue, vr_comms):
+    def read_thread(self):
+        while True:
+            data = input("> ")
+            if data == "read":
+                receive = vr_comms.read()
+                print(receive)
+            else:
+            # asyncio.run_coroutine_threadsafe(in_queue.put(data.encode("ascii")), vr_comms.loop)
+                vr_comms.write(data.encode("ascii"))
+
+def test_camera(unity_comms):
+    vid = cv2.VideoCapture(0)
     while True:
-        data = input("> ")
-        if data == "read":
-            receive = vr_comms.read()
-            print(receive)
-        else:
-        # asyncio.run_coroutine_threadsafe(in_queue.put(data.encode("ascii")), vr_comms.loop)
-            vr_comms.write(data.encode("ascii"))
-
+        ret, frame = vid.read()
+        vid.imwrite("C:\Users\sd6tu\Documents\mate-2023-rnd\vr\unity-vr\Assets\Resources\viewImage.png", frame)
+        unity_comms.update_image()
 
 in_queue = asyncio.Queue()
 # out_queue = asyncio.Queue()
 out_queue = queue.Queue()
-
 vr_comms = UnityComms(in_queue=in_queue, out_queue=out_queue)
-a_thread = threading.Thread(target=read_thread, args=[in_queue, vr_comms], daemon=True)
+vid_thread = threading.Thread(target=test_camera, args=[vr_comms], daemon=True)
+a_thread = threading.Thread(target=vr_comms.read_thread, args=[in_queue, vr_comms], daemon=True)
 a_thread.start()
 vr_comms.start_connection()
+vid_thread.start()
