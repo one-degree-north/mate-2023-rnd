@@ -78,6 +78,8 @@ public class InputManager : MonoBehaviour
             // for (int i = 0; i < 13; i++){
             //     Debug.Log(output[i]);
             // }
+            Debug.Log(BitConverter.ToString(output).Replace("-",""));
+            Debug.Log(currRotation.ToString());
             networkTest.writeQueue.Enqueue(output);
             // Debug.Log(headTransform.localEulerAngles);
         }
@@ -97,6 +99,8 @@ public class InputManager : MonoBehaviour
             // for (int i = 0; i < 13; i++){
             //     Debug.Log(output[i]);
             // }
+            Debug.Log(BitConverter.ToString(output).Replace("-",""));
+            Debug.Log(currPosition.ToString());
             networkTest.writeQueue.Enqueue(output);
             // Debug.Log(currPosition);
         }

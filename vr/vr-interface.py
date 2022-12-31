@@ -1,4 +1,5 @@
 import socket, queue, threading, select, asyncio, struct, cv2
+from time import sleep
 
 class UnityCommProtocol:
     def __init__(self, unity_comms):
@@ -14,9 +15,12 @@ class UnityCommProtocol:
             self.unity_comms.connected_event.set()
             self.unity_comms.connected = True
             self.unity_comms.vr_addr = addr
-            self.transport.sendto(0x01, self.unity_comms.vr_addr)
+            self.transport.sendto((0x01).to_bytes(1, byteorder="big"), self.unity_comms.vr_addr)
         self.unity_comms.out_queue.put(data)
-        print("data received: " + str(data))
+        # print(len(data))
+        # print("data received: " + str(data))
+        # print((data.hex()).upper())
+        self.unity_comms.decipher_input(data)
 
     def error_received(self, exc):
         print("error: " + str(exc))
@@ -30,7 +34,7 @@ class UnityCommProtocol:
     
 
 class UnityComms:
-    def __init__(self, in_queue, out_queue):
+    def __init__(self, in_queue, out_queue, on_rotation=[], on_position=[]):  # on_rotation, on_position..., arrays of functions to be called when the values change
         self.addr = ("127.0.0.1", 8008)
         self.connected_event = asyncio.Event()
         self.connected = False
@@ -43,6 +47,10 @@ class UnityComms:
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.bind(self.addr)
         self.transport = None
+        
+        # headset data!
+        self.hset_rotation = [0, 0, 0]
+        self.hset_position = [0, 0, 0]
 
     def start_connection(self):
         asyncio.run(self.create_connection())
@@ -62,14 +70,20 @@ class UnityComms:
     def write(self, data):  # returns true if connected and written, false if not connected
         # asyncio.run_coroutine_threadsafe(in_queue.put(data), self.loop)
         if self.connected:
-            print("trying to write")
+            print(data.hex().upper())
+            # print("trying to write")
             self.transport.sendto(data, self.vr_addr)
             return True
         else:
             return False
 
-    def update_image(self):
-        self.write(bytearray(struct.pack("=cfff", [0x02, 0, 0, 0])))
+    def update_image(self, image=None, rotation=None): # update image by updating viewImage if image is None
+        # print("udating image")
+        if rotation == None:
+            rotation = self.hset_rotation
+        if image == None:
+            print(rotation)
+            self.write(struct.pack("=cfff", (0x02).to_bytes(1, byteorder="big"), rotation[0], rotation[1], rotation[2]))
 
     def read(self): # probably can make a better version of this
         while True:
@@ -84,10 +98,14 @@ class UnityComms:
 
     def decipher_input(self, input_bytes):
         match input_bytes[0]:
+            case 0x01: #ask to establish connection
+                self.write((0x01).to_bytes(1, byteorder="big"))
             case 0x02:  # headset position
-                print("position: " + str(struct.unpack("@cfff", input_bytes)))
+                # print("position: " + str(struct.unpack("=cfff", input_bytes)))
+                self.hset_position = struct.unpack("=fff", input_bytes[1:])
             case 0x03:  # headset rotation
-                print("rotation: " + str(struct.unpack("@cfff", input_bytes)))
+                # print("rotation: " + str(struct.unpack("=cfff", input_bytes)))
+                self.hset_rotation = struct.unpack("=fff", input_bytes[1:])
             case 0x04:
                 print("rotation (quat): ")
 
@@ -102,18 +120,23 @@ class UnityComms:
                 vr_comms.write(data.encode("ascii"))
 
 def test_camera(unity_comms):
-    vid = cv2.VideoCapture(0)
+    print("AAAAAA")
+    # vid = cv2.VideoCapture(0)
+    im = cv2.imread(r'C:\Users\gold_\Downloads\Python-logo-notext.png')
     while True:
-        ret, frame = vid.read()
-        vid.imwrite("C:\Users\sd6tu\Documents\mate-2023-rnd\vr\unity-vr\Assets\Resources\viewImage.png", frame)
+        # ret, frame = vid.read()
+        sleep(0.01)
+        # cv2.imwrite(r'C:\Users\sd6tu\Documents\mate-2023-rnd\vr\unity-vr\Assets\Resources\viewImage.png', im)
         unity_comms.update_image()
 
-in_queue = asyncio.Queue()
-# out_queue = asyncio.Queue()
-out_queue = queue.Queue()
-vr_comms = UnityComms(in_queue=in_queue, out_queue=out_queue)
-vid_thread = threading.Thread(target=test_camera, args=[vr_comms], daemon=True)
-a_thread = threading.Thread(target=vr_comms.read_thread, args=[in_queue, vr_comms], daemon=True)
-a_thread.start()
-vr_comms.start_connection()
-vid_thread.start()
+if __name__ == "__main__":
+    in_queue = asyncio.Queue()
+    # out_queue = asyncio.Queue()
+    out_queue = queue.Queue()
+    vr_comms = UnityComms(in_queue=in_queue, out_queue=out_queue)
+    vid_thread = threading.Thread(target=test_camera, args=[vr_comms], daemon=True)
+    # a_thread = threading.Thread(target=vr_comms.read_thread, args=[in_queue, vr_comms], daemon=True)
+    # a_thread.start()
+    vid_thread.start()
+    vr_comms.start_connection()
+    # vid_thread.start()

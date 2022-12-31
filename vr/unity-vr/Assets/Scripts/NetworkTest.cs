@@ -48,7 +48,8 @@ public class NetworkTest : MonoBehaviour
             Debug.Log("recv");
             byte[] readBuff = new byte[10000];
             sock.Receive(readBuff);
-            readQueue.Enqueue(readBuff);
+            // readQueue.Enqueue(readBuff);
+            decipherOutput(readBuff);
         }
         if (sock.Poll(10, SelectMode.SelectWrite)){
             if (connected && writeQueue.Count > 0){
@@ -57,7 +58,9 @@ public class NetworkTest : MonoBehaviour
             }
             if (!connected && (currConnectDelay < 0)){
                 Debug.Log("...");
-                sock.SendTo(Encoding.ASCII.GetBytes("test connection"), userEndPoint);
+                // sock.SendTo(Encoding.ASCII.GetBytes("test connection"), userEndPoint);
+                byte[] output = {0x01};
+                sock.SendTo(output, userEndPoint);
                 currConnectDelay = connectDelayMs;
             }
             else if (!connected){
@@ -75,12 +78,14 @@ public class NetworkTest : MonoBehaviour
     public void decipherOutput(byte[] input){
         byte command = input[0];
         ArraySegment<byte> payload = new ArraySegment<byte>(input, 1, input.Length-1);
+        Debug.Log(command);
         switch(command){
             case 0x01:  // change config
 
             break;
             case 0x02:  // change vr picture
                 Debug.Log("changing view");
+                Debug.Log(BitConverter.ToString(input).Replace("-",""));
                 renderManager.updateView(System.BitConverter.ToSingle(input, 1)
                 , System.BitConverter.ToSingle(input, 5),
                 System.BitConverter.ToSingle(input, 9));

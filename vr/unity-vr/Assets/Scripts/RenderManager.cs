@@ -1,11 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class RenderManager : MonoBehaviour
 {
     public RenderTexture background;
-    public Renderer render;
+    public Image render;
     public Texture2D texture;
     public GameObject view;
     int pixelNum;
@@ -52,9 +53,12 @@ public class RenderManager : MonoBehaviour
     }
     // just writing to the given file with python cv2
     public void updateView(float x, float y, float z){
+        Debug.Log(x);
+        Debug.Log(y);
+        Debug.Log(z);
         view.transform.localEulerAngles = new Vector3(x, y, z);
-        texture.SetPixels(Resources.Load<Texture2D>("viewImage").GetPixels());
-        texture.Apply();
+        // texture.SetPixels(Resources.Load<Texture2D>("ViewImage.png").GetPixels());
+        // texture.Apply() ;
     }
 
     public void parseUpdateImagePacket(byte[] input){
