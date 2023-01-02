@@ -1,81 +1,145 @@
-import socket, queue, threading, select, asyncio, struct, cv2
+import socket, queue, threading, select, asyncio, struct, cv2, mmap, threading
 from time import sleep
 
-class UnityCommProtocol:
-    def __init__(self, unity_comms):
-        # self.update_vr_addr = update_vr_addr
-        self.unity_comms = unity_comms
+# obtained from https://github.com/benhoyt/namedmutex
+"""Named mutex handling (for Win32)."""
 
-    def connection_made(self, transport):
-        self.transport = transport
-    
-    def datagram_received(self, data, addr):
-        if not self.unity_comms.connected_event.is_set():
-            print("now connected")
-            self.unity_comms.connected_event.set()
-            self.unity_comms.connected = True
-            self.unity_comms.vr_addr = addr
-            self.transport.sendto((0x01).to_bytes(1, byteorder="big"), self.unity_comms.vr_addr)
-        self.unity_comms.out_queue.put(data)
-        # print(len(data))
-        # print("data received: " + str(data))
-        # print((data.hex()).upper())
-        self.unity_comms.decipher_input(data)
+import ctypes
+from ctypes import wintypes
 
-    def error_received(self, exc):
-        print("error: " + str(exc))
-        self.unity_comms.connected_event.clear()
-        self.unity_comms.connected = False
+"""Named mutex handling (for Win32).
+See README.md or https://github.com/benhoyt/namedmutex for a bit more
+documentation.
+This code is released under the new BSD 3-clause license:
+http://opensource.org/licenses/BSD-3-Clause
+"""
+# Create ctypes wrapper for Win32 functions we need, with correct argument/return types
+_CreateMutex = ctypes.windll.kernel32.CreateMutexW
+_CreateMutex.argtypes = [wintypes.LPCVOID, wintypes.BOOL, wintypes.LPCWSTR]
+_CreateMutex.restype = wintypes.HANDLE
 
-    def connection_lost(self, exc):
-        print("connection lost, closed connection")
-        self.unity_comms.connected_event.clear()
-        self.unity_comms.connected = False
-    
+_WaitForSingleObject = ctypes.windll.kernel32.WaitForSingleObject
+_WaitForSingleObject.argtypes = [wintypes.HANDLE, wintypes.DWORD]
+_WaitForSingleObject.restype = wintypes.DWORD
+
+_ReleaseMutex = ctypes.windll.kernel32.ReleaseMutex
+_ReleaseMutex.argtypes = [wintypes.HANDLE]
+_ReleaseMutex.restype = wintypes.BOOL
+
+_CloseHandle = ctypes.windll.kernel32.CloseHandle
+_CloseHandle.argtypes = [wintypes.HANDLE]
+_CloseHandle.restype = wintypes.BOOL
+
+class NamedMutex(object):
+    """A named, system-wide mutex that can be acquired and released."""
+
+    def __init__(self, name, acquired=False):
+        """Create named mutex with given name, also acquiring mutex if acquired is True.
+        Mutex names are case sensitive, and a filename (with backslashes in it) is not a
+        valid mutex name. Raises WindowsError on error.
+        
+        """
+        self.name = name
+        self.acquired = acquired
+        ret = _CreateMutex(None, False, name)
+        if not ret:
+            raise ctypes.WinError()
+        self.handle = ret
+        if acquired:
+            self.acquire()
+
+    def acquire(self, timeout=None):
+        """Acquire ownership of the mutex, returning True if acquired. If a timeout
+        is specified, it will wait a maximum of timeout seconds to acquire the mutex,
+        returning True if acquired, False on timeout. Raises WindowsError on error.
+        
+        """
+        if timeout is None:
+            # Wait forever (INFINITE)
+            timeout = 0xFFFFFFFF
+        else:
+            timeout = int(round(timeout * 1000))
+        ret = _WaitForSingleObject(self.handle, timeout)
+        if ret in (0, 0x80):
+            # Note that this doesn't distinguish between normally acquired (0) and
+            # acquired due to another owning process terminating without releasing (0x80)
+            self.acquired = True
+            return True
+        elif ret == 0x102:
+            # Timeout
+            self.acquired = False
+            return False
+        else:
+            # Waiting failed
+            raise ctypes.WinError()
+
+    def release(self):
+        """Relase an acquired mutex. Raises WindowsError on error."""
+        ret = _ReleaseMutex(self.handle)
+        if not ret:
+            raise ctypes.WinError()
+        self.acquired = False
+
+    def close(self):
+        """Close the mutex and release the handle."""
+        if self.handle is None:
+            # Already closed
+            return
+        ret = _CloseHandle(self.handle)
+        if not ret:
+            raise ctypes.WinError()
+        self.handle = None
+
+    __del__ = close
+
+    def __repr__(self):
+        """Return the Python representation of this mutex."""
+        return '{0}({1!r}, acquired={2})'.format(
+                self.__class__.__name__, self.name, self.acquired)
+
+    __str__ = __repr__
+
+    # Make it a context manager so it can be used with the "with" statement
+    def __enter__(self):
+        self.acquire()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.release()
 
 class UnityComms:
-    def __init__(self, in_queue, out_queue, on_rotation=[], on_position=[]):  # on_rotation, on_position..., arrays of functions to be called when the values change
-        self.addr = ("127.0.0.1", 8008)
-        self.connected_event = asyncio.Event()
-        self.connected = False
-        self.quit_reading = asyncio.Event()
-        self.vr_addr = ()
-        # self.out_queue = asyncio.Queue()  # not compatable with asyncio!
-        # self.in_queue = asyncio.Queue()
+    def __init__(self, in_queue=None, out_queue=None, on_rotation=[], on_position=[]):  # on_rotation, on_position..., arrays of functions to be called when the values change
+        self.to_unity_mem = mmap.mmap(0, 3, "toUnity", mmap.ACCESS_DEFAULT)
+        self.from_unity_mem = mmap.mmap(0, 13, "toPython1", mmap.ACCESS_DEFAULT)
+        self.to_unity_mutex = NamedMutex("toUnityMut")
+        self.from_unity_mutex = NamedMutex("toPythonMut1")
+
         self.in_queue = in_queue
         self.out_queue = out_queue
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.sock.bind(self.addr)
-        self.transport = None
-        
         # headset data!
         self.hset_rotation = [0, 0, 0]
         self.hset_position = [0, 0, 0]
+        #start read and write threads
 
-    def start_connection(self):
-        asyncio.run(self.create_connection())
 
-    async def create_connection(self):
-        self.loop = asyncio.get_running_loop()
-        print("creating connection")
-        self.transport, protocol = await self.loop.create_datagram_endpoint(lambda: UnityCommProtocol(self), sock=self.sock)
-        await self.quit_reading.wait()
-        # while True: #read looop
-        #     await self.connected_event.wait()
-        #     data = await self.in_queue.get()
-        #     # print(self.in_queue.qsize())
-        #     # add a disconnect command
-        #     transport.sendto(data, self.vr_addr)
+        # self.read_thread = threading.Thread(target=self.read_loop, daemon=True)
+        # self.read_thread.start()
+        print(bytes(self.from_unity_mem).hex())
+        self.read_loop()
+        # while True:
+        #     print(bytes(self.from_unity_mem).hex())
+        #     print(struct.unpack("=fff", self.from_unity_mem[1:13]))
+        #     sleep(0.1)
 
-    def write(self, data):  # returns true if connected and written, false if not connected
+        # self.write_thread = threading.Thread(target=self.write, daemon=True)
+
+    def write(self, data, position):  # returns true if connected and written, false if not connected
+        # maybe use queue instead
         # asyncio.run_coroutine_threadsafe(in_queue.put(data), self.loop)
-        if self.connected:
-            print(data.hex().upper())
-            # print("trying to write")
-            self.transport.sendto(data, self.vr_addr)
-            return True
-        else:
-            return False
+        self.to_unity_mutex.acquire()
+        self.to_unity_mem[0] = 1
+        self.to_unity_mem[position:] = data # make sure data does not go out of bounds!
+        self.to_unity_mutex.release()
 
     def update_image(self, image=None, rotation=None): # update image by updating viewImage if image is None
         # print("udating image")
@@ -85,39 +149,27 @@ class UnityComms:
             print(rotation)
             self.write(struct.pack("=cfff", (0x02).to_bytes(1, byteorder="big"), rotation[0], rotation[1], rotation[2]))
 
-    def read(self): # probably can make a better version of this
+    def read_loop(self):
         while True:
-            if not self.out_queue.empty:
-                input_bytes = bytearray(self.out_queue.get())
-                self.decipher_input(input_bytes)
-        # print(out_queue.qsize())
-        # read_future = asyncio.run_coroutine_threadsafe(out_queue.get(), self.loop)
-        # while not read_future.done():
-        #     print(read_future.done())
-        # return read_future.result()
-
-    def decipher_input(self, input_bytes):
-        match input_bytes[0]:
-            case 0x01: #ask to establish connection
-                self.write((0x01).to_bytes(1, byteorder="big"))
-            case 0x02:  # headset position
-                # print("position: " + str(struct.unpack("=cfff", input_bytes)))
-                self.hset_position = struct.unpack("=fff", input_bytes[1:])
-            case 0x03:  # headset rotation
-                # print("rotation: " + str(struct.unpack("=cfff", input_bytes)))
-                self.hset_rotation = struct.unpack("=fff", input_bytes[1:])
-            case 0x04:
-                print("rotation (quat): ")
-
-    def read_thread(self):
-        while True:
-            data = input("> ")
-            if data == "read":
-                receive = vr_comms.read()
-                print(receive)
-            else:
-            # asyncio.run_coroutine_threadsafe(in_queue.put(data.encode("ascii")), vr_comms.loop)
-                vr_comms.write(data.encode("ascii"))
+            self.from_unity_mutex.acquire(1)
+            while self.from_unity_mem[0] != 1:
+                # print("acquired")
+                self.from_unity_mutex.release()
+                sleep(0.01)    # sleep so unity can take lock
+                # print("released")
+                #input to test
+                # q = input(">")
+                # if q == 'q':
+                #     break
+                acquired = self.from_unity_mutex.acquire(1)
+            #     print("acquire: " + str(acquired))
+            # print("reading data!")
+            #read data!
+            self.hset_rotation = struct.unpack("=fff", self.from_unity_mem[1:13])
+            print("rotation: " + str(self.hset_rotation))
+            self.from_unity_mem[0] = 0
+            print(bytes(self.from_unity_mem[0]).hex())
+            self.from_unity_mutex.release()
 
 def test_camera(unity_comms):
     print("AAAAAA")
@@ -130,13 +182,5 @@ def test_camera(unity_comms):
         unity_comms.update_image()
 
 if __name__ == "__main__":
-    in_queue = asyncio.Queue()
-    # out_queue = asyncio.Queue()
-    out_queue = queue.Queue()
-    vr_comms = UnityComms(in_queue=in_queue, out_queue=out_queue)
-    vid_thread = threading.Thread(target=test_camera, args=[vr_comms], daemon=True)
-    # a_thread = threading.Thread(target=vr_comms.read_thread, args=[in_queue, vr_comms], daemon=True)
-    # a_thread.start()
-    vid_thread.start()
-    vr_comms.start_connection()
-    # vid_thread.start()
+
+    comms = UnityComms()
