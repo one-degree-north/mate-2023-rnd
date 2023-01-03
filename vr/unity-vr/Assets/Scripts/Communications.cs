@@ -29,7 +29,12 @@ public class Communications : MonoBehaviour
     //     }
     // }
     public void updateHeadRotation(Vector3 rotation){
-        // toPythonMem.
+        byte[] buffer = new byte[12];
+        Buffer.BlockCopy(BitConverter.GetBytes(rotation.x), 0, buffer, 0, 4);
+        Buffer.BlockCopy(BitConverter.GetBytes(rotation.y), 0, buffer, 4, 4);
+        Buffer.BlockCopy(BitConverter.GetBytes(rotation.z), 0, buffer, 8, 4);
+        Task writeTask = new Task(() => write(1, buffer));
+        writeTask.Start();
     }
     public void updateHeadPosition(Vector3 position){
         byte[] buffer = new byte[12];

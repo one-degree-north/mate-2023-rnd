@@ -133,12 +133,29 @@ class UnityComms:
 
         # self.write_thread = threading.Thread(target=self.write, daemon=True)
 
-    def write(self, data, position):  # returns true if connected and written, false if not connected
+    def update_view(self, image):
+        
+        pass
+
+    def write(self, data, position, length):
         # maybe use queue instead
-        # asyncio.run_coroutine_threadsafe(in_queue.put(data), self.loop)
-        self.to_unity_mutex.acquire()
+        self.to_unity_mutex.acquire(1)
+        #add catch error
+        while self.from_unity_mem[0] != 0:
+            # print("acquired")
+            self.to_unity_mutex.release()
+            sleep(0.01)    # sleep so unity can take lock
+            # print("released")
+            #input to test
+            # q = input(">")
+            # if q == 'q':
+            #     break
+            acquired = self.to_unity_mutex.acquire(1)
+        #     print("acquire: " + str(acquired))
+        print("rotation: " + str(self.hset_rotation))
         self.to_unity_mem[0] = 1
-        self.to_unity_mem[position:] = data # make sure data does not go out of bounds!
+        print(bytes(self.from_unity_mem[0]).hex())
+        self.to_unity_mem[position:position + length] = data # make sure data does not go out of bounds!
         self.to_unity_mutex.release()
 
     def update_image(self, image=None, rotation=None): # update image by updating viewImage if image is None
