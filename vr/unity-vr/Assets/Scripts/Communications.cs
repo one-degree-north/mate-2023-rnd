@@ -18,7 +18,7 @@ public class Communications : MonoBehaviour
     private ConcurrentQueue<WriteInput> writeQueue = new ConcurrentQueue<WriteInput>();
     void Start()
     {
-        toPythonMem = MemoryMappedFile.CreateOrOpen("toPython1", 13);
+        toPythonMem = MemoryMappedFile.CreateOrOpen("toPython1", 14);
         fromPythonMem = MemoryMappedFile.CreateOrOpen("toUnity", 3);
         toPythonMut = new Mutex(false, "toPythonMut1");
         fromPythonMut = new Mutex(false, "toUnityMut");
@@ -39,6 +39,7 @@ public class Communications : MonoBehaviour
         Buffer.BlockCopy(BitConverter.GetBytes(rotation.z), 0, buffer, 8, 4);
         // Task writeTask = new Task(() => write(1, buffer));
         // writeTask.Start();
+        writeQueue.Enqueue(new WriteInput(0x03, buffer));
     }
     public void updateHeadPosition(Vector3 position){
         byte[] buffer = new byte[12];
@@ -47,6 +48,7 @@ public class Communications : MonoBehaviour
         Buffer.BlockCopy(BitConverter.GetBytes(position.z), 0, buffer, 8, 4);
         // Task writeTask = new Task(() => write(1, buffer));
         // writeTask.Start();
+        writeQueue.Enqueue(new WriteInput(0x02, buffer));
     }
     private void readLoop(){
         while (true){
@@ -64,8 +66,8 @@ public class Communications : MonoBehaviour
             toPythonMut.WaitOne();
             // Debug.Log("acquired");
         }
-        Byte one = 1;   // 8^) this is dumb but whatever.
-        memAccess.Write(0, one);
+        // Byte one = 1;   // 8^) this is dumb but whatever.
+        memAccess.Write(0, (Byte) 1);
         // read and interperate values
         // settings
 
@@ -84,38 +86,42 @@ public class Communications : MonoBehaviour
         while (true){
             WriteInput currInput;
             if (writeQueue.TryDequeue(out currInput)){
-                write(currInput.location, currInput.data);
+                write(currInput.command, currInput.data);
             }
         }
     }
-    private void write(uint location, byte[] values){
+    private void write(byte command, byte[] values){
         // Debug.Log("attempting to write");
-        MemoryMappedViewAccessor writeLoc = toPythonMem.CreateViewAccessor(location, values.Length);
-        MemoryMappedViewAccessor readLoc = toPythonMem.CreateViewAccessor(0, 1);
+        // MemoryMappedViewAccessor writeLoc = toPythonMem.CreateViewAccessor(location, values.Length);
+        // MemoryMappedViewAccessor readLoc = toPythonMem.CreateViewAccessor(0, 1);
+        Debug.Log("writing");
+        MemoryMappedViewAccessor memAccess = toPythonMem.CreateViewAccessor(0, 14);
         toPythonMut.WaitOne();
-        // Debug.Log("acquired");
-        while (readLoc.ReadSByte(0) == 1){
+        Debug.Log("acquired");
+        while (memAccess.ReadSByte(0) == 1){
             // Debug.Log(readLoc.ReadSByte(0));
             toPythonMut.ReleaseMutex();
-            // Debug.Log("released");
+            Debug.Log("released");
             Thread.Sleep(1);
             toPythonMut.WaitOne();
-            // Debug.Log("acquired");
+            Debug.Log("acquired");
         }
-        // Debug.Log("writing!");
+        Debug.Log("writing!");
         Byte one = 1;   // 8^)
-        readLoc.Write(0, one);
-        writeLoc.WriteArray<byte>(0, values, 0,  values.Length);
+        memAccess.Write(0, one);
+        memAccess.Write(1, command);
+        Debug.Log(values.Length);
+        memAccess.WriteArray<byte>(2, values, 0,  values.Length);
         // Debug.Log("finished writing");
         toPythonMut.ReleaseMutex();
         // Debug.Log("released");
     }
 }
-class WriteInput{
-    public uint location;
+public class WriteInput{
+    public byte command;
     public byte[] data;
-    public WriteInput(uint location, byte[] data){
-        this.location = location;
+    public WriteInput(byte command, byte[] data){
+        this.command = command;
         this.data = data;
     }
 }

@@ -108,7 +108,7 @@ class NamedMutex(object):
         self.release()
 
 class UnityComms:
-    MAX_WRITE_DATA_LEN = 10
+    MAX_WRITE_DATA_LEN = 12
     # WriteData = collections.namedtuple
     def __init__(self, write_queue=None, out_queue=None, on_rotation=[], on_position=[]):  # on_rotation, on_position..., arrays of functions to be called when the values change
         self.to_unity_mem = mmap.mmap(0, 3, "toUnity", mmap.ACCESS_DEFAULT)
@@ -122,10 +122,11 @@ class UnityComms:
         self.hset_position = [0, 0, 0]
         #start read and write threads
 
-        self.read_thread = threading.Thread(target=self.read_loop, daemon=True)
-        self.read_thread.start()
-        self.write_thread = threading.Thread(target=self.write_loopp, daemon=True)
-        self.write_thread.start()
+        # self.read_thread = threading.Thread(target=self.read_loop, daemon=True)
+        # self.read_thread.start()
+        # self.write_thread = threading.Thread(target=self.write_loop, daemon=True)
+        # self.write_thread.start()
+        self.read_loop()
         print(bytes(self.from_unity_mem).hex())
         # self.read_loop()
         # while True:
@@ -137,6 +138,7 @@ class UnityComms:
 
     #WRITING FUNCTIONS!
     def uppdate_settings(self):
+        # read delay, write delay, 
         pass
 
     def update_view(self, image):
@@ -188,19 +190,17 @@ class UnityComms:
         while True:
             self.from_unity_mutex.acquire(1)
             while self.from_unity_mem[0] != 1:
-                # print("acquired")
                 self.from_unity_mutex.release()
                 sleep(0.01)    # sleep so unity can take lock
-                # print("released")
                 #input to test
                 # q = input(">")
                 # if q == 'q':
                 #     break
                 acquired = self.from_unity_mutex.acquire(1)
-            #     print("acquire: " + str(acquired))
-            # print("reading data!")
+                # print("acquire: " + str(acquired))
             #read data!
             command = self.from_unity_mem[1]
+            print(command)
             match command:
                 case 0x01:  # confirm existance
                     self.confirm_connection()
@@ -208,10 +208,13 @@ class UnityComms:
                     self.close_connection()
                 case 0x02:  # headset position
                     self.hset_position = struct.unpack("=fff", self.from_unity_mem[2:14])
+                    print("position: " + str(self.hset_position))
                 case 0x03:  # headset rotation (euler angles)
                     self.hset_rotation = struct.unpack("=fff", self.from_unity_mem[2:14])
+                    print("rotation: " + str(self.hset_rotation))
                 case 0x04:  # headset rotation (quaternions)
-                    pass
+                    self.hset_quat = struct.unpack("=ffff", self.from_unity_mem[2:18])
+                
             self.from_unity_mem[0] = 0  # confirms read
             print(bytes(self.from_unity_mem[0]).hex())
             self.from_unity_mutex.release()
