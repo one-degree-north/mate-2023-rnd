@@ -11,6 +11,8 @@ from utils import Color
 import sys
 import os
 
+# test
+
 class LowerSection(QWidget):
     def __init__(self):
         super().__init__()
