@@ -6,6 +6,7 @@ using System.IO.MemoryMappedFiles;
 using Unity.Jobs;
 using System.Threading.Tasks;
 using System;
+using System.Collections.Concurrent;
 
 public class Communications : MonoBehaviour
 {
@@ -14,6 +15,7 @@ public class Communications : MonoBehaviour
     private MemoryMappedFile fromPythonMem;
     private Mutex toPythonMut;
     private Mutex fromPythonMut;
+    private ConcurrentQueue<WriteInput> writeQueue = new ConcurrentQueue<WriteInput>();
     void Start()
     {
         toPythonMem = MemoryMappedFile.CreateOrOpen("toPython1", 13);
@@ -22,6 +24,8 @@ public class Communications : MonoBehaviour
         fromPythonMut = new Mutex(false, "toUnityMut");
         // Action<uint, byte[], MemoryMappedFile> writeAction = write;
         // Task readTask = new Task(write);
+        Task writeLoopTask = new Task(writeLoop);
+        writeLoopTask.Start();
     }
     // struct WriteJob : IJob{ // Unity Job system apparently solves race conditions? No need to put lock here? (if I have multiple writers)
     //     public void Execute(){
@@ -33,19 +37,55 @@ public class Communications : MonoBehaviour
         Buffer.BlockCopy(BitConverter.GetBytes(rotation.x), 0, buffer, 0, 4);
         Buffer.BlockCopy(BitConverter.GetBytes(rotation.y), 0, buffer, 4, 4);
         Buffer.BlockCopy(BitConverter.GetBytes(rotation.z), 0, buffer, 8, 4);
-        Task writeTask = new Task(() => write(1, buffer));
-        writeTask.Start();
+        // Task writeTask = new Task(() => write(1, buffer));
+        // writeTask.Start();
     }
     public void updateHeadPosition(Vector3 position){
         byte[] buffer = new byte[12];
         Buffer.BlockCopy(BitConverter.GetBytes(position.x), 0, buffer, 0, 4);
         Buffer.BlockCopy(BitConverter.GetBytes(position.y), 0, buffer, 4, 4);
         Buffer.BlockCopy(BitConverter.GetBytes(position.z), 0, buffer, 8, 4);
-        Task writeTask = new Task(() => write(1, buffer));
-        writeTask.Start();
+        // Task writeTask = new Task(() => write(1, buffer));
+        // writeTask.Start();
     }
-    private void read(){
+    private void readLoop(){
         while (true){
+            // try to read
+        // MemoryMappedViewAccessor writeLoc = toPythonMem.CreateViewAccessor(location, values.Length);
+        // MemoryMappedViewAccessor readLoc = toPythonMem.CreateViewAccessor(0, 1);
+        MemoryMappedViewAccessor memAccess = fromPythonMem.CreateViewAccessor(0, 3);
+        toPythonMut.WaitOne();
+        // Debug.Log("acquired");
+        while (memAccess.ReadSByte(0) == 1){
+            // Debug.Log(readLoc.ReadSByte(0));
+            toPythonMut.ReleaseMutex();
+            // Debug.Log("released");
+            Thread.Sleep(1);
+            toPythonMut.WaitOne();
+            // Debug.Log("acquired");
+        }
+        Byte one = 1;   // 8^) this is dumb but whatever.
+        memAccess.Write(0, one);
+        // read and interperate values
+        // settings
+
+
+        // image rotation
+
+
+        // image values
+        
+
+        toPythonMut.ReleaseMutex();
+        // Debug.Log("released");
+        }
+    }
+    private void writeLoop(){
+        while (true){
+            WriteInput currInput;
+            if (writeQueue.TryDequeue(out currInput)){
+                write(currInput.location, currInput.data);
+            }
         }
     }
     private void write(uint location, byte[] values){
@@ -70,10 +110,12 @@ public class Communications : MonoBehaviour
         toPythonMut.ReleaseMutex();
         // Debug.Log("released");
     }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+}
+class WriteInput{
+    public uint location;
+    public byte[] data;
+    public WriteInput(uint location, byte[] data){
+        this.location = location;
+        this.data = data;
     }
 }

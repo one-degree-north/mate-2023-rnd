@@ -1,4 +1,4 @@
-import socket, queue, threading, select, asyncio, struct, cv2, mmap, threading
+import socket, queue, threading, select, asyncio, struct, cv2, mmap, threading, collections
 from time import sleep
 
 # obtained from https://github.com/benhoyt/namedmutex
@@ -108,24 +108,26 @@ class NamedMutex(object):
         self.release()
 
 class UnityComms:
-    def __init__(self, in_queue=None, out_queue=None, on_rotation=[], on_position=[]):  # on_rotation, on_position..., arrays of functions to be called when the values change
+    MAX_WRITE_DATA_LEN = 10
+    # WriteData = collections.namedtuple
+    def __init__(self, write_queue=None, out_queue=None, on_rotation=[], on_position=[]):  # on_rotation, on_position..., arrays of functions to be called when the values change
         self.to_unity_mem = mmap.mmap(0, 3, "toUnity", mmap.ACCESS_DEFAULT)
-        self.from_unity_mem = mmap.mmap(0, 13, "toPython1", mmap.ACCESS_DEFAULT)
+        self.from_unity_mem = mmap.mmap(0, 2+UnityComms.MAX_WRITE_DATA_LEN, "toPython1", mmap.ACCESS_DEFAULT)
         self.to_unity_mutex = NamedMutex("toUnityMut")
         self.from_unity_mutex = NamedMutex("toPythonMut1")
 
-        self.in_queue = in_queue
-        self.out_queue = out_queue
+        self.write_queue = write_queue
         # headset data!
         self.hset_rotation = [0, 0, 0]
         self.hset_position = [0, 0, 0]
         #start read and write threads
 
-
-        # self.read_thread = threading.Thread(target=self.read_loop, daemon=True)
-        # self.read_thread.start()
+        self.read_thread = threading.Thread(target=self.read_loop, daemon=True)
+        self.read_thread.start()
+        self.write_thread = threading.Thread(target=self.write_loopp, daemon=True)
+        self.write_thread.start()
         print(bytes(self.from_unity_mem).hex())
-        self.read_loop()
+        # self.read_loop()
         # while True:
         #     print(bytes(self.from_unity_mem).hex())
         #     print(struct.unpack("=fff", self.from_unity_mem[1:13]))
@@ -133,11 +135,34 @@ class UnityComms:
 
         # self.write_thread = threading.Thread(target=self.write, daemon=True)
 
-    def update_view(self, image):
-        
+    #WRITING FUNCTIONS!
+    def uppdate_settings(self):
         pass
 
-    def write(self, data, position, length):
+    def update_view(self, image):
+        pass
+
+    def confirm_connection(self):
+        self.write_queue.put([0x01, bytearray()])
+
+    def close_connection(self):
+        pass
+
+    def update_image(self, image=None, rotation=None): # update image by updating viewImage if image is None
+        # print("udating image")
+        if rotation == None:
+            rotation = self.hset_rotation
+        if image == None:
+            print(rotation)
+            self.write(struct.pack("=cfff", (0x02).to_bytes(1, byteorder="big"), rotation[0], rotation[1], rotation[2]))
+
+    def write_loop(self):
+        while True:
+            if not self.write_queue.Empty:
+                to_write = queue.get()  # write data is formated as an array (or tuple) with [command, data]
+                self.write(to_write[0], to_write[1])
+
+    def write(self, command, data):
         # maybe use queue instead
         self.to_unity_mutex.acquire(1)
         #add catch error
@@ -152,19 +177,12 @@ class UnityComms:
             #     break
             acquired = self.to_unity_mutex.acquire(1)
         #     print("acquire: " + str(acquired))
-        print("rotation: " + str(self.hset_rotation))
         self.to_unity_mem[0] = 1
+        self.to_unity_mem[1] = command
         print(bytes(self.from_unity_mem[0]).hex())
-        self.to_unity_mem[position:position + length] = data # make sure data does not go out of bounds!
+        # catch when data is greater than maximumm length allowed!
+        self.to_unity_mem[2:2+len(data)] = data # make sure data does not go out of bounds!
         self.to_unity_mutex.release()
-
-    def update_image(self, image=None, rotation=None): # update image by updating viewImage if image is None
-        # print("udating image")
-        if rotation == None:
-            rotation = self.hset_rotation
-        if image == None:
-            print(rotation)
-            self.write(struct.pack("=cfff", (0x02).to_bytes(1, byteorder="big"), rotation[0], rotation[1], rotation[2]))
 
     def read_loop(self):
         while True:
@@ -182,22 +200,23 @@ class UnityComms:
             #     print("acquire: " + str(acquired))
             # print("reading data!")
             #read data!
-            self.hset_rotation = struct.unpack("=fff", self.from_unity_mem[1:13])
-            print("rotation: " + str(self.hset_rotation))
-            self.from_unity_mem[0] = 0
+            command = self.from_unity_mem[1]
+            match command:
+                case 0x01:  # confirm existance
+                    self.confirm_connection()
+                case 0x10:  # close connection
+                    self.close_connection()
+                case 0x02:  # headset position
+                    self.hset_position = struct.unpack("=fff", self.from_unity_mem[2:14])
+                case 0x03:  # headset rotation (euler angles)
+                    self.hset_rotation = struct.unpack("=fff", self.from_unity_mem[2:14])
+                case 0x04:  # headset rotation (quaternions)
+                    pass
+            self.from_unity_mem[0] = 0  # confirms read
             print(bytes(self.from_unity_mem[0]).hex())
             self.from_unity_mutex.release()
 
-def test_camera(unity_comms):
-    print("AAAAAA")
-    # vid = cv2.VideoCapture(0)
-    im = cv2.imread(r'C:\Users\gold_\Downloads\Python-logo-notext.png')
-    while True:
-        # ret, frame = vid.read()
-        sleep(0.01)
-        # cv2.imwrite(r'C:\Users\sd6tu\Documents\mate-2023-rnd\vr\unity-vr\Assets\Resources\viewImage.png', im)
-        unity_comms.update_image()
-
 if __name__ == "__main__":
-
     comms = UnityComms()
+    while True:
+        sleep(0.01)
