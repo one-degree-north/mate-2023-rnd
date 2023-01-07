@@ -19,6 +19,8 @@ namespace Valve.VR
         
         private static SteamVR_Input_ActionSet_RobotInput p_RobotInput;
         
+        private static SteamVR_Input_ActionSet_NewSet p_NewSet;
+        
         public static SteamVR_Input_ActionSet_RobotInput RobotInput
         {
             get
@@ -27,11 +29,21 @@ namespace Valve.VR
             }
         }
         
+        public static SteamVR_Input_ActionSet_NewSet NewSet
+        {
+            get
+            {
+                return SteamVR_Actions.p_NewSet.GetCopy<SteamVR_Input_ActionSet_NewSet>();
+            }
+        }
+        
         private static void StartPreInitActionSets()
         {
             SteamVR_Actions.p_RobotInput = ((SteamVR_Input_ActionSet_RobotInput)(SteamVR_ActionSet.Create<SteamVR_Input_ActionSet_RobotInput>("/actions/RobotInput")));
+            SteamVR_Actions.p_NewSet = ((SteamVR_Input_ActionSet_NewSet)(SteamVR_ActionSet.Create<SteamVR_Input_ActionSet_NewSet>("/actions/NewSet")));
             Valve.VR.SteamVR_Input.actionSets = new Valve.VR.SteamVR_ActionSet[] {
-                    SteamVR_Actions.RobotInput};
+                    SteamVR_Actions.RobotInput,
+                    SteamVR_Actions.NewSet};
         }
     }
 }

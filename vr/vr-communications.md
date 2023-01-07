@@ -25,6 +25,12 @@ When number ranges are given, both numbers are inclusive!
 | headset rotation (degrees) | 0x03 |
 | headset rotation (quaternions) | 0x04 |
 | send all data (when not set to only send on data change) |
+| move front (test!) | 0x20 | float, degree (-1 to 1) |
+| move up (test!) | 0x21 | float, degree (-1 to 1) |
+| move side (test!) | 0x22 | float, degree (-1 to 1) |
+| pitch (test!) | 0x23 | float, degree (-1 to 1) |
+| yaw (test!) | 0x24 | float, degree (-1 to 1) |
+| roll (test!) | 0x25 | float, degree (-1 to 1) |
 
 # Python -> Unity
 Goals:/
@@ -37,5 +43,7 @@ Goals:/
 ### Packet Format:
 | Data type | byte 0 | bytes 1-4 | bytes 5-8 | bytes 9-12 |
 | --- | --- | --- | --- | --- |
-| confirm connection | 0x01
+| confirm connection | 0x01 |
+| close connection | 0x10 |
+| exit (was written to be exit) | 0x11 |
 | update view | 0x02 | float, x rotation | float, y rotation | float, z rotation |

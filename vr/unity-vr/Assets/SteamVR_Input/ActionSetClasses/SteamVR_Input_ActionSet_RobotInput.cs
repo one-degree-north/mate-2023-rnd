@@ -72,5 +72,45 @@ namespace Valve.VR
                 return SteamVR_Actions.robotInput_Head;
             }
         }
+        
+        public virtual SteamVR_Action_Boolean uiButton
+        {
+            get
+            {
+                return SteamVR_Actions.robotInput_uiButton;
+            }
+        }
+        
+        public virtual SteamVR_Action_Pose RHand
+        {
+            get
+            {
+                return SteamVR_Actions.robotInput_RHand;
+            }
+        }
+        
+        public virtual SteamVR_Action_Pose LHand
+        {
+            get
+            {
+                return SteamVR_Actions.robotInput_LHand;
+            }
+        }
+        
+        public virtual SteamVR_Action_Single YawL
+        {
+            get
+            {
+                return SteamVR_Actions.robotInput_YawL;
+            }
+        }
+        
+        public virtual SteamVR_Action_Single YawR
+        {
+            get
+            {
+                return SteamVR_Actions.robotInput_YawR;
+            }
+        }
     }
 }

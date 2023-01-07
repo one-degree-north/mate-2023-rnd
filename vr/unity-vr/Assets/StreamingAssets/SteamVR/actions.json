@@ -33,12 +33,36 @@
       "name": "/actions/RobotInput/in/Head",
       "type": "pose",
       "requirement": "mandatory"
+    },
+    {
+      "name": "/actions/RobotInput/in/uiButton",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/RobotInput/in/RHand",
+      "type": "pose"
+    },
+    {
+      "name": "/actions/RobotInput/in/LHand",
+      "type": "pose"
+    },
+    {
+      "name": "/actions/RobotInput/in/YawL",
+      "type": "vector1"
+    },
+    {
+      "name": "/actions/RobotInput/in/YawR",
+      "type": "vector1"
     }
   ],
   "action_sets": [
     {
       "name": "/actions/RobotInput",
       "usage": "leftright"
+    },
+    {
+      "name": "/actions/NewSet",
+      "usage": "single"
     }
   ],
   "default_bindings": [

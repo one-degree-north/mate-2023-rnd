@@ -31,6 +31,16 @@ namespace Valve.VR
         
         private static SteamVR_Action_Pose p_robotInput_Head;
         
+        private static SteamVR_Action_Boolean p_robotInput_uiButton;
+        
+        private static SteamVR_Action_Pose p_robotInput_RHand;
+        
+        private static SteamVR_Action_Pose p_robotInput_LHand;
+        
+        private static SteamVR_Action_Single p_robotInput_YawL;
+        
+        private static SteamVR_Action_Single p_robotInput_YawR;
+        
         public static SteamVR_Action_Single robotInput_MoveRightClaw
         {
             get
@@ -87,6 +97,46 @@ namespace Valve.VR
             }
         }
         
+        public static SteamVR_Action_Boolean robotInput_uiButton
+        {
+            get
+            {
+                return SteamVR_Actions.p_robotInput_uiButton.GetCopy<SteamVR_Action_Boolean>();
+            }
+        }
+        
+        public static SteamVR_Action_Pose robotInput_RHand
+        {
+            get
+            {
+                return SteamVR_Actions.p_robotInput_RHand.GetCopy<SteamVR_Action_Pose>();
+            }
+        }
+        
+        public static SteamVR_Action_Pose robotInput_LHand
+        {
+            get
+            {
+                return SteamVR_Actions.p_robotInput_LHand.GetCopy<SteamVR_Action_Pose>();
+            }
+        }
+        
+        public static SteamVR_Action_Single robotInput_YawL
+        {
+            get
+            {
+                return SteamVR_Actions.p_robotInput_YawL.GetCopy<SteamVR_Action_Single>();
+            }
+        }
+        
+        public static SteamVR_Action_Single robotInput_YawR
+        {
+            get
+            {
+                return SteamVR_Actions.p_robotInput_YawR.GetCopy<SteamVR_Action_Single>();
+            }
+        }
+        
         private static void InitializeActionArrays()
         {
             Valve.VR.SteamVR_Input.actions = new Valve.VR.SteamVR_Action[] {
@@ -96,7 +146,12 @@ namespace Valve.VR
                     SteamVR_Actions.robotInput_MoveForwardSide,
                     SteamVR_Actions.robotInput_Pitch,
                     SteamVR_Actions.robotInput_Yaw,
-                    SteamVR_Actions.robotInput_Head};
+                    SteamVR_Actions.robotInput_Head,
+                    SteamVR_Actions.robotInput_uiButton,
+                    SteamVR_Actions.robotInput_RHand,
+                    SteamVR_Actions.robotInput_LHand,
+                    SteamVR_Actions.robotInput_YawL,
+                    SteamVR_Actions.robotInput_YawR};
             Valve.VR.SteamVR_Input.actionsIn = new Valve.VR.ISteamVR_Action_In[] {
                     SteamVR_Actions.robotInput_MoveRightClaw,
                     SteamVR_Actions.robotInput_MoveLeftClaw,
@@ -104,17 +159,27 @@ namespace Valve.VR
                     SteamVR_Actions.robotInput_MoveForwardSide,
                     SteamVR_Actions.robotInput_Pitch,
                     SteamVR_Actions.robotInput_Yaw,
-                    SteamVR_Actions.robotInput_Head};
+                    SteamVR_Actions.robotInput_Head,
+                    SteamVR_Actions.robotInput_uiButton,
+                    SteamVR_Actions.robotInput_RHand,
+                    SteamVR_Actions.robotInput_LHand,
+                    SteamVR_Actions.robotInput_YawL,
+                    SteamVR_Actions.robotInput_YawR};
             Valve.VR.SteamVR_Input.actionsOut = new Valve.VR.ISteamVR_Action_Out[0];
             Valve.VR.SteamVR_Input.actionsVibration = new Valve.VR.SteamVR_Action_Vibration[0];
             Valve.VR.SteamVR_Input.actionsPose = new Valve.VR.SteamVR_Action_Pose[] {
-                    SteamVR_Actions.robotInput_Head};
-            Valve.VR.SteamVR_Input.actionsBoolean = new Valve.VR.SteamVR_Action_Boolean[0];
+                    SteamVR_Actions.robotInput_Head,
+                    SteamVR_Actions.robotInput_RHand,
+                    SteamVR_Actions.robotInput_LHand};
+            Valve.VR.SteamVR_Input.actionsBoolean = new Valve.VR.SteamVR_Action_Boolean[] {
+                    SteamVR_Actions.robotInput_uiButton};
             Valve.VR.SteamVR_Input.actionsSingle = new Valve.VR.SteamVR_Action_Single[] {
                     SteamVR_Actions.robotInput_MoveRightClaw,
                     SteamVR_Actions.robotInput_MoveLeftClaw,
                     SteamVR_Actions.robotInput_Pitch,
-                    SteamVR_Actions.robotInput_Yaw};
+                    SteamVR_Actions.robotInput_Yaw,
+                    SteamVR_Actions.robotInput_YawL,
+                    SteamVR_Actions.robotInput_YawR};
             Valve.VR.SteamVR_Input.actionsVector2 = new Valve.VR.SteamVR_Action_Vector2[] {
                     SteamVR_Actions.robotInput_MoveUpRoll,
                     SteamVR_Actions.robotInput_MoveForwardSide};
@@ -126,7 +191,10 @@ namespace Valve.VR
                     SteamVR_Actions.robotInput_MoveUpRoll,
                     SteamVR_Actions.robotInput_MoveForwardSide,
                     SteamVR_Actions.robotInput_Pitch,
-                    SteamVR_Actions.robotInput_Yaw};
+                    SteamVR_Actions.robotInput_Yaw,
+                    SteamVR_Actions.robotInput_uiButton,
+                    SteamVR_Actions.robotInput_YawL,
+                    SteamVR_Actions.robotInput_YawR};
         }
         
         private static void PreInitActions()
@@ -138,6 +206,11 @@ namespace Valve.VR
             SteamVR_Actions.p_robotInput_Pitch = ((SteamVR_Action_Single)(SteamVR_Action.Create<SteamVR_Action_Single>("/actions/RobotInput/in/Pitch")));
             SteamVR_Actions.p_robotInput_Yaw = ((SteamVR_Action_Single)(SteamVR_Action.Create<SteamVR_Action_Single>("/actions/RobotInput/in/Yaw")));
             SteamVR_Actions.p_robotInput_Head = ((SteamVR_Action_Pose)(SteamVR_Action.Create<SteamVR_Action_Pose>("/actions/RobotInput/in/Head")));
+            SteamVR_Actions.p_robotInput_uiButton = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/RobotInput/in/uiButton")));
+            SteamVR_Actions.p_robotInput_RHand = ((SteamVR_Action_Pose)(SteamVR_Action.Create<SteamVR_Action_Pose>("/actions/RobotInput/in/RHand")));
+            SteamVR_Actions.p_robotInput_LHand = ((SteamVR_Action_Pose)(SteamVR_Action.Create<SteamVR_Action_Pose>("/actions/RobotInput/in/LHand")));
+            SteamVR_Actions.p_robotInput_YawL = ((SteamVR_Action_Single)(SteamVR_Action.Create<SteamVR_Action_Single>("/actions/RobotInput/in/YawL")));
+            SteamVR_Actions.p_robotInput_YawR = ((SteamVR_Action_Single)(SteamVR_Action.Create<SteamVR_Action_Single>("/actions/RobotInput/in/YawR")));
         }
     }
 }
