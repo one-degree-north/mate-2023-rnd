@@ -33,10 +33,10 @@ public class InputManager : MonoBehaviour
     private bool[] sendReady = new bool[5]; // for fixed update time. probably a better way to do this
     void Start()
     {
-        moveForwardSide.AddOnChangeListener(sendForwardSide, SteamVR_Input_Sources.Any);
-        yawR.AddOnChangeListener(sendYaw, SteamVR_Input_Sources.Any);
-        yawL.AddOnChangeListener(sendYaw, SteamVR_Input_Sources.Any);
-        moveUpRoll.AddOnChangeListener(sendUpRoll, SteamVR_Input_Sources.Any);
+        // moveForwardSide.AddOnChangeListener(sendForwardSide, SteamVR_Input_Sources.Any);
+        // yawR.AddOnChangeListener(sendYaw, SteamVR_Input_Sources.Any);
+        // yawL.AddOnChangeListener(sendYaw, SteamVR_Input_Sources.Any);
+        // moveUpRoll.AddOnChangeListener(sendUpRoll, SteamVR_Input_Sources.Any);
         // headPos.AddOnChangeListener(SteamVR_Input_Sources.Any, headPosChange);
         // pastRotation = headTransform.localEulerAngles;
     }

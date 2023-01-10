@@ -1,5 +1,6 @@
 import socket, queue, threading, select, asyncio, struct, cv2, mmap, threading, collections
 from time import sleep
+import win32pipe, win32file, pywintypes
 
 # obtained from https://github.com/benhoyt/namedmutex
 """Named mutex handling (for Win32)."""
@@ -237,6 +238,15 @@ class UnityComms:
             self.from_unity_mem[0] = 0  # confirms read
             # print(bytes(self.from_unity_mem[0]).hex())
             self.from_unity_mutex.release()
+
+class UnityCommsPipe:
+    def __init__(self):
+        pipe = win32pipe.CreateNamedPipe(r'\\.\\pipe', win32pipe.PIPE_ACCESS_DUPLEX)
+        win32pipe.ConnectNamedPipe(pipe)
+        win32file.WriteFile(pipe, 'test')
+        
+
+
 
 if __name__ == "__main__":  # simple vr-interface for test driving
     comms = UnityComms()
