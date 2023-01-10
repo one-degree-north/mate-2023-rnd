@@ -26,7 +26,7 @@ class CameraTab(QWidget):
         self.cam_height = 240
 
         self.cam_1 = Camera(self, "Front camera", 0) # settings
-        self.cam_2 = Camera(self, "Down camera", 1) # settings
+        self.cam_2 = Camera(self, "Down camera", 0) # settings
 
         self.layout = QHBoxLayout()
 
@@ -37,8 +37,8 @@ class CameraTab(QWidget):
 
         self.setLayout(self.layout)
 
-    def resizeEvent(self, event):
-        self.cam_width, self.cam_height = self.cam_1.width(), self.cam_1.height()
+    # def resizeEvent(self, event):
+    #     self.cam_width, self.cam_height = self.cam_1.width(), self.cam_1.height()
 
 class Camera(QWidget):
     def __init__(self, parent, name, port):
@@ -155,13 +155,13 @@ class VideoThread(QThread):
     def run(self):
         cap = cv2.VideoCapture(self.port)
 
-        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+        # cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
-        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+        # cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
 
-        cap.set(cv2.CAP_PROP_FOURCC, 0x32595559)
+        # cap.set(cv2.CAP_PROP_FOURCC, 0x32595559)
 
-        cap.set(cv2.CAP_PROP_FPS, 25)
+        # cap.set(cv2.CAP_PROP_FPS, 25)
 
         while self.running:
             ret, image = cap.read()
