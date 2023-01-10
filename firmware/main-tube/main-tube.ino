@@ -9,9 +9,13 @@
 #define SENSOR_RATE 100  // send rate, in 10s of ms
 #define DEVICE_ID 1 //device id for use in canbus
 #define MAXTHRUST 70  // maximum thrust percentage permited
-#define MAXTHRUSTOVERTIME 1 // maximum change in thrust percentage over time permited 
+#define MINTHRUST 5 // minimum thrust percentage for blades to move
+#define MAXTHRUSTOVERTIME 0.001 // maximum change in thrust percentage over time permited
+#define THRUSTWRITEDELAY 4
+int thrustDelay = THRUSTWRITEDELAY;
+int thrustDeltaTime = 0;
 
-int thrusterPins[] = {5, 6, 9, 10, 11, 12, 13, 0};
+int thrusterPins[] = {5, 6, 9, 10, 11, 12, 4, 0};
 int CAN_ID = 0x32;
 Servo thrusters[8];
 bool serialDebug = false;
@@ -61,19 +65,19 @@ int updateClock = BNO_RATE; // BNO update rate (10 ms, changing this changes imu
 int manualSpeeds[6];
 
 //pid stuff
-bool pidEnabled = true;
+bool pidEnabled = false;
 bool gyroEnabled = false;
-pidc_t pidF = {2.2, 3.4, 2.3, 0.1, 0, 0, 0};  // forward
-pidc_t pidS = {2.2, 3.4, 2.3, 0, 0, 0, 0};  // side
-pidc_t pidU = {2.2, 3.4, 2.3, 0, 0, 0, 0};  // up
+pidc_t pidF = {2.2, 3.4, 2.3, 0, 0, 0};  // forward
+pidc_t pidS = {2.2, 3.4, 2.3, 0, 0, 0};  // side
+pidc_t pidU = {2.2, 3.4, 2.3, 0, 0, 0};  // up
 //pid using degree
-pidc_t pidR = {2.2, 3.4, 2.3, 0, 0, 0, 0};  // roll
-pidc_t pidP = {2.2, 3.4, 2.3, 0, 0, 0, 0};  // pitch
-pidc_t pidY = {2.2, 3.4, 2.3, 0, 0, 0, 0};  // yaw
+pidc_t pidR = {2.2, 3.4, 2.3, 0, 0, 0};  // roll
+pidc_t pidP = {2.2, 3.4, 2.3, 0, 0, 0};  // pitch
+pidc_t pidY = {2.2, 3.4, 2.3, 0, 0, 0};  // yaw
 //pid using gyroscope
-pidc_t pidRG = {2.2, 3.4, 2.3, 0, 0, 0, 0};
-pidc_t pidPG = {2.2, 3.4, 2.3, 0, 0, 0, 0};
-pidc_t pidYG = {2.2, 3.4, 2.3, 0, 0, 0, 0};
+pidc_t pidRG = {2.2, 3.4, 2.3, 0, 0, 0};
+pidc_t pidPG = {2.2, 3.4, 2.3, 0, 0, 0};
+pidc_t pidYG = {2.2, 3.4, 2.3, 0, 0, 0};
 
 pidc_t* pidVals[] = {&pidF, &pidS, &pidU, &pidRG, &pidPG, &pidYG, &pidR, &pidP, &pidY};
 
@@ -85,12 +89,14 @@ unsigned long pastTime;
 void setup() {
   for (int i = 0; i < 8; i++){
     thrusters[i].attach(thrusterPins[i]);
+    thrusters[i].writeMicroseconds(1500);
   }
   pastTime = millis();
-  CAN.begin(500000);
+  CAN.begin(250000);
   CAN.onReceive(readCan);
   bno.begin();
   Serial.begin(9600);
+  delay(7500);
 }
 
 void loop() {
@@ -98,12 +104,23 @@ void loop() {
   deltaTime = now - pastTime;
   pastTime = now;
   // control movement
-  sensorUpdateLoop();
+//  sensorUpdateLoop();
   // if (!pidEnabled){
   //   parseManualMoveCommand(manualSpeeds[0], manualSpeeds[1], manualSpeeds[2], manualSpeeds[3], manualSpeeds[4], manualSpeeds[5]);
   // }
   // moveThrusters(tMov);
-  moveThrust();
+//  timer between writing PWM
+  if (thrustDelay < 0){
+//    Serial.print("delta time: ");
+//    Serial.print(thrustDeltaTime);
+    moveThrust();
+    thrustDeltaTime = 0;
+    thrustDelay = THRUSTWRITEDELAY;
+  }
+  else{
+    thrustDeltaTime += deltaTime;
+    thrustDelay -= deltaTime;
+  }
 }
 
 //updates sensor values, updates pid, and sends sensor data
@@ -158,12 +175,28 @@ void sendSensorData(){
   }
 }
 
+void setThrustPercent(){
+  pidEnabled = false;
+  for (int i = 0; i < 8; i++){
+    ((float*)&tMov)[i] = 0;
+    pidVals[i]->targetVal = 0;
+  }
+}
+
+void setPid(){
+  pidEnabled = true;
+  for (int i = 0; i < 8; i++){
+    ((float*)&tMov)[i] = 0;
+    pidVals[i]->targetVal = 0;
+  }
+}
+
 void readCan(int packetLength){
 //  set command values all to 0
   uint16_t idPacket = CAN.packetId();
-  byte device = idPacket>>9;
-  byte destDevice = (idPacket<<2)>>9;
-  byte command = (idPacket<<4)>>4;
+  byte device = idPacket>>8;
+  byte destDevice = (idPacket<<3)>>8;
+  byte command = (idPacket<<6)>>6;
   
   for (int i = 0; i < 8; i++){
     commandValues[i] = 0;
@@ -172,11 +205,11 @@ void readCan(int packetLength){
 //  if (packetLength != 0){
 //    device = commandValues[0] >> 7;
 //    command = (commandValues[0] << 1) >> 7;
-//00: main tube
-//01: claw 1
-//10: claw 2
-//11: main board
-    if (destDevice != 0b00){
+//000: main tube
+//001: claw 1
+//010: claw 2
+//011: main board
+    if (destDevice != 0b000){
       return;
     }
     for (int i = 0; i < packetLength; i++){
@@ -189,35 +222,53 @@ void readCan(int packetLength){
       case 0x02:  
       break;
       case 0x0A:  // set front acceleration
+        setPid();
         pidF.targetVal = ((float*)commandValues)[0];
       break;
       case 0x0B:  // set side acceleration
+        setPid();
         pidS.targetVal = ((float*)commandValues)[0];
       break;
       case 0x0C:  // set up acceleration
+        setPid();
         pidU.targetVal = ((float*)commandValues)[0];
       break;
       case 0x0D:  // set roll acceleration
+        setPid();
         pidR.targetVal = ((float*)commandValues)[0];
       break;
       case 0x0E:  // set pitch acceleration
+        setPid();
         pidP.targetVal = ((float*)commandValues)[0];
       break;
       case 0x0F:  // set yaw acceleration
+        setPid();
         pidY.targetVal = ((float*)commandValues)[0];
       break;
       case 0x10:  // set front percent (manual)
-
+        setThrustPercent();
+        tMov.f = ((float*)commandValues)[0];
       break;
       case 0x11:  // set side percent (manual)
+        setThrustPercent();
+        tMov.s = ((float*)commandValues)[0];
       break;
       case 0x12:  // set up percent (manual)
+        setThrustPercent();
+        tMov.u = ((float*)commandValues)[0];
+        pidEnabled = false;
       break;
       case 0x13:  // set roll percent (manual)
+        setThrustPercent();
+        tMov.r = ((float*)commandValues)[0];
       break;
       case 0x14:  // set pitch percent (manual)
+        setThrustPercent();
+        tMov.p = ((float*)commandValues)[0];
       break;
       case 0x15:  // set yaw percent (manual)
+        setThrustPercent();
+        tMov.y = ((float*)commandValues)[0];
       break;
     }
 //  }
@@ -283,7 +334,7 @@ void printPid(pidc_t pidVal, float error, float currValue){
 
 void moveThrusters(move_t tMov){
   if (serialDebug){
-    Serial.println("----- current thruster target -----")
+    Serial.println("----- current thruster target -----");
     Serial.print("forward: "); Serial.print(tMov.f); Serial.print(" | "); Serial.print("side: "); Serial.print(tMov.s) + Serial.print(" | ");
     Serial.print("up: "); Serial.print(tMov.u); Serial.print(" | "); Serial.print("roll: "); Serial.println(tMov.r); 
     Serial.print("pitch: "); Serial.print(tMov.p); Serial.print(" | "); Serial.print(" yaw: "); Serial.println(tMov.y);
@@ -316,20 +367,26 @@ void moveThrusters(move_t tMov){
 }
 
 void moveThrust(){
+  // adjust thrust percent so they increase to target over time
   // all increase with the slowest
   float maxDiff = 0;
-  float maxDeltaThrust = deltaTime * MAXTHRUSTOVERTIME;
-  for (int i = 0; i < 8; i++){
+  float maxDeltaThrust = thrustDeltaTime * MAXTHRUSTOVERTIME;
+  Serial.print("max delta thrust: ");
+  Serial.println(maxDeltaThrust);
+  for (int i = 0; i < 6; i++){
     float currT = ((float*)&tMov)[i];
     float currP = ((float*)&pMov)[i];
     if (abs(currP - currT) > maxDiff){
       maxDiff = abs(currP - currT);
     }
   }
-  for (int i = 0; i < 8; i++){
+  if (maxDiff != 0){
+  for (int i = 0; i < 6; i++){
     float currT = ((float*)&tMov)[i];
     float currP = ((float*)&pMov)[i];
-    float maxIndDeltaT = (currT - currP) / maxDiff * MAXTHRUSTOVERTIME;
+    float maxIndDeltaT = (currT - currP) / maxDiff * maxDeltaThrust; // individual max delta
+    Serial.print("max ind delta: ");
+    Serial.println(maxIndDeltaT);
     if (currT > currP){
       if (currT > currP + maxIndDeltaT){
         ((float*)&pMov)[i] += maxIndDeltaT;
@@ -346,7 +403,20 @@ void moveThrust(){
         ((float*)&pMov)[i] = currT;
       }
     }
-  }
+//    adjusting for mininum thrust allowed
+    if (-MINTHRUST < currP && currP < MINTHRUST) {
+       // thrust is within "snap" range
+       if (currT > MINTHRUST) {
+          ((float*)&pMov)[i] = MINTHRUST;
+       } 
+       else if (currT < -MINTHRUST) {
+          ((float*)&pMov)[i] = -MINTHRUST;
+       } else {
+          ((float*)&pMov)[i] = 0;
+       }
+    }
+    }
+    }
   moveThrusters(pMov);
   // all increase independently
 

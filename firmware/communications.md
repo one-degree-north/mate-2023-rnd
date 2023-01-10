@@ -6,16 +6,16 @@ Low ID numbers have a higher priority (PROBABLY INCORPORATE THIS!!!, REDUCE PRIO
 ## CANBUS packet ID (11 bits):
 (numbers are inclusive with both bottom and upper)
 
-### Bits:
-0-1: sending device\
-2-3: receiving device\
-4-10: command (or data type in sending data, see list of commands below)\
+### Bits (for packet ID):
+0-2: sending device\
+3-5: receiving device\
+6-10: command (or data type in sending data, see list of commands below)\
 
 ### Devices:
-00: main-tube\
-01: right arm\
-10: left arm\
-11: onshore device\
+000: main-tube\
+001: right arm\
+010: left arm\
+011: onshore device\
 
 ### Command format:
 ## Sending data (ROV -> onshore)
@@ -29,6 +29,7 @@ Command bits 5-6: specifies the axis (eg. front, side, up). The value in axis wi
 | orientation| 0x01 | r, p, y | float, orientation |
 | gyro data | 0x02 | r, p, y | float, gyro |
 | acceleration data | 0x03 | x, y, z | float, accel |
+| quaternion data | 0x04 | ?? | float, quaternion |
 | settings | 0x04 | none (default 00) | int, sensor send rate (in 10s of ms) | bool, pid enabled |
 
 ## Acting on command (onshore -> ROV)
@@ -43,11 +44,11 @@ NOTE: Writing NO PID commands will disable using PID and instead switch to regul
 | roll accel (pid) | 0x0D | float, accel |
 | pitch accel (pid) | 0x0E | float, accel |
 | yaw accel (pid) | 0x0F | float, accel |
-| front thrust (no pid) | 0x10 | int, percent |
-| side thrust (no pid) | 0x11 | int, percent |
-| up thrust (no pid) | 0x12 | int, percent |
-| roll accel (pid) | 0x13 | int, percent |
-| pitch accel (pid) | 0x14 | int, percent |
-| yaw accel (pid) | 0x15 | int, percent |
+| front thrust (no pid) | 0x10 | float, percent |
+| side thrust (no pid) | 0x11 | float, percent |
+| up thrust (no pid) | 0x12 | float, percent |
+| roll accel (pid) | 0x13 | float, percent |
+| pitch accel (pid) | 0x14 | float, percent |
+| yaw accel (pid) | 0x15 | float, percent |
 
 ### Commands for arm tube
