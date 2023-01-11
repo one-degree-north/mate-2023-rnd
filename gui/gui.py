@@ -1,9 +1,9 @@
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QTabWidget
-from PyQt6.QtGui import QFontDatabase, QFont
+from PyQt6.QtGui import QFontDatabase, QFont, QIcon
 from PyQt6.QtCore import Qt
 
 from frame import menu, navigation, time, stopwatch
-from tabs import camera
+from tabs import camera, draw
 import widgets
 
 from utils import Color
@@ -88,15 +88,21 @@ class Tabs(QTabWidget):
         """ % (Color.dark_violet, Color.dark_violet, Color.tinted_white))
 
 
-        self.settings_tab = QWidget()
         self.camera_tab = camera.CameraTab()
         self.chart_tab = QWidget()
-        self.draw_tab = QWidget()
+        self.draw_tab = draw.DrawTab()
+        self.settings_tab = QWidget()
 
-        self.addTab(self.settings_tab, "Settings")
-        self.addTab(self.camera_tab, "Camera")
-        self.addTab(self.chart_tab, "Chart")
-        self.addTab(self.draw_tab, "Draw")
+        self.addTab(self.camera_tab, QIcon("gui/assets/icons/camera.png"), "Camera")
+        self.addTab(self.chart_tab, QIcon("gui/assets/icons/chart.png"), "Chart")
+        self.addTab(self.draw_tab, QIcon("gui/assets/icons/draw.png"), "Draw")
+        self.addTab(self.settings_tab, QIcon("gui/assets/icons/settings.png"), "Settings")
+
+        
+
+        
+
+
 
 
 
