@@ -55,18 +55,48 @@ class Tabs(QTabWidget):
 
         self.setStyleSheet("""
             QTabWidget::pane {
-                padding: 20px;
+                background-color: %s;
+                border-radius: 10px;
+
+                margin: 30px 20px 20px 20px;
+
+                padding: 10px;
             }
-        """)# % Color.dark_violet)
 
+            
+            QTabWidget::tab-bar {
+                top: 20px;
+                left: 20px;
+            }
+
+            QTabBar::tab {
+                background-color: %s;
+                border-radius: 10px;
+
+                font-family: Montserrat;
+                font-size: 14px;
+                font-weight: 700;
+                color: %s;
+
+                margin-right: 10px;
+                padding: 10px;
+            }
+
+            QTabBar::tab::selected, QTabBar::tab::hover {
+                background-color: #443766;
+            }
+        """ % (Color.dark_violet, Color.dark_violet, Color.tinted_white))
+
+
+        self.settings_tab = QWidget()
         self.camera_tab = camera.CameraTab()
+        self.chart_tab = QWidget()
+        self.draw_tab = QWidget()
 
-        self.addTab(self.camera_tab, "o")
-        self.addTab(QWidget(), "ok")
-
-        
-        self.setDocumentMode(True)
-        self.tabBar().hide()
+        self.addTab(self.settings_tab, "Settings")
+        self.addTab(self.camera_tab, "Camera")
+        self.addTab(self.chart_tab, "Chart")
+        self.addTab(self.draw_tab, "Draw")
 
 
 
@@ -122,6 +152,8 @@ class MainWindow(QMainWindow):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 
+    # app.setStyle("Breeze")
+
     # os.system('sass gui/style-sheet/scss/main.scss gui/style-sheet/css/main.css') # compile sass
 
     # with open('gui/style-sheet/css/main.css', 'r') as f:
@@ -130,7 +162,7 @@ if __name__ == "__main__":
     print(f"{os.path.dirname(__file__)}/assets/fonts/Montserrat/Montserrat-VariableFont_wght.ttf")
 
     QFontDatabase.addApplicationFont(f"{os.path.dirname(__file__)}/assets/fonts/Montserrat/static/Montserrat-Bold.ttf")
-    QFontDatabase.addApplicationFont(f"{os.path.dirname(__file__)}/assets/fonts/Inter/Inter-VariableFont_slnt,wght.ttf")
+    QFontDatabase.addApplicationFont(f"{os.path.dirname(__file__)}/assets/fonts/Inter/Inter-Regular.ttf")
     # x = QFont("Montserrat")
     # QFont.setHintingPreference(x, QFont.HintingPreference.PreferNoHinting)
 
