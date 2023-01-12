@@ -1,5 +1,7 @@
 import socket, queue, threading, select, asyncio, struct, cv2, mmap, threading, collections
 from time import sleep
+# from win32.win32api import *
+import win32
 import win32pipe, win32file, pywintypes
 
 # obtained from https://github.com/benhoyt/namedmutex
@@ -209,6 +211,9 @@ class UnityComms:
             # self.from_unity_mutex.acquire(1)
 
             command = self.from_unity_mem[1]
+            self.from_unity_mem[0] = 0  # confirms read
+            # print(bytes(self.from_unity_mem[0]).hex())
+            self.from_unity_mutex.release()
             # print(command)
             match command:
                 case 0x01:  # confirm existance
@@ -235,20 +240,31 @@ class UnityComms:
                     pass
                 case 0x25:  # roll
                     pass
-            self.from_unity_mem[0] = 0  # confirms read
-            # print(bytes(self.from_unity_mem[0]).hex())
-            self.from_unity_mutex.release()
 
 class UnityCommsPipe:
     def __init__(self):
-        pipe = win32pipe.CreateNamedPipe(r'\\.\\pipe', win32pipe.PIPE_ACCESS_DUPLEX)
-        win32pipe.ConnectNamedPipe(pipe)
-        win32file.WriteFile(pipe, 'test')
-        
+        print('unity comm start')
+        # self.pipe = win32pipe.CreateNamedPipe(r'\\.\pipe\testPipe', win32pipe.PIPE_ACCESS_DUPLEX,
+        # win32pipe.PIPE_TYPE_BYTE | win32pipe.PIPE_WAIT
+        # , 1, 65536, 65536, 300, None)
+        self.pipe = win32pipe.CreateNamedPipe(r'\\.\pipe\testPipe', win32pipe.PIPE_ACCESS_DUPLEX,
+        win32pipe.PIPE_TYPE_MESSAGE | win32pipe.PIPE_WAIT
+        , 1, 65536, 65536, 300, None)
+        win32pipe.ConnectNamedPipe(self.pipe)
+        print("connected pipe")
 
-
+    def test_write(self):
+        error, data_written = win32file.WriteFile(self.pipe, bytes('test'.encode("ascii")))
+        print(error)
+        print(data_written)
 
 if __name__ == "__main__":  # simple vr-interface for test driving
-    comms = UnityComms()
+    # comms = UnityComms()
+    # while True:
+    #     sleep(0.1)
+    comm_pipe = UnityCommsPipe()
     while True:
-        sleep(0.1)
+        val = input()
+        if val == 'q':
+            break
+        comm_pipe.test_write()
