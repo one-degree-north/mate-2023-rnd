@@ -1,8 +1,8 @@
-from PyQt6.QtWidgets import QWidget, QHBoxLayout, QLabel
-from PyQt6.QtGui import QPainter, QPen, QColor, QImage
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel
+from PyQt6.QtGui import QPainter, QPen, QColor, QImage, QIcon
 from PyQt6.QtCore import Qt, QPoint
 
-from utils import Color
+from utils import Color, IconButton
 
 class DrawTab(QWidget):
     def __init__(self):
@@ -11,9 +11,18 @@ class DrawTab(QWidget):
         self.draw_bar = DrawBar()
         self.canvas = Canvas()
 
+        self.canvas_frame = QWidget()
+        self.canvas_frame.setStyleSheet("background: green; padding: 30px;")
+        self.canvas_frame.layout = QVBoxLayout()
+        self.canvas_frame.layout.addWidget(self.canvas)
+        self.canvas_frame.setLayout(self.canvas_frame.layout)
+
         self.layout = QHBoxLayout()
+
+        self.layout.addStretch()
         self.layout.addWidget(self.draw_bar)
         self.layout.addWidget(self.canvas)
+        self.layout.addStretch()
 
         self.setLayout(self.layout)
 
@@ -23,9 +32,17 @@ class DrawBar(QWidget):
 
         self.setStyleSheet("""
             QWidget {
-                background: %s;
+                background: green;
             }
-        """ % Color.cyber_grape)
+        """)
+
+        self.a = IconButton(QIcon("gui/assets/icons/quit.png"), "aaa")
+
+        self.layout = QVBoxLayout()
+
+        self.layout.addWidget(self.a)
+
+        self.setLayout(self.layout)
 
 class Canvas(QLabel):
     def __init__(self):
@@ -39,16 +56,15 @@ class Canvas(QLabel):
             }
         """ % Color.tinted_white)
 
-        self.setFixedSize(1200, 680)
-        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.image = QImage("gui/captures/cam_test.png").scaledToHeight(600)
 
-        self.image = QImage(self.size(), QImage.Format.Format_RGB32)
-        self.image.fill(QColor(Color.cyber_grape))
+        self.setFixedSize(self.image.size())
+        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.drawing = False
 
-        self.brush_size = 4
-        self.brush_color = Qt.GlobalColor.white
+        self.brush_size = 10
+        self.brush_color = Qt.GlobalColor.green
 
         self.last = QPoint()
 
@@ -60,7 +76,7 @@ class Canvas(QLabel):
     def mouseMoveEvent(self, e):
         if self.drawing:
             painter = QPainter(self.image)
-            painter.setPen(QPen(self.brush_color, self.brush_size)) #23:00
+            painter.setPen(QPen(self.brush_color, self.brush_size, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap)) #23:00
             painter.drawLine(self.last, e.position())
 
             self.last = e.position()
