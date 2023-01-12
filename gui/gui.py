@@ -151,6 +151,8 @@ class MainWindow(QMainWindow):
 
         self.setCentralWidget(self.parent)
 
+        self.showMaximized()
+
 
 
 if __name__ == "__main__":
