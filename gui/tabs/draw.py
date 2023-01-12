@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel
+from PyQt6.QtWidgets import QWidget, QHBoxLayout, QLabel
 from PyQt6.QtGui import QPainter, QPen, QColor, QImage
 from PyQt6.QtCore import Qt, QPoint
 
@@ -8,12 +8,24 @@ class DrawTab(QWidget):
     def __init__(self):
         super().__init__()
 
+        self.draw_bar = DrawBar()
         self.canvas = Canvas()
 
-        self.layout = QVBoxLayout()
+        self.layout = QHBoxLayout()
+        self.layout.addWidget(self.draw_bar)
         self.layout.addWidget(self.canvas)
+
         self.setLayout(self.layout)
-        
+
+class DrawBar(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.setStyleSheet("""
+            QWidget {
+                background: %s;
+            }
+        """ % Color.cyber_grape)
 
 class Canvas(QLabel):
     def __init__(self):
@@ -23,25 +35,20 @@ class Canvas(QLabel):
             QLabel {
                 background: %s;
                 border-radius: 10px;
+                border: 10px solid black;
             }
         """ % Color.tinted_white)
 
-        self.setFixedSize(1200, 800)
+        self.setFixedSize(1200, 680)
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.image = QImage(self.size(), QImage.Format.Format_RGB32)
-
-        self.image.setStyleSheet("""
-            QImage {
-                background: %s;
-                border-radius: 10px;
-            }
-        """ % Color.tinted_white)
+        self.image.fill(QColor(Color.cyber_grape))
 
         self.drawing = False
 
-        self.brush_size = 2
-        self.brush_color = Qt.GlobalColor.black
+        self.brush_size = 4
+        self.brush_color = Qt.GlobalColor.white
 
         self.last = QPoint()
 

@@ -62,7 +62,6 @@ class Tabs(QTabWidget):
 
                 padding: 10px;
             }
-
             
             QTabWidget::tab-bar {
                 top: 20px;
@@ -88,7 +87,7 @@ class Tabs(QTabWidget):
         """ % (Color.dark_violet, Color.dark_violet, Color.tinted_white))
 
 
-        self.camera_tab = QWidget()
+        self.camera_tab = camera.CameraTab()
         self.chart_tab = QWidget()
         self.draw_tab = draw.DrawTab()
         self.settings_tab = QWidget()
