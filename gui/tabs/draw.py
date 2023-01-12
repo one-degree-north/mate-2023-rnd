@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QColorDialog
 from PyQt6.QtGui import QPainter, QPen, QColor, QImage, QIcon
 from PyQt6.QtCore import Qt, QPoint
 
@@ -26,21 +26,20 @@ class DrawTab(QWidget):
 
         self.setLayout(self.layout)
 
+        self.draw_bar.color_picker_button.clicked.connect(self.color_picker_event)
+
+    def color_picker_event(self):
+        self.canvas.brush_color = QColorDialog.getColor()
+
 class DrawBar(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.setStyleSheet("""
-            QWidget {
-                background: green;
-            }
-        """)
-
-        self.a = IconButton(QIcon("gui/assets/icons/quit.png"), "aaa")
+        self.color_picker_button = IconButton(QIcon("gui/assets/icons/quit.png"), "Color")
 
         self.layout = QVBoxLayout()
 
-        self.layout.addWidget(self.a)
+        self.layout.addWidget(self.color_picker_button)
 
         self.setLayout(self.layout)
 
