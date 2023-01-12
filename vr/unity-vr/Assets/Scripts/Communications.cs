@@ -13,6 +13,8 @@ public class Communications : MonoBehaviour
     // Start is called before the first frame update
     private MemoryMappedFile toPythonMem;
     private MemoryMappedFile fromPythonMem;
+    private MemoryMappedViewAccessor toPythonAccess;
+    private MemoryMappedViewAccessor fromPythonAccess;
     private Mutex toPythonMut;
     private Mutex fromPythonMut;
     private ConcurrentQueue<WriteInput> writeQueue = new ConcurrentQueue<WriteInput>();
@@ -97,17 +99,18 @@ public class Communications : MonoBehaviour
         writeQueue.Enqueue(new WriteInput(0x02, buffer));
     }
     private void readLoop(){
+        fromPythonAccess = fromPythonMem.CreateViewAccessor(0, MAX_READ_LENGTH);
         while (true){
-            MemoryMappedViewAccessor memAccess = fromPythonMem.CreateViewAccessor(0, MAX_READ_LENGTH);
+            // MemoryMappedViewAccessor memAccess = fromPythonMem.CreateViewAccessor(0, MAX_READ_LENGTH);
             toPythonMut.WaitOne();
-            while (memAccess.ReadSByte(0) == 0){
+            while (fromPythonAccess.ReadSByte(0) == 0){
                 toPythonMut.ReleaseMutex();
                 Thread.Sleep(1);
                 toPythonMut.WaitOne();
             }
 
 
-            // while (memAccess.ReadSByte(0) == 0){
+            // while (fromPythonAccess.ReadSByte(0) == 0){
             //     Thread.Sleep(1);
             // }
             // toPythonMut.WaitOne();
@@ -115,8 +118,8 @@ public class Communications : MonoBehaviour
 
 
             // Byte one = 1;   // 8^) this is dumb but whatever.
-            memAccess.Write(0, (Byte) 0);
-            byte command = memAccess.ReadByte(1);
+            fromPythonAccess.Write(0, (Byte) 0);
+            byte command = fromPythonAccess.ReadByte(1);
             switch (command){
                 case 0x02: // image
                 break;
@@ -144,6 +147,7 @@ public class Communications : MonoBehaviour
         }
     }
     private void writeLoop(){
+        toPythonAccess = toPythonMem.CreateViewAccessor(0, MAX_WRITE_LENGTH);
         while (true){
             WriteInput currInput;
             if (writeQueue.TryDequeue(out currInput)){
@@ -159,24 +163,29 @@ public class Communications : MonoBehaviour
     }
     private bool write(byte command, byte[] values){
         // Debug.Log("writing");
-        MemoryMappedViewAccessor memAccess = toPythonMem.CreateViewAccessor(0, MAX_WRITE_LENGTH);
         toPythonMut.WaitOne();
         // Debug.Log("acquired");
-        while (memAccess.ReadSByte(0) == 1){
+        while (toPythonAccess.ReadSByte(0) == 1){
             // Debug.Log(readLoc.ReadSByte(0));
             toPythonMut.ReleaseMutex();
             // Debug.Log("released");
 
-            // Thread.Sleep(1);
+            Thread.Sleep(1);
 
             toPythonMut.WaitOne();
             // Debug.Log("acquired");
         }
+
+        // while (toPythonAccess.ReadSByte(0) == 1){
+        //     Thread.Sleep(1);
+        // }
+        // toPythonMut.WaitOne();
+
         // Debug.Log("writing!");
-        memAccess.Write(0, (byte) 1);
-        memAccess.Write(1, command);
+        toPythonAccess.Write(0, (byte) 1);
+        toPythonAccess.Write(1, command);
         // Debug.Log(values.Length);
-        memAccess.WriteArray<byte>(2, values, 0,  values.Length);
+        toPythonAccess.WriteArray<byte>(2, values, 0,  values.Length);
         // Debug.Log("finished writing");
         toPythonMut.ReleaseMutex();
         // Debug.Log("released");

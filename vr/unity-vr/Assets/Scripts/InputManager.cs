@@ -25,11 +25,12 @@ public class InputManager : MonoBehaviour
     public bool headRotation;   // use head to rotate rov
     public bool headUp; // use head to move rov up or down
     public Communications comms;
+    public CommPipe commPipe;
     public Transform headTransform;
     public Vector3 pastRotation;
     public Vector3 pastPosition;
-    public static int SEND_DELAY = 50;  // milliseconds, around 60 fps
-    private int sendClock = 0;  // for fixed update time
+    public static int SEND_DELAY = 5;  // milliseconds
+    private float sendClock = 0;  // for fixed update time
     private bool[] sendReady = new bool[5]; // for fixed update time. probably a better way to do this
     void Start()
     {
@@ -40,7 +41,7 @@ public class InputManager : MonoBehaviour
         // headPos.AddOnChangeListener(SteamVR_Input_Sources.Any, headPosChange);
         // pastRotation = headTransform.localEulerAngles;
     }
-
+    /*
     void sendForward(SteamVR_Action_Single forward, SteamVR_Input_Sources source, Single newAxis, Single delta){
 
     }
@@ -78,39 +79,15 @@ public class InputManager : MonoBehaviour
         }
         comms.updateHeadPosition(headPos.localRotation.eulerAngles);
         comms.updateHeadRotation(headPos.localPosition);
-    }
+    }*/
     void Update(){
-        if (!pastRotation.Equals(headTransform.localEulerAngles)){
-            if (sendReady[3]){
-                if (headRotation){
-                    Vector3 rotation = headPos.localRotation.eulerAngles;
-                    comms.updatePitch(rotation[0]);
-                    comms.updateRoll(rotation[1]);
-                    comms.updateYaw(rotation[2]);
-                }
-                comms.updateHeadRotation(headPos.localPosition);
-                sendReady[3] = false;
-            }
-            pastRotation = headTransform.localEulerAngles;
-        }
-        if (!pastPosition.Equals(headTransform.localPosition)){
-            if (sendReady[4]){
-            // comms.updateHeadPosition(headTransform.localPosition);
-                if (headUp){
-                    Vector3 headPosition = headPos.localPosition;
-                    comms.updateMoveUp(headPosition.y);
-                }
-                comms.updateHeadPosition(headTransform.localEulerAngles);
-                sendReady[4] = false;
-            }
-            pastPosition = headTransform.localPosition;
-        }
-        sendClock -= (int)(Time.deltaTime*1000);
-        if (sendClock <= 0){
-            sendClock = SEND_DELAY + sendClock; // account for further delays
-            for (int i = 0; i < 5; i++){
-                sendReady[i] = true;
-            }
+        if ((sendClock -= Time.deltaTime * 1000) < 0){
+            sendClock = SEND_DELAY + sendClock;
+            commPipe.writeAllData(headTransform.localPosition, headTransform.localEulerAngles, new Vector4(headTransform.rotation.w, headTransform.rotation.x, headTransform.rotation.y, headTransform.rotation.z),
+            handPosR.lastLocalPosition, handPosR.lastLocalRotation.eulerAngles, new Vector4(handPosR.lastLocalRotation.w, handPosR.lastLocalRotation.x, handPosR.lastLocalRotation.y, handPosR.lastLocalRotation.z),
+            handPosL.lastLocalPosition, handPosL.lastLocalRotation.eulerAngles, new Vector4(handPosL.lastLocalRotation.w, handPosL.lastLocalRotation.x, handPosL.lastLocalRotation.y, handPosL.lastLocalRotation.z),
+            moveRightClaw.axis, moveLeftClaw.axis, moveForwardSide.lastAxis.x, moveForwardSide.lastAxis.y, moveUpRoll.axis.y, moveUpRoll.axis.x, pitch.axis, (yawR.axis - yawL.axis)
+            );
         }
     }
 }

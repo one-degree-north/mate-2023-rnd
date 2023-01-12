@@ -176,7 +176,7 @@ class UnityComms:
 
     def write(self, command, data):
         # maybe use queue instead
-        self.to_unity_mutex.acquire(1)
+        self.to_unity_mutex.acquire()
         #add catch error
         while self.from_unity_mem[0] != 0:
             # print("acquired")
@@ -222,7 +222,7 @@ class UnityComms:
                     self.stop_unity_reading()   # make unity stop reading as well
                 case 0x02:  # headset position
                     self.hset_position = struct.unpack("=fff", self.from_unity_mem[2:14])
-                    # print("position: " + str(self.hset_position))
+                    print("position: " + str(self.hset_position))
                 case 0x03:  # headset rotation (euler angles)
                     self.hset_rotation = struct.unpack("=fff", self.from_unity_mem[2:14])
                     # print("rotation: " + str(self.hset_rotation))
@@ -243,6 +243,19 @@ class UnityComms:
 
 class UnityCommsPipe:
     def __init__(self):
+        self.hset_rotation = [0, 0, 0]
+        self.hset_position = [0, 0, 0]
+        self.hset_quat = [0, 0, 0, 0]
+        self.rarm_rotation = [0, 0, 0]
+        self.rarm_position = [0, 0, 0]
+        self.rarm_quat = [0, 0, 0, 0]
+        self.larm_rotation = [0, 0, 0]
+        self.larm_position = [0, 0, 0]
+        self.larm_quat = [0, 0, 0, 0]
+        self.rClaw = 0
+        self.lClaw = 0
+        self.movements = [0, 0, 0, 0, 0, 0]
+
         print('unity comm start')
         # self.pipe = win32pipe.CreateNamedPipe(r'\\.\pipe\testPipe', win32pipe.PIPE_ACCESS_DUPLEX,
         # win32pipe.PIPE_TYPE_BYTE | win32pipe.PIPE_WAIT
@@ -252,18 +265,32 @@ class UnityCommsPipe:
         , 1, 65536, 65536, 300, None)
         win32pipe.ConnectNamedPipe(self.pipe)
         print("connected pipe")
+        read_thread = threading.Thread(target=self.read_loop, daemon=True)
+        read_thread.start()
+        self.read_loop()
 
     def test_write(self):
         error, data_written = win32file.WriteFile(self.pipe, bytes('test'.encode("ascii")))
         print(error)
         print(data_written)
+    
+    def read_loop(self):
+        packet_found = False
+        expected_len = 0
+        command = 0
+        while True:
+            buffer = []
+            input_data = win32file.ReadFile(self.pipe, 2048)
+            print(input_data)
 
 if __name__ == "__main__":  # simple vr-interface for test driving
     # comms = UnityComms()
     # while True:
-    #     sleep(0.1)
+    #     sleep(1)
     comm_pipe = UnityCommsPipe()
     while True:
+        sleep(0.01)
+        comm_pipe.test_write()
         val = input()
         if val == 'q':
             break
