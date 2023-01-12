@@ -88,7 +88,7 @@ class Tabs(QTabWidget):
         """ % (Color.dark_violet, Color.dark_violet, Color.tinted_white))
 
 
-        self.camera_tab = camera.CameraTab()
+        self.camera_tab = QWidget()
         self.chart_tab = QWidget()
         self.draw_tab = draw.DrawTab()
         self.settings_tab = QWidget()
@@ -111,7 +111,7 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         self.setWindowTitle("User Interface")
-        # self.setMinimumWidth(800)
+        self.setMinimumSize(800, 600)
 
         self.setStyleSheet("""
             QMainWindow {
@@ -158,23 +158,13 @@ class MainWindow(QMainWindow):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 
-    # app.setStyle("Breeze")
-
-    # os.system('sass gui/style-sheet/scss/main.scss gui/style-sheet/css/main.css') # compile sass
-
-    # with open('gui/style-sheet/css/main.css', 'r') as f:
-    #     app.setStyleSheet(f.read())
-
-    print(f"{os.path.dirname(__file__)}/assets/fonts/Montserrat/Montserrat-VariableFont_wght.ttf")
-
     QFontDatabase.addApplicationFont(f"{os.path.dirname(__file__)}/assets/fonts/Montserrat/static/Montserrat-Bold.ttf")
     QFontDatabase.addApplicationFont(f"{os.path.dirname(__file__)}/assets/fonts/Inter/Inter-Regular.ttf")
-    # x = QFont("Montserrat")
-    # QFont.setHintingPreference(x, QFont.HintingPreference.PreferNoHinting)
 
     window = MainWindow(0, 0)
     window.show()
-    # window.sethint
 
+    # c = draw.Canvas()
+    # c.show()
 
     app.exec()
