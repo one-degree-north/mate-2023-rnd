@@ -17,12 +17,6 @@ class IconButton(QPushButton): # tooltip style
         super().__init__()
 
         self.setStyleSheet("""
-            QToolTip {
-                background: %s;
-                color: black;
-                font-family: Inter;
-            }
-
             QPushButton {
                 background: %s;
                 border-radius: 5px;
@@ -31,7 +25,7 @@ class IconButton(QPushButton): # tooltip style
             QPushButton:hover {
                 background: #8066b7;
             }
-        """ % (Color.tinted_white, Color.grape))
+        """ % Color.grape)
 
         self.setIcon(icon)
         self.setToolTip(tooltip)

@@ -1,5 +1,5 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QColorDialog, QFileDialog, QPushButton, QSpinBox
-from PyQt6.QtGui import QPainter, QPen, QColor, QImage, QIcon
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QColorDialog, QFileDialog, QPushButton, QSpinBox, QInputDialog
+from PyQt6.QtGui import QPainter, QPen, QColor, QImage, QIcon, QFont
 from PyQt6.QtCore import Qt, QPoint, QRect, QSize
 
 from utils import Color, IconButton
@@ -21,6 +21,9 @@ class DrawTab(QWidget):
         self.setLayout(self.layout)
 
         self.sidebar.tools.thickness_spinbox.valueChanged.connect(self.thickness_event)
+        self.sidebar.tools.pen_button.clicked.connect(partial(self.tool_event, 0))
+        self.sidebar.tools.text_button.clicked.connect(partial(self.tool_event, 1))
+        self.sidebar.tools.eraser_button.clicked.connect(partial(self.tool_event, 2))
 
         self.sidebar.colors.color_picker_button.clicked.connect(self.color_picker_event)
         self.sidebar.file.load_button.clicked.connect(self.load_event)
@@ -34,12 +37,17 @@ class DrawTab(QWidget):
 
         if fp:
             self.canvas.image = QImage(fp).scaledToHeight(680)
+            self.canvas.image_overlay.image = QImage(self.canvas.image.size(), QImage.Format.Format_ARGB32)
+            self.canvas.image_overlay.fill(Qt.GlobalColor.transparent)
+            
             self.canvas.setFixedSize(self.canvas.image.size())
-
             self.canvas.update()
 
     def thickness_event(self, i):
         self.canvas.brush_size = i
+
+    def tool_event(self, i):
+        self.canvas.mode = i
 
     def color_default_event(self, rgb):
         self.canvas.brush_color = QColor(rgb[0], rgb[1], rgb[2])
@@ -196,7 +204,7 @@ class Colors(QWidget):
         """ % Color.cyber_grape)
 
         self.color_picker_button = IconButton(QIcon("gui/assets/icons/start.png"), "Color picker", 30)
-        self.color_default_toggle_button = IconButton(QIcon("gui/assets/icons/stop.png"), "Color picker", 30)
+        self.color_default_toggle_button = IconButton(QIcon("gui/assets/icons/stop.png"), "Show/hide default colors", 30)
 
         self.color_default_toggle_button.clicked.connect(self.color_default_toggle_event)
 
@@ -237,14 +245,9 @@ class ColorButton(QPushButton):
         super().__init__()
 
         self.color = rgb
+        hover_rgb = [v+20 if v+20 <= 255 else v-20 for v in rgb]
 
         self.setStyleSheet("""
-            QToolTip {
-                background: %s;
-                color: black;
-                font-family: Inter;
-            }
-
             QPushButton {
                 background: rgb(%s, %s, %s);
                 border-radius: 5px;
@@ -253,7 +256,7 @@ class ColorButton(QPushButton):
             QPushButton:hover {
                 background: rgb(%s, %s, %s);
             }
-        """ % (Color.grape, rgb[0], rgb[1], rgb[2], rgb[0]+20 if rgb[0]+20 <= 255 else rgb[0]-20, rgb[1]+20 if rgb[1]+20 <= 255 else rgb[1]-20, rgb[2]+20 if rgb[2]+20 <= 255 else rgb[2]-20))
+        """ % (rgb[0], rgb[1], rgb[2], hover_rgb[0], hover_rgb[1], hover_rgb[2]))
 
         self.setToolTip(tooltip)
         self.setFixedSize(30,30)
@@ -263,12 +266,15 @@ class Canvas(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.image = QImage(1360, 680, QImage.Format.Format_RGB32)
+        self.image = QImage(1360, 680, QImage.Format.Format_ARGB32)
         self.image.fill(Qt.GlobalColor.white)
+
+        self.image_overlay = QImage(1360, 680, QImage.Format.Format_ARGB32)
+        self.image_overlay.fill(Qt.GlobalColor.transparent)
 
         self.setFixedSize(self.image.size())
 
-        self.drawing = False
+        self.mode = 0
 
         self.brush_size = 10
         self.brush_color = QColor(Color.coral)
@@ -277,19 +283,32 @@ class Canvas(QWidget):
 
     def mousePressEvent(self, e):
         if e.button() == Qt.MouseButton.LeftButton:
-            self.last = e.position()
+            if self.mode == 1:
+                text, s = QInputDialog.getText(self, "Input", "Text to display")
+
+                if s:
+                    painter = QPainter(self.image_overlay)
+                    painter.setPen(QPen(self.brush_color))
+                    painter.setFont(QFont("Montserrat", self.brush_size))
+
+                    painter.drawText(e.position(), text)
+                    self.update()
+            else:
+                self.last = e.position()
 
     def mouseMoveEvent(self, e):
-        painter = QPainter(self.image)
-        painter.setPen(QPen(self.brush_color, self.brush_size, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap)) #23:00
-        # painter.drawLine(self.last, e.position())
+        painter = QPainter(self.image_overlay)
+        painter.setPen(QPen(self.brush_color, self.brush_size, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin))
 
-        r = QRect(QPoint(), QSize(20,20))
-        r.moveCenter(QPoint(int(e.position().x()), int(e.position().y())))
-        painter.save()
-        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Clear)
-        painter.eraseRect(r)
-        # painter.restore()
+        if self.mode == 0:
+            painter.drawLine(self.last, e.position())
+        elif self.mode == 2:
+            painter.save()
+
+            painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Clear)
+            painter.drawLine(self.last, e.position())
+
+            painter.restore()       
 
         self.last = e.position()
         self.update()
@@ -297,6 +316,7 @@ class Canvas(QWidget):
     def paintEvent(self, e):
         painter = QPainter(self)
         painter.drawImage(self.rect(), self.image, self.image.rect())
+        painter.drawImage(self.rect(), self.image_overlay, self.image.rect())
 
 
 
