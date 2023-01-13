@@ -151,9 +151,9 @@ class Tools(QWidget):
         self.label = QLabel("Size")
         self.thickness_spinbox = QSpinBox()
 
-        self.pen_button = IconButton(QIcon("gui/assets/icons/start.png"), "Pen")
-        self.text_button = IconButton(QIcon("gui/assets/icons/start.png"), "Text")
-        self.eraser_button = IconButton(QIcon("gui/assets/icons/start.png"), "Eraser")
+        self.pen_button = IconButton(QIcon("gui/assets/icons/pen.png"), "Pen")
+        self.text_button = IconButton(QIcon("gui/assets/icons/text.png"), "Text")
+        self.eraser_button = IconButton(QIcon("gui/assets/icons/eraser.png"), "Eraser")
 
         # self.thickness_spinbox.setSuffix("px")
 
