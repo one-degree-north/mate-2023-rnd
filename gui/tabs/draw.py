@@ -1,10 +1,13 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QColorDialog, QFileDialog, QPushButton, QSpinBox, QInputDialog
 from PyQt6.QtGui import QPainter, QPen, QColor, QImage, QIcon, QFont
-from PyQt6.QtCore import Qt, QPoint, QRect, QSize
+from PyQt6.QtCore import Qt, QPoint, QRect, QSize, QBuffer
 
 from utils import Color, IconButton
 
+from PIL import Image
 from functools import partial
+
+import io
 
 class DrawTab(QWidget):
     def __init__(self):
@@ -26,7 +29,10 @@ class DrawTab(QWidget):
         self.sidebar.tools.eraser_button.clicked.connect(partial(self.tool_event, 2))
 
         self.sidebar.colors.color_picker_button.clicked.connect(self.color_picker_event)
+
         self.sidebar.file.load_button.clicked.connect(self.load_event)
+        self.sidebar.file.save_button.clicked.connect(self.save_event)
+        self.sidebar.file.clear_button.clicked.connect(self.clear_event)
 
         for v in self.sidebar.colors.children():
             if isinstance(v, ColorButton):
@@ -36,18 +42,50 @@ class DrawTab(QWidget):
         fp, _ = QFileDialog.getOpenFileName(self, "Select Image", "gui/captures", "Image files (*.jpg *.png)")
 
         if fp:
-            self.canvas.image = QImage(fp).scaledToHeight(680)
-            self.canvas.image_overlay.image = QImage(self.canvas.image.size(), QImage.Format.Format_ARGB32)
+            self.canvas.image = QImage(fp).scaledToHeight(670)
+            self.canvas.image_overlay = QImage(self.canvas.image.size(), QImage.Format.Format_ARGB32)
             self.canvas.image_overlay.fill(Qt.GlobalColor.transparent)
             
             self.canvas.setFixedSize(self.canvas.image.size())
+
             self.canvas.update()
+
+    def clear_event(self):
+        self.canvas.image_overlay.image = QImage(self.canvas.image.size(), QImage.Format.Format_ARGB32)
+        self.canvas.image_overlay.fill(Qt.GlobalColor.transparent)
+
+        self.canvas.update()
+
+    def save_event(self):
+        fp, _ = QFileDialog.getSaveFileName(self, "Save Drawing", "gui/drawings", "JPEG(*.jpg);; PNG(*.png)")
+        if fp:
+            buffer_image = QBuffer()
+            buffer_image.open(QBuffer.OpenModeFlag.ReadWrite)
+            self.canvas.image.save(buffer_image, "jpg")
+
+            pil_image = Image.open(io.BytesIO(buffer_image.data()))
+
+            buffer_overlay = QBuffer()
+            buffer_overlay.open(QBuffer.OpenModeFlag.ReadWrite)
+            self.canvas.image_overlay.save(buffer_overlay, "png")
+
+            pil_overlay = Image.open(io.BytesIO(buffer_overlay.data()))
+
+            pil_image.paste(pil_overlay, (0,0), mask=pil_overlay)
+            pil_image.save(fp)
+            
 
     def thickness_event(self, i):
         self.canvas.brush_size = i
 
     def tool_event(self, i):
         self.canvas.mode = i
+        
+        for v in self.sidebar.tools.children():
+            if isinstance(v, IconButton):
+                v.setDisabled(False)
+
+        self.sender().setDisabled(True)
 
     def color_default_event(self, rgb):
         self.canvas.brush_color = QColor(rgb[0], rgb[1], rgb[2])
@@ -57,10 +95,6 @@ class DrawTab(QWidget):
 
         if color.isValid():
             self.canvas.brush_color = color
-
-
-# default colors, color selector, pen size, load image, save image, clear, eraser, undo/redo?
-# empty canvas (select color)
 
 class Sidebar(QWidget):
     def __init__(self):
@@ -106,6 +140,8 @@ class Sidebar(QWidget):
         self.layout.addStretch(1)
         self.layout.addWidget(self.lower_frame)
 
+        self.layout.setContentsMargins(0,0,0,0)
+
         self.setLayout(self.layout)
 
 
@@ -122,15 +158,15 @@ class File(QWidget):
             }
         """ % Color.cyber_grape)
 
-        self.load_button = IconButton(QIcon("gui/assets/icons/start.png"), "Load image")
-        self.save_button = IconButton(QIcon("gui/assets/icons/stop.png"), "Save canvas")
-        self.clear_button = IconButton(QIcon("gui/assets/icons/start.png"), "Clear canvas")
+        self.load_button = IconButton(QIcon("gui/assets/icons/load.png"), "Load image")
+        self.save_button = IconButton(QIcon("gui/assets/icons/save.png"), "Save canvas")
+        self.clear_button = IconButton(QIcon("gui/assets/icons/reload.png"), "Clear canvas")
 
         self.layout = QHBoxLayout()
 
         self.layout.addWidget(self.load_button)
         self.layout.addWidget(self.save_button)
-        self.layout.addWidget(self.clear_button) # confirm
+        self.layout.addWidget(self.clear_button)
 
         self.layout.setSpacing(10)
 
@@ -155,7 +191,7 @@ class Tools(QWidget):
         self.text_button = IconButton(QIcon("gui/assets/icons/text.png"), "Text")
         self.eraser_button = IconButton(QIcon("gui/assets/icons/eraser.png"), "Eraser")
 
-        # self.thickness_spinbox.setSuffix("px")
+        self.pen_button.setDisabled(True)
 
         self.label.setStyleSheet("""
             QLabel {
@@ -188,8 +224,7 @@ class Tools(QWidget):
         self.layout.setSpacing(10)
 
         self.setLayout(self.layout)
-        
-# remove stylesheet for tool tip
+
 
 class Colors(QWidget):
     def __init__(self):
@@ -203,8 +238,8 @@ class Colors(QWidget):
             }
         """ % Color.cyber_grape)
 
-        self.color_picker_button = IconButton(QIcon("gui/assets/icons/start.png"), "Color picker", 30)
-        self.color_default_toggle_button = IconButton(QIcon("gui/assets/icons/stop.png"), "Show/hide default colors", 30)
+        self.color_picker_button = IconButton(QIcon("gui/assets/icons/color-picker.png"), "Color picker", 30)
+        self.color_default_toggle_button = IconButton(QIcon("gui/assets/icons/arrow-right.png"), "Show/hide default colors", 30)
 
         self.color_default_toggle_button.clicked.connect(self.color_default_toggle_event)
 
@@ -235,10 +270,19 @@ class Colors(QWidget):
 
         self.setLayout(self.layout)
 
+        self.color_default_toggle_event()
+
     def color_default_toggle_event(self):
         for v in self.children():
             if isinstance(v, ColorButton):
                 v.setHidden(not v.isHidden())
+
+                shown = not v.isHidden()
+
+        if shown:
+            self.color_default_toggle_button.setIcon(QIcon("gui/assets/icons/arrow-left.png"))
+        else:
+            self.color_default_toggle_button.setIcon(QIcon("gui/assets/icons/arrow-right.png"))
 
 class ColorButton(QPushButton):
     def __init__(self, rgb, tooltip):
@@ -266,10 +310,10 @@ class Canvas(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.image = QImage(1360, 680, QImage.Format.Format_ARGB32)
+        self.image = QImage(1360, 670, QImage.Format.Format_RGB32)
         self.image.fill(Qt.GlobalColor.white)
 
-        self.image_overlay = QImage(1360, 680, QImage.Format.Format_ARGB32)
+        self.image_overlay = QImage(1360, 670, QImage.Format.Format_ARGB32)
         self.image_overlay.fill(Qt.GlobalColor.transparent)
 
         self.setFixedSize(self.image.size())
@@ -284,12 +328,12 @@ class Canvas(QWidget):
     def mousePressEvent(self, e):
         if e.button() == Qt.MouseButton.LeftButton:
             if self.mode == 1:
-                text, s = QInputDialog.getText(self, "Input", "Text to display")
+                text, s = QInputDialog.getText(self, "Text", "Text to display")
 
                 if s:
                     painter = QPainter(self.image_overlay)
                     painter.setPen(QPen(self.brush_color))
-                    painter.setFont(QFont("Montserrat", self.brush_size))
+                    painter.setFont(QFont("Montserrat", self.brush_size+10))
 
                     painter.drawText(e.position(), text)
                     self.update()
@@ -305,6 +349,7 @@ class Canvas(QWidget):
         elif self.mode == 2:
             painter.save()
 
+            painter.setPen(QPen(self.brush_color, self.brush_size+10, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin))
             painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Clear)
             painter.drawLine(self.last, e.position())
 
@@ -317,86 +362,3 @@ class Canvas(QWidget):
         painter = QPainter(self)
         painter.drawImage(self.rect(), self.image, self.image.rect())
         painter.drawImage(self.rect(), self.image_overlay, self.image.rect())
-
-
-
-    # def paintEvent(self, e):
-    #     self.painter = QPainter()
-    #     self.painter.begin(self)
-
-    #     # self.painter.drawLine(100, 200, 200, 200)
-
-    #     # self.painter.end()
-
-    # def mousePressEvent(self, e):
-    #     if e.button() == Qt.MouseButton.LeftButton:
-    #         self.drawing = True
-    #         self.last = e.position()
-    #         print('a')
-
-    # def mouseReleaseEvent(self, e):
-    #     if e.button() == Qt.MouseButton.LeftButton:
-    #         self.drawing = False
-
-    
-
-    # def mouseMoveEvent(self, e):
-    #     if self.drawing:
-    #         painter = QPainter()
-    #         painter.begin(self)
-
-    #         painter.setPen(QColor(20, 201, 222))
-
-    #         # painter.drawLine(self.last, e.position())
-    #         painter.drawText(e.position(), "ok")
-
-    #         self.last = e.position()
-
-    #         painter.end()
-
-
-    # def paintEvent(self, e):
-    #     painter = QPainter(self)
-    #     painter.drawImage(self.rect(), self.image, self.image.rect())
-
-    # def paintEvent(self, e):
-    #     self.qp = QPainter()
-    #     self.qp.begin(self)
-        
-    #     self.qp.setPen(QColor(100, 100, 200))
-    #     # self.qp.drawText(e.rect(), Qt.AlignmentFlag.AlignCenter, "asdijodjasdo")
-
-    #     # self.mouseMoveEvent = self.draw(qp)
-
-    #     # qp.end()
-
-
-
-    # def draw(self, e):
-    #     # print(e.position().x())
-    #     # print(e.position().x(),)
-    #     self.qp.drawPoint(e.position().x(), e.position().y())
-
-
-    # def pick_color(self, rgb):
-    #     self.canvas.brush_color = QColor(rgb[0], rgb[1], rgb[2])
-
-    # def save(self):
-    #     fp, _ = QFileDialog.getSaveFileName(self, "Save Drawing", "gui/drawings", "JPEG(*.jpg);; PNG(*.png)")
-    #     if fp:
-    #         self.canvas.image.save(fp)
-
-    # def set_image(self):
-    #     fp, _ = QFileDialog.getOpenFileName(self, "Select Image", "gui/captures", "Image files (*.jpg *.png)")
-
-    #     if fp:
-    #         self.canvas.image = QImage(fp).scaledToHeight(680)
-    #         self.canvas.setFixedSize(self.canvas.image.size())
-
-    #         self.canvas.update()
-
-    # def color_picker_event(self):
-    #     color = QColorDialog.getColor()
-
-    #     if color.isValid():
-    #         self.canvas.brush_color = color

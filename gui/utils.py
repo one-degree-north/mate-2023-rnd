@@ -25,6 +25,10 @@ class IconButton(QPushButton): # tooltip style
             QPushButton:hover {
                 background: #8066b7;
             }
+
+            QPushButton:disabled {
+                background: #5C468A;
+            }
         """ % Color.grape)
 
         self.setIcon(icon)
