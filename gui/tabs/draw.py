@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QColorDialog, QFileDialog, QPushButton, QSpinBox
 from PyQt6.QtGui import QPainter, QPen, QColor, QImage, QIcon
-from PyQt6.QtCore import Qt, QPoint, QRect
+from PyQt6.QtCore import Qt, QPoint, QRect, QSize
 
 from utils import Color, IconButton
 
@@ -10,25 +10,8 @@ class DrawTab(QWidget):
     def __init__(self):
         super().__init__()
 
-        # self.draw_bar = DrawBar()
         self.sidebar = Sidebar()
         self.canvas = Canvas()
-
-        # for v in self.draw_bar.a.children():
-        #     if isinstance(v, ColorButton):
-        #         v.clicked.connect(partial(self.pick_color, v.color))
-
-        # self.layout = QHBoxLayout()
-
-        # self.layout.addWidget(self.draw_bar)
-        # self.layout.addStretch()
-        # self.layout.addWidget(self.canvas)
-
-        # self.setLayout(self.layout)
-
-        # self.draw_bar.color_picker_button.clicked.connect(self.color_picker_event)
-        # self.draw_bar.load_button.clicked.connect(self.set_image)
-        # self.draw_bar.save_button.clicked.connect(self.save)
 
         self.layout = QHBoxLayout()
 
@@ -37,16 +20,16 @@ class DrawTab(QWidget):
 
         self.setLayout(self.layout)
 
+        self.sidebar.tools.thickness_spinbox.valueChanged.connect(self.thickness_event)
 
-    def pick_color(self, rgb):
-        self.canvas.brush_color = QColor(rgb[0], rgb[1], rgb[2])
+        self.sidebar.colors.color_picker_button.clicked.connect(self.color_picker_event)
+        self.sidebar.file.load_button.clicked.connect(self.load_event)
 
-    def save(self):
-        fp, _ = QFileDialog.getSaveFileName(self, "Save Drawing", "gui/drawings", "JPEG(*.jpg);; PNG(*.png)")
-        if fp:
-            self.canvas.image.save(fp)
-
-    def set_image(self):
+        for v in self.sidebar.colors.children():
+            if isinstance(v, ColorButton):
+                v.clicked.connect(partial(self.color_default_event, v.color))
+    
+    def load_event(self):
         fp, _ = QFileDialog.getOpenFileName(self, "Select Image", "gui/captures", "Image files (*.jpg *.png)")
 
         if fp:
@@ -55,14 +38,18 @@ class DrawTab(QWidget):
 
             self.canvas.update()
 
-        # painter = QPainter(self.canvas)
-        # painter.drawImage(self.canvas.rect(), self.canvas.image, self.canvas.image.rect())
+    def thickness_event(self, i):
+        self.canvas.brush_size = i
+
+    def color_default_event(self, rgb):
+        self.canvas.brush_color = QColor(rgb[0], rgb[1], rgb[2])
 
     def color_picker_event(self):
         color = QColorDialog.getColor()
 
         if color.isValid():
             self.canvas.brush_color = color
+
 
 # default colors, color selector, pen size, load image, save image, clear, eraser, undo/redo?
 # empty canvas (select color)
@@ -72,16 +59,44 @@ class Sidebar(QWidget):
         super().__init__()
 
         self.file = File()
-
-        self.file_frame = QWidget()
-
         self.tools = Tools()
         self.colors = Colors()
 
+        self.file_frame = QWidget()
+
+        self.file_frame.layout = QHBoxLayout()
+        self.file_frame.layout.addWidget(self.file)
+        self.file_frame.layout.addStretch()
+
+        self.file_frame.layout.setContentsMargins(0,0,0,0)
+        self.file_frame.setLayout(self.file_frame.layout)
+
+        self.colors_frame = QWidget()
+
+        self.colors_frame.layout = QVBoxLayout()
+        self.colors_frame.layout.addStretch()
+        self.colors_frame.layout.addWidget(self.colors)
+
+        self.colors_frame.layout.setContentsMargins(0,0,0,0)
+        self.colors_frame.setLayout(self.colors_frame.layout)
+
+        self.lower_frame = QWidget()
+
+        self.lower_frame.layout = QHBoxLayout()
+        self.lower_frame.layout.addWidget(self.tools)
+        self.lower_frame.layout.addWidget(self.colors_frame)
+        self.lower_frame.layout.addStretch()
+
+        self.lower_frame.layout.setContentsMargins(0,0,0,0)
+        self.lower_frame.layout.setSpacing(10)
+
+        self.lower_frame.setLayout(self.lower_frame.layout)
 
         self.layout = QVBoxLayout()
 
-        self.layout.addWidget(Tools())
+        self.layout.addWidget(self.file_frame)
+        self.layout.addStretch(1)
+        self.layout.addWidget(self.lower_frame)
 
         self.setLayout(self.layout)
 
@@ -99,9 +114,9 @@ class File(QWidget):
             }
         """ % Color.cyber_grape)
 
-        self.load_button = QPushButton()
-        self.save_button = QPushButton()
-        self.clear_button = QPushButton()
+        self.load_button = IconButton(QIcon("gui/assets/icons/start.png"), "Load image")
+        self.save_button = IconButton(QIcon("gui/assets/icons/stop.png"), "Save canvas")
+        self.clear_button = IconButton(QIcon("gui/assets/icons/start.png"), "Clear canvas")
 
         self.layout = QHBoxLayout()
 
@@ -112,12 +127,6 @@ class File(QWidget):
         self.layout.setSpacing(10)
 
         self.setLayout(self.layout)
-
-        # self.tool_selector = None # draw, square, ellipse
-
-        # self.color_picker_button = IconButton(QIcon("gui/assets/icons/quit.png"), "Color", size=20)
-        # self.load_button = IconButton(QIcon("gui/assets/icons/settings.png"), "Load")
-        # self.save_button = IconButton(QIcon("gui/assets/icons/settings.png"), "Save")
 
 class Tools(QWidget):
     def __init__(self):
@@ -131,23 +140,48 @@ class Tools(QWidget):
             }
         """ % Color.cyber_grape)
 
-        self.tool_selector = QPushButton()
-        self.eraser_button = QPushButton()
+        self.label = QLabel("Size")
         self.thickness_spinbox = QSpinBox()
-        self.color_picker_button = QPushButton()
+
+        self.pen_button = IconButton(QIcon("gui/assets/icons/start.png"), "Pen")
+        self.text_button = IconButton(QIcon("gui/assets/icons/start.png"), "Text")
+        self.eraser_button = IconButton(QIcon("gui/assets/icons/start.png"), "Eraser")
+
+        # self.thickness_spinbox.setSuffix("px")
+
+        self.label.setStyleSheet("""
+            QLabel {
+                font-family: Montserrat;
+                font-size: 14px;
+                font-weight: 600;
+                color: %s;
+            }
+        """ % Color.tinted_white)
+
+        self.thickness_spinbox.setStyleSheet("""
+            QSpinBox {
+                background: %s;
+                border-radius: 2px;
+            }
+        """ % Color.tinted_white)
+
+        self.thickness_spinbox.setMinimum(2)
+        self.thickness_spinbox.setValue(10)
 
         
         self.layout = QVBoxLayout()
-
-        self.layout.addWidget(self.tool_selector)
-        self.layout.addWidget(self.eraser_button)
+        self.layout.addWidget(self.label)
         self.layout.addWidget(self.thickness_spinbox)
-        self.layout.addWidget(self.color_picker_button)
+        self.layout.addSpacing(20)
+        self.layout.addWidget(self.pen_button)
+        self.layout.addWidget(self.text_button)
+        self.layout.addWidget(self.eraser_button)
 
         self.layout.setSpacing(10)
 
         self.setLayout(self.layout)
         
+# remove stylesheet for tool tip
 
 class Colors(QWidget):
     def __init__(self):
@@ -160,6 +194,11 @@ class Colors(QWidget):
                 border-radius: 10px;
             }
         """ % Color.cyber_grape)
+
+        self.color_picker_button = IconButton(QIcon("gui/assets/icons/start.png"), "Color picker", 30)
+        self.color_default_toggle_button = IconButton(QIcon("gui/assets/icons/stop.png"), "Color picker", 30)
+
+        self.color_default_toggle_button.clicked.connect(self.color_default_toggle_event)
 
         self.layout = QGridLayout()
 
@@ -183,7 +222,15 @@ class Colors(QWidget):
         self.layout.addWidget(ColorButton((255, 0, 255), "Fuchsia"), 3, 2)
         self.layout.addWidget(ColorButton((128, 0, 128), "Purple"), 3, 3)
 
+        self.layout.addWidget(self.color_picker_button, 2, 4)
+        self.layout.addWidget(self.color_default_toggle_button, 3, 4)
+
         self.setLayout(self.layout)
+
+    def color_default_toggle_event(self):
+        for v in self.children():
+            if isinstance(v, ColorButton):
+                v.setHidden(not v.isHidden())
 
 class ColorButton(QPushButton):
     def __init__(self, rgb, tooltip):
@@ -235,7 +282,14 @@ class Canvas(QWidget):
     def mouseMoveEvent(self, e):
         painter = QPainter(self.image)
         painter.setPen(QPen(self.brush_color, self.brush_size, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap)) #23:00
-        painter.drawLine(self.last, e.position())
+        # painter.drawLine(self.last, e.position())
+
+        r = QRect(QPoint(), QSize(20,20))
+        r.moveCenter(QPoint(int(e.position().x()), int(e.position().y())))
+        painter.save()
+        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Clear)
+        painter.eraseRect(r)
+        # painter.restore()
 
         self.last = e.position()
         self.update()
@@ -302,3 +356,27 @@ class Canvas(QWidget):
     #     # print(e.position().x())
     #     # print(e.position().x(),)
     #     self.qp.drawPoint(e.position().x(), e.position().y())
+
+
+    # def pick_color(self, rgb):
+    #     self.canvas.brush_color = QColor(rgb[0], rgb[1], rgb[2])
+
+    # def save(self):
+    #     fp, _ = QFileDialog.getSaveFileName(self, "Save Drawing", "gui/drawings", "JPEG(*.jpg);; PNG(*.png)")
+    #     if fp:
+    #         self.canvas.image.save(fp)
+
+    # def set_image(self):
+    #     fp, _ = QFileDialog.getOpenFileName(self, "Select Image", "gui/captures", "Image files (*.jpg *.png)")
+
+    #     if fp:
+    #         self.canvas.image = QImage(fp).scaledToHeight(680)
+    #         self.canvas.setFixedSize(self.canvas.image.size())
+
+    #         self.canvas.update()
+
+    # def color_picker_event(self):
+    #     color = QColorDialog.getColor()
+
+    #     if color.isValid():
+    #         self.canvas.brush_color = color
