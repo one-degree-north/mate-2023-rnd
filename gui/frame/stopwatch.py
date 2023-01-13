@@ -101,14 +101,16 @@ class Controls(QWidget):
             }
         """ % Color.cyber_grape)
 
-        self.quickstart_button = IconButton(QIcon("gui/assets/icons/quickstart.png"), "Quickstart", 35)
-        self.toggle_button = IconButton(QIcon("gui/assets/icons/start.png"), "Start", 35)
-        self.reset_button = IconButton(QIcon("gui/assets/icons/reload.png"), "Reset", 35)
+        self.quickstart_button = IconButton(QIcon("gui/assets/icons/quickstart.png"), "Quickstart")
+        self.toggle_button = IconButton(QIcon("gui/assets/icons/start.png"), "Start")
+        self.reset_button = IconButton(QIcon("gui/assets/icons/reload.png"), "Reset")
 
         self.layout = QHBoxLayout()
 
         self.layout.addWidget(self.reset_button)
         self.layout.addWidget(self.toggle_button)
         self.layout.addWidget(self.quickstart_button)
+
+        self.layout.setSpacing(10)
 
         self.setLayout(self.layout)

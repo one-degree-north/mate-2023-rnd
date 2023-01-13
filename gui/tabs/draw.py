@@ -1,39 +1,45 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QColorDialog, QFileDialog, QPushButton
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QColorDialog, QFileDialog, QPushButton, QSpinBox
 from PyQt6.QtGui import QPainter, QPen, QColor, QImage, QIcon
 from PyQt6.QtCore import Qt, QPoint, QRect
 
 from utils import Color, IconButton
 
+from functools import partial
+
 class DrawTab(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.draw_bar = DrawBar()
+        # self.draw_bar = DrawBar()
+        self.sidebar = Sidebar()
         self.canvas = Canvas()
 
-        self.canvas_frame = QWidget()
-        self.canvas_frame.setStyleSheet("""
-            QWidget {
-                background: %s;
-                border-radius: 10px;
-            }
-        """ % Color.cyber_grape)
+        # for v in self.draw_bar.a.children():
+        #     if isinstance(v, ColorButton):
+        #         v.clicked.connect(partial(self.pick_color, v.color))
 
-        self.canvas_frame.layout = QVBoxLayout()
-        self.canvas_frame.layout.addWidget(self.canvas)
-        self.canvas_frame.setLayout(self.canvas_frame.layout)
+        # self.layout = QHBoxLayout()
+
+        # self.layout.addWidget(self.draw_bar)
+        # self.layout.addStretch()
+        # self.layout.addWidget(self.canvas)
+
+        # self.setLayout(self.layout)
+
+        # self.draw_bar.color_picker_button.clicked.connect(self.color_picker_event)
+        # self.draw_bar.load_button.clicked.connect(self.set_image)
+        # self.draw_bar.save_button.clicked.connect(self.save)
 
         self.layout = QHBoxLayout()
 
-        self.layout.addWidget(self.draw_bar)
-        self.layout.addStretch()
+        self.layout.addWidget(self.sidebar)
         self.layout.addWidget(self.canvas)
 
         self.setLayout(self.layout)
 
-        self.draw_bar.color_picker_button.clicked.connect(self.color_picker_event)
-        self.draw_bar.load_button.clicked.connect(self.set_image)
-        self.draw_bar.save_button.clicked.connect(self.save)
+
+    def pick_color(self, rgb):
+        self.canvas.brush_color = QColor(rgb[0], rgb[1], rgb[2])
 
     def save(self):
         fp, _ = QFileDialog.getSaveFileName(self, "Save Drawing", "gui/drawings", "JPEG(*.jpg);; PNG(*.png)")
@@ -61,7 +67,27 @@ class DrawTab(QWidget):
 # default colors, color selector, pen size, load image, save image, clear, eraser, undo/redo?
 # empty canvas (select color)
 
-class DrawBar(QWidget):
+class Sidebar(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.file = File()
+
+        self.file_frame = QWidget()
+
+        self.tools = Tools()
+        self.colors = Colors()
+
+
+        self.layout = QVBoxLayout()
+
+        self.layout.addWidget(Tools())
+
+        self.setLayout(self.layout)
+
+
+
+class File(QWidget):
     def __init__(self):
         super().__init__()
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
@@ -73,26 +99,97 @@ class DrawBar(QWidget):
             }
         """ % Color.cyber_grape)
 
-        self.color_picker_button = IconButton(QIcon("gui/assets/icons/quit.png"), "Color")
-        self.load_button = IconButton(QIcon("gui/assets/icons/settings.png"), "Load")
-        self.save_button = IconButton(QIcon("gui/assets/icons/settings.png"), "Load")
-        self.a = ColorButton((20,200,20), "Green")
+        self.load_button = QPushButton()
+        self.save_button = QPushButton()
+        self.clear_button = QPushButton()
 
-        self.layout = QVBoxLayout()
+        self.layout = QHBoxLayout()
 
-        self.layout.addWidget(self.color_picker_button)
         self.layout.addWidget(self.load_button)
         self.layout.addWidget(self.save_button)
-        self.layout.addStretch()
-        self.layout.addWidget(self.a)
+        self.layout.addWidget(self.clear_button) # confirm
 
         self.layout.setSpacing(10)
+
+        self.setLayout(self.layout)
+
+        # self.tool_selector = None # draw, square, ellipse
+
+        # self.color_picker_button = IconButton(QIcon("gui/assets/icons/quit.png"), "Color", size=20)
+        # self.load_button = IconButton(QIcon("gui/assets/icons/settings.png"), "Load")
+        # self.save_button = IconButton(QIcon("gui/assets/icons/settings.png"), "Save")
+
+class Tools(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+
+        self.setStyleSheet("""
+            QWidget {
+                background: %s;
+                border-radius: 10px;
+            }
+        """ % Color.cyber_grape)
+
+        self.tool_selector = QPushButton()
+        self.eraser_button = QPushButton()
+        self.thickness_spinbox = QSpinBox()
+        self.color_picker_button = QPushButton()
+
+        
+        self.layout = QVBoxLayout()
+
+        self.layout.addWidget(self.tool_selector)
+        self.layout.addWidget(self.eraser_button)
+        self.layout.addWidget(self.thickness_spinbox)
+        self.layout.addWidget(self.color_picker_button)
+
+        self.layout.setSpacing(10)
+
+        self.setLayout(self.layout)
+        
+
+class Colors(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+
+        self.setStyleSheet("""
+            QWidget {
+                background: %s;
+                border-radius: 10px;
+            }
+        """ % Color.cyber_grape)
+
+        self.layout = QGridLayout()
+
+        self.layout.addWidget(ColorButton((255, 255, 255), "White"), 0, 0)
+        self.layout.addWidget(ColorButton((192, 192, 192), "Silver"), 0, 1)
+        self.layout.addWidget(ColorButton((128, 128, 128), "Gray"), 0, 2)
+        self.layout.addWidget(ColorButton((0, 0, 0), "Black"), 0, 3)
+
+        self.layout.addWidget(ColorButton((255, 0, 0), "Red"), 1, 0)
+        self.layout.addWidget(ColorButton((128, 0, 0), "Maroon"), 1, 1)
+        self.layout.addWidget(ColorButton((255, 255, 0), "Yellow"), 1, 2)
+        self.layout.addWidget(ColorButton((128, 128, 0), "Olive"), 1, 3)
+
+        self.layout.addWidget(ColorButton((0, 255, 0), "Lime"), 2, 0)
+        self.layout.addWidget(ColorButton((0, 128, 0), "Green"), 2, 1)
+        self.layout.addWidget(ColorButton((0, 255, 255), "Aqua"), 2, 2)
+        self.layout.addWidget(ColorButton((0, 128, 128), "Teal"), 2, 3)
+
+        self.layout.addWidget(ColorButton((0, 0, 255), "Blue"), 3, 0)
+        self.layout.addWidget(ColorButton((0, 0, 128), "Green"), 3, 1)
+        self.layout.addWidget(ColorButton((255, 0, 255), "Fuchsia"), 3, 2)
+        self.layout.addWidget(ColorButton((128, 0, 128), "Purple"), 3, 3)
 
         self.setLayout(self.layout)
 
 class ColorButton(QPushButton):
     def __init__(self, rgb, tooltip):
         super().__init__()
+
+        self.color = rgb
 
         self.setStyleSheet("""
             QToolTip {
@@ -109,10 +206,11 @@ class ColorButton(QPushButton):
             QPushButton:hover {
                 background: rgb(%s, %s, %s);
             }
-        """ % (Color.grape, rgb[0], rgb[1], rgb[2], rgb[0]+10, rgb[1]+10, rgb[2]+10))
+        """ % (Color.grape, rgb[0], rgb[1], rgb[2], rgb[0]+20 if rgb[0]+20 <= 255 else rgb[0]-20, rgb[1]+20 if rgb[1]+20 <= 255 else rgb[1]-20, rgb[2]+20 if rgb[2]+20 <= 255 else rgb[2]-20))
 
         self.setToolTip(tooltip)
         self.setFixedSize(30,30)
+    
 
 class Canvas(QWidget):
     def __init__(self):

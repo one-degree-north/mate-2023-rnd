@@ -13,7 +13,7 @@ class Color:
 
 
 class IconButton(QPushButton): # tooltip style
-    def __init__(self, icon: QIcon, tooltip, size=40):
+    def __init__(self, icon: QIcon, tooltip):
         super().__init__()
 
         self.setStyleSheet("""
@@ -36,5 +36,5 @@ class IconButton(QPushButton): # tooltip style
         self.setIcon(icon)
         self.setToolTip(tooltip)
 
-        self.setIconSize(QSize(size,size))
-        self.setFixedSize(size,size)
+        self.setIconSize(QSize(40, 40))
+        self.setFixedSize(40, 40)
