@@ -1,13 +1,16 @@
 {
+    "cameras": {
+        "port-1": 0,
+        "port-2": 1
+    },
+    
     "ip": "8.8.8.8", // update only when clicked
 
     "location-data": { // update only when clicked
         "latitude": 37.42240, // used for calc for map
         "longitude": -122.08421,
 
-        "country": "United States", // country_name
-        "flag": "https://ipgeolocation.io/static/flags/us_64.png", // country_flag -- maybe get rid of later & just save in assets/saved-data
-
+        "country": "United States", // country_name  // country_flag -- maybe get rid of later & just save in assets/saved-data --- ok
         "state": "California", // state_prov
         "city": "Mountain View",
 

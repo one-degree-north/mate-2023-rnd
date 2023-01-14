@@ -277,9 +277,9 @@ class Colors(QWidget):
             if isinstance(v, ColorButton):
                 v.setHidden(not v.isHidden())
 
-                shown = not v.isHidden()
+                visible = v.isVisible()
 
-        if shown:
+        if visible:
             self.color_default_toggle_button.setIcon(QIcon("gui/assets/icons/arrow-left.png"))
         else:
             self.color_default_toggle_button.setIcon(QIcon("gui/assets/icons/arrow-right.png"))

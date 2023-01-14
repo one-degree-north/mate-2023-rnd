@@ -88,13 +88,13 @@ class Tabs(QTabWidget):
 
 
         self.camera_tab = camera.CameraTab()
-        self.chart_tab = QWidget()
         self.draw_tab = draw.DrawTab()
+        self.autonomous_tab = QWidget()
         self.settings_tab = QWidget()
 
         self.addTab(self.camera_tab, QIcon("gui/assets/icons/camera.png"), "Camera")
-        self.addTab(self.chart_tab, QIcon("gui/assets/icons/chart.png"), "Chart")
         self.addTab(self.draw_tab, QIcon("gui/assets/icons/draw.png"), "Draw")
+        self.addTab(self.autonomous_tab, QIcon("gui/assets/icons/chart.png"), "Autonomous")
         self.addTab(self.settings_tab, QIcon("gui/assets/icons/settings.png"), "Settings")
 
         
@@ -127,13 +127,6 @@ class MainWindow(QMainWindow):
         self.lower_section = LowerSection()
         self.upper_section = UpperSection()
         self.tabs = Tabs()
-
-        # tab
-
-        # self.tab_layout = QWidget()
-        # self.tab_layout.layout = QVBoxLayout()
-        # self.tab_layout.layout.addWidget(self.tabs)
-        # self.tab_layout.setLayout(self.tab_layout.layout)
 
         # layout
         self.layout = QVBoxLayout()
