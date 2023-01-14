@@ -14,8 +14,8 @@ class CameraTab(QWidget):
         super().__init__()
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
 
-        self.cam_1 = Camera(0)
-        self.cam_2 = QLabel()
+        self.cam_1 = Camera(2)
+        self.cam_2 = Camera(1)
 
         self.layout = QHBoxLayout()
 
@@ -32,7 +32,7 @@ class Camera(QLabel):
         # self.setFixedSize(1280, 720)
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self.thread = VideoThread(0)
+        self.thread = VideoThread(port)
         self.thread.change_pixmap_signal.connect(self.update_image)
         self.thread.start()
 

@@ -3,7 +3,7 @@ from PyQt6.QtGui import QFontDatabase, QFont, QIcon
 from PyQt6.QtCore import Qt
 
 from frame import menu, navigation, time, stopwatch
-from tabs import camera, draw
+from tabs import camera, draw, settings
 import widgets
 
 from utils import Color
@@ -90,7 +90,7 @@ class Tabs(QTabWidget):
         self.camera_tab = camera.CameraTab()
         self.draw_tab = draw.DrawTab()
         self.autonomous_tab = QWidget()
-        self.settings_tab = QWidget()
+        self.settings_tab = settings.SettingsTab()
 
         self.addTab(self.camera_tab, QIcon("gui/assets/icons/camera.png"), "Camera")
         self.addTab(self.draw_tab, QIcon("gui/assets/icons/draw.png"), "Draw")
