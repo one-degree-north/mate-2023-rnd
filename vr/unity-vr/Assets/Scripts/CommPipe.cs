@@ -20,16 +20,16 @@ public class CommPipe : MonoBehaviour{
     private Stream stream;
     private Queue<InputData> readQueue;
     void Start(){
-        namedPipe = new NamedPipeClientStream("testPipe");
-        namedPipe.ReadMode = PipeTransmissionMode.Message;
+        namedPipe = new NamedPipeClientStream(".", "testPipe1", PipeDirection.InOut);
         namedPipe.Connect();
+        // namedPipe.ReadMode = PipeTransmissionMode.Message;
         writeQueue = new Queue<InputData>();
         readQueue = new Queue<InputData>();
         // stream = new Stream(namedPipe);
         // readTask = new Task(readLoop);
         // readTask.Start();
         Task.Run(writeLoop);
-        Task.Run(readLoop);
+        // Task.Run(readLoop);
     }
     void readLoop(){
         while (true){
@@ -67,13 +67,41 @@ public class CommPipe : MonoBehaviour{
         while (true){
             if (writeQueue.Count > 0){
                 InputData data = writeQueue.Dequeue();
-                namedPipe.Write(data.returnWriteData());
+                // Debug.Log("writing");
+                // Debug.Log(string.Join(", ", data.returnWriteData()));
+                // Debug.Log(data.returnWriteData());
+                byte[] buffer = (byte[])data.returnWriteData().Clone();
+                // Debug.Log(namedPipe.CanWrite);
+                namedPipe.Write(buffer);
+                // Debug.Log("A");
+                // try{
+                //     namedPipe.Write(data.returnWriteData());
+                // }
+                // catch (Exception e){
+                //     Debug.Log(e.ToString());
+                // }
             }
         }
     }
     void Update(){
-        Debug.Log("count: ");
-        Debug.Log(writeQueue.Count);
+        // Debug.Log("count: ");
+        // Debug.Log(writeQueue.Count);
+        // if (writeQueue.Count > 0){
+        //         InputData data = writeQueue.Dequeue();
+        //         Debug.Log("writing");
+        //         Debug.Log(string.Join(", ", data.returnWriteData()));
+        //         // Debug.Log(data.returnWriteData());
+        //         byte[] buffer = (byte[])data.returnWriteData().Clone();
+        //         Debug.Log(namedPipe.CanWrite);
+        //         namedPipe.Write(buffer);
+        //         Debug.Log("A");
+        //         try{
+        //             namedPipe.Write(data.returnWriteData());
+        //         }
+        //         catch (Exception e){
+        //             Debug.Log(e.ToString());
+        //         }
+        //     }
     }
 }
 public class InputData{

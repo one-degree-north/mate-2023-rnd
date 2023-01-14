@@ -260,7 +260,7 @@ class UnityCommsPipe:
         # self.pipe = win32pipe.CreateNamedPipe(r'\\.\pipe\testPipe', win32pipe.PIPE_ACCESS_DUPLEX,
         # win32pipe.PIPE_TYPE_BYTE | win32pipe.PIPE_WAIT
         # , 1, 65536, 65536, 300, None)
-        self.pipe = win32pipe.CreateNamedPipe(r'\\.\pipe\testPipe', win32pipe.PIPE_ACCESS_DUPLEX,
+        self.pipe = win32pipe.CreateNamedPipe(r'\\.\pipe\testPipe1', win32pipe.PIPE_ACCESS_DUPLEX,
         win32pipe.PIPE_TYPE_MESSAGE | win32pipe.PIPE_WAIT
         , 1, 65536, 65536, 300, None)
         win32pipe.ConnectNamedPipe(self.pipe)
@@ -279,8 +279,12 @@ class UnityCommsPipe:
         expected_len = 0
         command = 0
         while True:
+            print("AAA")
             buffer = []
             input_data = win32file.ReadFile(self.pipe, 2048)
+            print(len(input_data[1]))
+            print(input_data[0])
+            print(input_data[1])
             print(input_data)
 
 if __name__ == "__main__":  # simple vr-interface for test driving
