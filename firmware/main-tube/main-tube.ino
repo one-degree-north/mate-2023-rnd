@@ -157,12 +157,12 @@ void sendSensorData(){
             break;
           }
 
-          Serial.println("sending sensor data");
-          Serial.println(i*3+j, BIN);
-          Serial.println(((byte*)&val)[0], BIN);
-          Serial.println(((byte*)&val)[1], BIN);
-          Serial.println(((byte*)&val)[2], BIN);
-          Serial.println(((byte*)&val)[3], BIN);
+          // Serial.println("sending sensor data");
+          // Serial.println(i*3+j, BIN);
+          // Serial.println(((byte*)&val)[0], BIN);
+          // Serial.println(((byte*)&val)[1], BIN);
+          // Serial.println(((byte*)&val)[2], BIN);
+          // Serial.println(((byte*)&val)[3], BIN);
 
           CAN.beginPacket(i*3+j);
           CAN.write(((byte*)&val)[0]);
@@ -178,16 +178,20 @@ void sendSensorData(){
 void setThrustPercent(){
   pidEnabled = false;
   for (int i = 0; i < 8; i++){
-    ((float*)&tMov)[i] = 0;
     pidVals[i]->targetVal = 0;
+  }
+  for (int i = 0; i < 6; i++){
+    ((float*)&tMov)[i] = 0;
   }
 }
 
 void setPid(){
   pidEnabled = true;
   for (int i = 0; i < 8; i++){
-    ((float*)&tMov)[i] = 0;
     pidVals[i]->targetVal = 0;
+  }
+  for (int i = 0; i < 6; i++){
+    ((float*)&tMov)[i] = 0;
   }
 }
 
@@ -256,7 +260,6 @@ void readCan(int packetLength){
       case 0x12:  // set up percent (manual)
         setThrustPercent();
         tMov.u = ((float*)commandValues)[0];
-        pidEnabled = false;
       break;
       case 0x13:  // set roll percent (manual)
         setThrustPercent();

@@ -22,8 +22,8 @@ Low ID numbers have a higher priority (PROBABLY INCORPORATE THIS!!!, REDUCE PRIO
 
 ### Commands for control station (return data)
 Value in packet will be a single float\
-Command bits 0-4: specifies the data type (orientation, gyro, etc.)\
-Command bits 5-6: specifies the axis (eg. front, side, up). The value in axis will be big endian (SUBJECT TO CHANGE) in order of it being given (eg. an axis of x, y, z would have 00 as x, 01 as y, and 10 as z).\
+Command bits 0-2: specifies the data type (orientation, gyro, etc.)\
+Command bits 3-4: specifies the axis (eg. front, side, up). The value in axis will be big endian (SUBJECT TO CHANGE) in order of it being given (eg. an axis of x, y, z would have 00 as x, 01 as y, and 10 as z).\
 | data value |  command BITS 0-4 | axis BITS 5-6| packet BYTES 0-3 | packet BYTES 4 |
 | --- | --- | --- | --- | --- |
 | orientation| 0x01 | r, p, y | float, orientation |
