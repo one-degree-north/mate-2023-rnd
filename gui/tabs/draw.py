@@ -23,16 +23,16 @@ class DrawTab(QWidget):
 
         self.setLayout(self.layout)
 
+        self.sidebar.file.load_button.clicked.connect(self.load_event)
+        self.sidebar.file.save_button.clicked.connect(self.save_event)
+        self.sidebar.file.clear_button.clicked.connect(self.clear_event)
+
         self.sidebar.tools.thickness_spinbox.valueChanged.connect(self.thickness_event)
         self.sidebar.tools.pen_button.clicked.connect(partial(self.tool_event, 0))
         self.sidebar.tools.text_button.clicked.connect(partial(self.tool_event, 1))
         self.sidebar.tools.eraser_button.clicked.connect(partial(self.tool_event, 2))
 
         self.sidebar.colors.color_picker_button.clicked.connect(self.color_picker_event)
-
-        self.sidebar.file.load_button.clicked.connect(self.load_event)
-        self.sidebar.file.save_button.clicked.connect(self.save_event)
-        self.sidebar.file.clear_button.clicked.connect(self.clear_event)
 
         for v in self.sidebar.colors.children():
             if isinstance(v, ColorButton):

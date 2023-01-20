@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QCheckBox
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTabWidget, QPushButton, QCheckBox
 from PyQt6.QtCore import Qt
 
 from utils import Color
@@ -6,20 +6,24 @@ from utils import Color
 class SettingsTab(QWidget):
     def __init__(self):
         super().__init__()
-
-        self.ui_settings = UISettings()
-        self.api_settings = APISettings()
+        
+        self.sidebar = Sidebar()
+        self.tabs = Tabs()
 
         self.layout = QHBoxLayout()
 
-        self.layout.addWidget(self.ui_settings)
-        self.layout.addWidget(self.api_settings, 1)
-
-        self.layout.setSpacing(20)
+        self.layout.addWidget(self.sidebar)
+        self.layout.addWidget(self.tabs)
 
         self.setLayout(self.layout)
 
-class UISettings(QWidget):
+        self.sidebar
+
+    def tab_clicked(self, i):
+        self.tabs.setCurrentIndex(i)
+
+
+class Sidebar(QWidget):
     def __init__(self):
         super().__init__()
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
@@ -27,9 +31,34 @@ class UISettings(QWidget):
         self.setStyleSheet("""
             QWidget {
                 background: %s;
-                border-radius: 20px;
+                border-radius: 10px;
             }
+        """ % Color.cyber_grape)
 
+        self.setFixedWidth(300)
+
+class TabButton(QPushButton):
+    def __init__(self):
+        super().__init__()
+
+        
+
+class Tabs(QTabWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.ui_settings = UISettings()
+        self.location_settings = LocationSettings()
+        self.weather_settings = WeatherSettings()
+
+        self.addTab(self.ui_settings, "")
+        
+
+class UISettings(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.setStyleSheet("""
             QLabel {
                 font-family: Montserrat;
                 font-weight: 80px;
@@ -48,13 +77,13 @@ class UISettings(QWidget):
             QCheckBox::indicator:checked {
                 background: %s;
             }
-        """ % (Color.cyber_grape, Color.tinted_white, Color.light_salmon))
+        """ % (Color.tinted_white, Color.light_salmon))
 
         self.label = QLabel("Hello")
         self.check = QCheckBox()
 
         self.layout = QVBoxLayout()
-        self.layout.addWidget(self.check)
+        self.layout.addWidget(self.label)
 
         self.setLayout(self.layout)
 

@@ -135,7 +135,7 @@ class Information(QWidget):
         self.image_frame.setScaledContents(True)
 
 
-        self.title = QLabel("1\u00B0N MATE R&D")
+        self.title = QLabel("MATE R&D")
         self.title.setAlignment(Qt.AlignmentFlag.AlignHCenter)
 
         self.title.setStyleSheet("""
@@ -146,7 +146,7 @@ class Information(QWidget):
             }
         """ % Color.tinted_white)
 
-        self.version = QLabel(f"v0.1") # version
+        self.version = QLabel(f"One Degree North") # 1\u00B0N 
         self.version.setAlignment(Qt.AlignmentFlag.AlignHCenter)
 
         self.version.setStyleSheet("""
