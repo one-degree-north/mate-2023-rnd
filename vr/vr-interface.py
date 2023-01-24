@@ -215,31 +215,30 @@ class UnityComms:
             # print(bytes(self.from_unity_mem[0]).hex())
             self.from_unity_mutex.release()
             # print(command)
-            match command:
-                case 0x01:  # confirm existance
-                    self.confirm_connection()
-                case 0x10:  # close connection
+            if command == 0x01:
+                self.confirm_connection()
+            elif command == 0x10:  # close connection
                     self.stop_unity_reading()   # make unity stop reading as well
-                case 0x02:  # headset position
-                    self.hset_position = struct.unpack("=fff", self.from_unity_mem[2:14])
-                    print("position: " + str(self.hset_position))
-                case 0x03:  # headset rotation (euler angles)
-                    self.hset_rotation = struct.unpack("=fff", self.from_unity_mem[2:14])
-                    # print("rotation: " + str(self.hset_rotation))
-                case 0x04:  # headset rotation (quaternions)
-                    self.hset_quat = struct.unpack("=ffff", self.from_unity_mem[2:18])
-                case 0x20:  # move front
-                    pass
-                case 0x21:  # move up
-                    pass
-                case 0x22:  # move side
-                    pass
-                case 0x23:  # pitch
-                    pass
-                case 0x24:  # yaw
-                    pass
-                case 0x25:  # roll
-                    pass
+            elif command == 0x02:  # headset position
+                self.hset_position = struct.unpack("=fff", self.from_unity_mem[2:14])
+                print("position: " + str(self.hset_position))
+            elif command == 0x03:  # headset rotation (euler angles)
+                self.hset_rotation = struct.unpack("=fff", self.from_unity_mem[2:14])
+                # print("rotation: " + str(self.hset_rotation))
+            elif command == 0x04:  # headset rotation (quaternions)
+                self.hset_quat = struct.unpack("=ffff", self.from_unity_mem[2:18])
+            elif command == 0x20:  # move front
+                pass
+            elif command == 0x21:  # move up
+                pass
+            elif command == 0x22:  # move side
+                pass
+            elif command == 0x23:  # pitch
+                pass
+            elif command == 0x24:  # yaw
+                pass
+            elif command == 0x25:  # roll
+                pass
 
 class UnityCommsPipe:
     def __init__(self):
