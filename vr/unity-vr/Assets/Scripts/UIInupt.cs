@@ -3,15 +3,35 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Valve.VR.Extras;
+using UnityEngine.Windows.WebCam;
 
 public class UIInupt : MonoBehaviour
 {
     // Start is called before the first frame update
     public SteamVR_LaserPointer laserPointer;
     public Communications comms;
+
+    private PhotoCapture photoCapture;
+    private WebCamTexture webTex;
+    private int imgHeight;
+    private int imgWidth;
+    private WebCamDevice[] devices;
+    public RawImage rawImage;
+
     void Start()
     {
         laserPointer.PointerIn += pointerClicked;
+
+        WebCamDevice[] devices = WebCamTexture.devices;
+        // foreach (WebCamDevice dev in devices){
+        //     Debug.Log(dev.name);
+        // }
+        if (devices.Length != 0){
+        webTex = new WebCamTexture(devices[0].name);
+        }
+        rawImage.texture = webTex;
+        // webTex = new WebCamTexture(devices[0].name);
+        webTex.Play();
     }
 
     // Update is called once per frame

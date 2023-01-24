@@ -260,17 +260,21 @@ class UnityCommsPipe:
         # self.pipe = win32pipe.CreateNamedPipe(r'\\.\pipe\testPipe', win32pipe.PIPE_ACCESS_DUPLEX,
         # win32pipe.PIPE_TYPE_BYTE | win32pipe.PIPE_WAIT
         # , 1, 65536, 65536, 300, None)
-        self.pipe = win32pipe.CreateNamedPipe(r'\\.\pipe\testPipe1', win32pipe.PIPE_ACCESS_DUPLEX,
+        self.fromUnityPipe = win32pipe.CreateNamedPipe(r'\\.\pipe\fromUnityPipe', win32pipe.PIPE_ACCESS_INBOUND,
         win32pipe.PIPE_TYPE_MESSAGE | win32pipe.PIPE_WAIT
         , 1, 65536, 65536, 300, None)
-        win32pipe.ConnectNamedPipe(self.pipe)
+        self.toUnityPipe = win32pipe.CreateNamedPipe(r'\\.\pipe\toUnityPipe', win32pipe.PIPE_ACCESS_OUTBOUND,
+        win32pipe.PIPE_TYPE_MESSAGE | win32pipe.PIPE_WAIT
+        , 1, 65536, 65536, 300, None)
+        win32pipe.ConnectNamedPipe(self.toUnityPipe)
+        win32pipe.ConnectNamedPipe(self.fromUnityPipe)
         print("connected pipe")
         read_thread = threading.Thread(target=self.read_loop, daemon=True)
         read_thread.start()
         self.read_loop()
 
     def test_write(self):
-        error, data_written = win32file.WriteFile(self.pipe, bytes('test'.encode("ascii")))
+        error, data_written = win32file.WriteFile(self.toUnityPipe, bytes('test'.encode("ascii")))
         print(error)
         print(data_written)
     
@@ -281,11 +285,11 @@ class UnityCommsPipe:
         while True:
             print("AAA")
             buffer = []
-            input_data = win32file.ReadFile(self.pipe, 2048)
-            print(len(input_data[1]))
-            print(input_data[0])
-            print(input_data[1])
-            print(input_data)
+            input_data = (win32file.ReadFile(self.fromUnityPipe, 2048))[1]
+            match input_data[0]:
+                case 0x0A:
+                    if len(input_data) == 153:
+                        struct.unpack("=ffffffffffffffffffffffffffffffffffffff", self.input_data[1:153])
 
 if __name__ == "__main__":  # simple vr-interface for test driving
     # comms = UnityComms()

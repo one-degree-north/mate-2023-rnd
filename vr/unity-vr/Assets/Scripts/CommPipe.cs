@@ -13,15 +13,18 @@ using System.IO;
 public class CommPipe : MonoBehaviour{
     public static byte HEADER = 0xAA;
     public static byte FOOTER = 0xBB;
-    private NamedPipeClientStream namedPipe;
+    private NamedPipeClientStream fromPythonPipe;
+    private NamedPipeClientStream toPythonPipe;
     // private Task readTask;
     // private Task writeTask;
     private Queue<InputData> writeQueue;
     private Stream stream;
     private Queue<InputData> readQueue;
     void Start(){
-        namedPipe = new NamedPipeClientStream(".", "testPipe1", PipeDirection.InOut);
-        namedPipe.Connect();
+        toPythonPipe = new NamedPipeClientStream(".", "fromUnityPipe", PipeDirection.Out);
+        fromPythonPipe = new NamedPipeClientStream(".", "toUnityPipe", PipeDirection.In);
+        fromPythonPipe.Connect();
+        toPythonPipe.Connect();
         // namedPipe.ReadMode = PipeTransmissionMode.Message;
         writeQueue = new Queue<InputData>();
         readQueue = new Queue<InputData>();
@@ -34,7 +37,7 @@ public class CommPipe : MonoBehaviour{
     void readLoop(){
         while (true){
             byte[] buffer = new byte[2048];
-            int readNum = namedPipe.Read(buffer, 0, 2048);
+            int readNum = fromPythonPipe.Read(buffer, 0, 2048);
             processReadData(buffer);
         }
     }
@@ -72,7 +75,7 @@ public class CommPipe : MonoBehaviour{
                 // Debug.Log(data.returnWriteData());
                 byte[] buffer = (byte[])data.returnWriteData().Clone();
                 // Debug.Log(namedPipe.CanWrite);
-                namedPipe.Write(buffer);
+                toPythonPipe.Write(buffer);
                 // Debug.Log("A");
                 // try{
                 //     namedPipe.Write(data.returnWriteData());
