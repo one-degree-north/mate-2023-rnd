@@ -5,8 +5,8 @@ from serial.tools import list_ports
 
 # using can-passthrough!
 class RovComms:
-    HEADER = 0xA0
-    FOOTER = 0x0B
+    HEADER = 0xA0.to_bytes(length=1, byteorder='big', signed=False)
+    FOOTER = 0x0B.to_bytes(length=1, byteorder='big', signed=False)
     def __init__(self, on_orientation_chnage=[], on_accel_change=[], on_ang_chnage=[], on_quat_change=[], on_receive=[]):
         # on_receive are functions that are called when new data is available
         self.on_orientation = on_orientation_chnage
@@ -30,26 +30,35 @@ class RovComms:
         self.read_queue = queue.Queue()
         self.write_queue = queue.Queue()
         
-        while not device_found:
+        while not self.device_found:
             # get the port with the given device
             ports = list_ports.comports()
             for port in ports:
+                # print(port.product)
+                # print(port.)
                 if port.product == "Feather M4 CAN":
-                    self.serialPort = port
-                    device_found = True
+                    self.serial_port = port.device
+                    self.device_found = True
                     break
             # device not found, continue until found
             sleep(0.1)
 
         self.serial_comm = Serial(port=f"{self.serial_port}", baudrate=115200)
-        self.read_thread = threading.Thread(target=self.read_loop)
-        self.write_thread = threading.Thread(target=self.write_loop)
+        self.read_thread = threading.Thread(target=self.read_loop, daemon=True)
+        self.write_thread = threading.Thread(target=self.write_loop, daemon=True)
         self.read_thread.start()
         self.write_thread.start()
 
     def read_loop(self):
+        # while True:
+        #     if self.serial_comm.in_waiting > 0:
+        #         print(self.serial_comm.read(), sep="")
+        # print('a')
+
+
         while True:
-            buffer = []
+            # print("read data~")
+            buffer = bytearray()
             data = 0
             target_len = 0
             curr_index = 0
@@ -58,19 +67,27 @@ class RovComms:
             called_functions = []
             while True:
                 if self.serial_comm.in_waiting > 0:
+                    # print("reading")
                     val = self.serial_comm.read()
+                    # print(type(val))
                     if not header_found:
+                        # print("found header")
                         if val == RovComms.HEADER:
                             header_found = True
                             curr_index += 1
                     elif curr_index == 1:
-                        command = val
+                        # print("found command")
+                        command = int.from_bytes(val, "big")
                         match command:
                             case _:
                                 target_len = 4
-                    elif curr_index <= target_len:
-                        buffer.insert(val)
-
+                        curr_index += 1
+                    elif curr_index-2 < target_len:
+                        # print("reading")
+                        # print(buffer)
+                        buffer += val
+                        # print(buffer)
+                        curr_index += 1
 
                         # match val:
                         #     case 0x01:  # orientation
@@ -80,12 +97,15 @@ class RovComms:
                         #         target_len = 2
                     else:
                         # do stuff!
-                        data = struct.pack("=f", buffer)
+                        # print('a')
+                        # print(buffer)
+                        data = (struct.unpack("=f", buffer))[0]
+                        # print(data)
                         for function in called_functions:
                             function(buffer)
                         data_index = (command & 0b00011)
                         match (command >> 2):
-                            case 0x01:  # orientation
+                            case 0x01:  # orientationa
                                 if data_index in [0, 1, 2]:
                                     self.orientation[data_index] = data
                             case 0x02:  # gyro
@@ -97,7 +117,12 @@ class RovComms:
                             case 0x04:  # quat
                                 if data_index in [0, 1, 2, 3]:
                                     self.quaternion[data_index] = data
+                        curr_index = 0
+                        header_found = False
+                        target_len = 0
+                        break
        
+
     def write_loop(self):
         while True:
             if self.write_queue.not_empty:
@@ -105,13 +130,42 @@ class RovComms:
             # sleep(0.01)
 
     def set_accelerations_thrust(self, accels):
-        #acceleration in m/s, values in front, side, up, roll, pitch, yaw
-        self.onshoreArduino.write(struct.pack("=ccffffffc", RovComms.HEADER, 0x1A, accels[0], accels[1], accels[2], accels[3], accels[4], accels[5], RovComms.FOOTER))
+        # acceleration in m/s, values in front, side, up, roll, pitch, yaw
+        self.write_queue.put(struct.pack("=ccffffffc", RovComms.HEADER, 0x1A.to_bytes(length=1, byteorder='big', signed=False), accels[0], accels[1], accels[2], accels[3], accels[4], accels[5], RovComms.FOOTER))
         # send_data = bytearray(7)
         # send_data[0] = 0x01
         # for i in range(6):
         #     send_data[1:4] = accels[i]
         
     def set_manual_thrust(self, thrusts):
-        #manual thrust for each, percentage of thrust to each (same as accel) from -100 to 100
-        self.onshoreArduino.write(struct.pack("=ccffffffc", RovComms.HEADER, 0x1B, thrusts[0], thrusts[1], thrusts[2], thrusts[3], thrusts[4], thrusts[5], RovComms.FOOTER))
+        # manual thrust for each, percentage of thrust to each (same as accel) from -100 to 100
+        self.write_queue.put(struct.pack("=ccffffffc", RovComms.HEADER, 0x1B.to_bytes(length=1, byteorder='big', signed=False), thrusts[0], thrusts[1], thrusts[2], thrusts[3], thrusts[4], thrusts[5], RovComms.FOOTER))
+        print("finished")
+
+    def move_camera_servo(self, servo_num, degree):
+        # degree is int, servo_num is byte
+        self.write_queue.put(struct.pack("=ccicc", RovComms.HEADER, 0x20.to_bytes(length=1, byteorder='big', signed=False), int(degree), servo_num.to_bytes(length=1, byteorder="big", signed=False), RovComms.FOOTER))
+        print(struct.calcsize("=ic"))
+
+if __name__ == "__main__":
+    comms = RovComms()
+    while True:
+        val = input()
+        deg = input()
+        match val:
+            case 'a':
+                print('A')
+                comms.set_manual_thrust([float(deg), 0, 0, 0, 0, 0])
+            case ' ':
+                comms.set_manual_thrust([0, 0, 0, 0, 0, 0])
+            case 'q':
+                comms.set_manual_thrust([0, float(deg), 0, 0, 0, 0])
+            case 'i':
+                comms.set_manual_thrust([0, 0, float(deg), 0, 0, 0])
+            case 'w':
+                comms.move_camera_servo(0, int(deg))
+            case _:
+                print(comms.orientation)
+                print(comms.accel)
+                print(comms.angular_rotation)
+                print(comms.quaternion)
