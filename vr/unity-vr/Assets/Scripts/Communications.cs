@@ -7,7 +7,6 @@ using Unity.Jobs;
 using System.Threading.Tasks;
 using System;
 using System.Collections.Concurrent;
-
 public class Communications : MonoBehaviour
 {
     // Start is called before the first frame update

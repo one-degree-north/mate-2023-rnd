@@ -9,6 +9,8 @@ using System;
 using System.Collections.Concurrent;
 using System.IO.Pipes;
 using System.IO;
+using System.Linq;
+
 
 public class CommPipe : MonoBehaviour{
     public static byte HEADER = 0xAA;
@@ -20,11 +22,19 @@ public class CommPipe : MonoBehaviour{
     private Queue<InputData> writeQueue;
     private Stream stream;
     private Queue<InputData> readQueue;
+    public RectTransform canvas;
     void Start(){
-        toPythonPipe = new NamedPipeClientStream(".", "fromUnityPipe", PipeDirection.Out);
-        fromPythonPipe = new NamedPipeClientStream(".", "toUnityPipe", PipeDirection.In);
+        // System.IO.Pipes.Pipe
+        toPythonPipe = new NamedPipeClientStream(".", "fromUnityPipe", PipeDirection.InOut);
+        fromPythonPipe = new NamedPipeClientStream(".", "toUnityPipe", PipeDirection.InOut);    // need inout for dumb readmode
+        // fromPythonPipe = new NamedPipeClientStream(".", "toUnityPipe", PipeAccessRights.ReadData | PipeAccessRights.WriteAttributes, 
+        //                      PipeOptions.None, 
+        //                      System.Security.Principal.TokenImpersonationLevel.None, 
+        //                      System.IO.HandleInheritability.None);
+        // fromPythonPipe.ReadMode = PipeTransmissionMode.Message;
         fromPythonPipe.Connect();
         toPythonPipe.Connect();
+        fromPythonPipe.ReadMode = PipeTransmissionMode.Message;
         // namedPipe.ReadMode = PipeTransmissionMode.Message;
         writeQueue = new Queue<InputData>();
         readQueue = new Queue<InputData>();
@@ -32,17 +42,38 @@ public class CommPipe : MonoBehaviour{
         // readTask = new Task(readLoop);
         // readTask.Start();
         Task.Run(writeLoop);
-        // Task.Run(readLoop);
+        Task.Run(readLoop);
     }
     void readLoop(){
         while (true){
+            Debug.Log("a");
             byte[] buffer = new byte[2048];
             int readNum = fromPythonPipe.Read(buffer, 0, 2048);
-            processReadData(buffer);
+            Debug.Log("readed!");
+            Debug.Log(readNum);
+            // processReadData(new InputData(buffer, readNum));
+            // Debug.Log("finish");
+            readQueue.Enqueue(new InputData(buffer, readNum));
         }
     }
-    void processReadData(byte[] buffer){
+    public void exitApp(){
 
+    }
+    void processReadData(InputData input){
+        Debug.Log("recv data");
+        // Debug.Log("created InputData");
+        Debug.Log(input.command);
+        Debug.Log(input.data.Length);
+        Debug.Log(fromPythonPipe.IsMessageComplete);
+        switch (input.command){
+            case 0x01:  // debug, echo
+                Debug.Log(input.data);
+            break;
+            case 0x02:  // move camera view
+                Debug.Log("moving!");
+                canvas.eulerAngles = new Vector3(BitConverter.ToSingle(input.data, 0), BitConverter.ToSingle(input.data, 4), BitConverter.ToSingle(input.data, 8));
+            break;
+        }
     }
     public void writeData(Vector3 position){
         byte[] buffer = new byte[12];
@@ -87,6 +118,20 @@ public class CommPipe : MonoBehaviour{
         }
     }
     void Update(){
+        if (readQueue.Count > 0){
+            processReadData(readQueue.Dequeue());
+        }
+        // Debug.Log("a");
+        //     byte[] buffer = new byte[2048];
+        //     int readNum = fromPythonPipe.Read(buffer, 0, 2048);
+        //     Debug.Log("readed!");
+        //     Debug.Log(readNum);
+        //     processReadData(new InputData(buffer, readNum));
+        // Debug.Log("a");
+        //     byte[] buffer = new byte[2048];
+        //     int readNum = fromPythonPipe.Read(buffer, 0, 2048);
+        //     processReadData(buffer);
+            // Debug.Log("finish");
         // Debug.Log("count: ");
         // Debug.Log(writeQueue.Count);
         // if (writeQueue.Count > 0){
@@ -111,15 +156,20 @@ public class InputData{
     public byte command;
     public byte[] data;
     public byte[] returnWriteData(){
-        byte[] returnData = new byte[data.Length+3];
-        data.CopyTo(returnData, 2);
-        returnData[0] = CommPipe.HEADER;
-        returnData[1] = command;
-        returnData[data.Length+2] = CommPipe.FOOTER;
+        byte[] returnData = new byte[data.Length+1];
+        data.CopyTo(returnData, 1);
+        // returnData[0] = CommPipe.HEADER;
+        returnData[0] = command;
+        // returnData[data.Length+2] = CommPipe.FOOTER;
         return returnData;
     }
     public InputData(byte command, byte[] data){
         this.command = command;
         this.data = data;
+    }
+    public InputData(byte[] data, int length){
+        this.command = data[0];
+        this.data = new byte[length - 1];
+        Array.Copy(data, 1, this.data, 0, length-1);
     }
 }

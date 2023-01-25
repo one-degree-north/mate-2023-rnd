@@ -9,7 +9,7 @@ public class UIInupt : MonoBehaviour
 {
     // Start is called before the first frame update
     public SteamVR_LaserPointer laserPointer;
-    public Communications comms;
+    public CommPipe comms;
 
     private PhotoCapture photoCapture;
     private WebCamTexture webTex;
@@ -27,11 +27,14 @@ public class UIInupt : MonoBehaviour
         //     Debug.Log(dev.name);
         // }
         if (devices.Length != 0){
-        webTex = new WebCamTexture(devices[0].name);
-        }
-        rawImage.texture = webTex;
         // webTex = new WebCamTexture(devices[0].name);
-        webTex.Play();
+        // Debug.Log(devices[0].name);
+        // rawImage.texture = webTex;
+        // webTex.Play();
+        }
+        // rawImage.texture = webTex;
+        // webTex = new WebCamTexture(devices[0].name);
+        // webTex.Play();
     }
 
     // Update is called once per frame

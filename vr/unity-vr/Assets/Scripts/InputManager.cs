@@ -24,12 +24,12 @@ public class InputManager : MonoBehaviour
     public SteamVR_Action_Pose headPos;
     public bool headRotation;   // use head to rotate rov
     public bool headUp; // use head to move rov up or down
-    public Communications comms;
+    // public Communications comms;
     public CommPipe commPipe;
     public Transform headTransform;
     public Vector3 pastRotation;
     public Vector3 pastPosition;
-    public static int SEND_DELAY = 5;  // milliseconds
+    public static int SEND_DELAY = 10;  // milliseconds
     private float sendClock = 0;  // for fixed update time
     private bool[] sendReady = new bool[5]; // for fixed update time. probably a better way to do this
     void Start()
