@@ -4,10 +4,10 @@ from PyQt6.QtCore import Qt, QDateTime, QThread, pyqtSignal, pyqtSlot
 
 import cv2
 from numpy import ndarray
-from pathlib import Path
+
+import logging
 
 from utils import *
-from time import sleep
 
 class CameraTab(QWidget):
     def __init__(self):
@@ -70,25 +70,25 @@ class CameraFrame(QWidget):
 
     def capture_event(self):
         try:
-            time = QDateTime.currentDateTime().toString("dd-MM-yyyy@hh-mm-ss.z")
+            time = QDateTime.currentDateTime().toString("dd-MM-yyyy@hh-mm-ss.zz")
             fn = f"gui/captures/images/{time}_{self.name}-cam.jpg"
 
             cv2.imwrite(fn, self.cam.thread.image)
+            logging.info(f"Image capture on {self.name.upper()} camera has been saved to {fn}")
             
         except (cv2.error, AttributeError):
             print('error')
 
     def record_event(self):
         if not self.cam.thread.recording:
-
             try:
                 time = QDateTime.currentDateTime().toString("dd-MM-yyyy@hh-mm-ss.z")
-                fn = f"gui/captures/videos/{time}_{self.name}-cam.avi"
+                self.fn = f"gui/captures/videos/{time}_{self.name}-cam.avi"
 
-
-                self.cam.thread.video_recording = cv2.VideoWriter(fn, cv2.VideoWriter_fourcc("M", "J", "P", "G"), 30, (self.cam.width(), self.cam.height()))
+                self.cam.thread.video_recording = cv2.VideoWriter(self.fn, cv2.VideoWriter_fourcc(*"MJPG"), 30, (self.cam.thread.image.shape[1], self.cam.thread.image.shape[0]))
                 
                 self.cam.thread.recording = True
+                self.control_bar.record_button.setIcon(QIcon("gui/assets/icons/stop.png"))
 
             except (cv2.error, AttributeError):
                 print('error')
@@ -96,6 +96,10 @@ class CameraFrame(QWidget):
             self.cam.thread.recording = False
 
             self.cam.thread.video_recording.release()
+            logging.info(f"Video capture on {self.name.upper()} camera has been saved to {self.fn}")
+
+            self.control_bar.record_button.setIcon(QIcon("gui/assets/icons/record.png"))
+
             
 
 class ControlBar(QWidget):
@@ -178,8 +182,6 @@ class VideoThread(QThread):
 
                 if self.recording:
                     self.video_recording.write(self.image)
-                    
-
                 
         cap.release()
         

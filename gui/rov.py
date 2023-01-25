@@ -4,10 +4,11 @@ from PyQt6.QtCore import Qt
 
 from frame import menu, navigation, time, stopwatch
 from tabs import camera, draw, settings
-import widgets
+from widgets import console
 
 from utils import Color
 
+import logging
 import sys
 import os
 
@@ -20,14 +21,18 @@ class LowerSection(QWidget):
         self.menu = menu.Menu()
         self.navigation = navigation.Navigation()
 
+        self.console = console.Console()
+
         self.layout = QHBoxLayout()
 
         self.layout.addWidget(self.menu)
+        self.layout.addWidget(self.console)
+        
         self.layout.addStretch()
         self.layout.addWidget(self.navigation)
 
         self.layout.setContentsMargins(0,0,0,0)
-        self.layout.setSpacing(0)
+        self.layout.setSpacing(20)
 
         self.setLayout(self.layout)
 
@@ -54,7 +59,7 @@ class Tabs(QTabWidget):
         super().__init__()
 
         self.setStyleSheet("""
-            QTabWidget::pane {
+            QTabWidget:pane {
                 background-color: %s;
                 border-radius: 10px;
 
@@ -63,12 +68,12 @@ class Tabs(QTabWidget):
                 padding: 10px;
             }
             
-            QTabWidget::tab-bar {
+            QTabWidget:tab-bar {
                 top: 20px;
                 left: 20px;
             }
 
-            QTabBar::tab {
+            QTabBar:tab {
                 background-color: %s;
                 border-radius: 10px;
 
@@ -81,7 +86,7 @@ class Tabs(QTabWidget):
                 padding: 10px;
             }
 
-            QTabBar::tab::selected, QTabBar::tab::hover {
+            QTabBar::tab:selected, QTabBar::tab:hover {
                 background-color: #443766;
             }
         """ % (Color.dark_violet, Color.dark_violet, Color.tinted_white))
@@ -146,9 +151,37 @@ class MainWindow(QMainWindow):
 
         self.showMaximized()
 
+    def keyPressEvent(self, e):
+        if self.lower_section.console.command_line.key_logging:
+            logging.debug(f"{e.text()} ({e.key()})")
+
 
 
 if __name__ == "__main__":
+    try:
+        os.mkdir("gui/captures")
+        print("gui/captures has been created")
+    except FileExistsError:
+        print("gui/captures exists")
+
+    try:
+        os.mkdir("gui/captures/images")
+        print("gui/captures/images has been created")
+    except FileExistsError:
+        print("gui/captures/images exists")
+
+    try:
+        os.mkdir("gui/captures/videos")
+        print("gui/captures/videos has been created")
+    except FileExistsError:
+        print("gui/captures/videos exists")
+
+    try:
+        with open("gui/logs.log", "x") as f:
+            print("gui/logs.log has been created")
+    except FileExistsError:
+        print("gui/logs.log exists")
+    
     app = QApplication(sys.argv)
 
     QFontDatabase.addApplicationFont(f"{os.path.dirname(__file__)}/assets/fonts/Montserrat/static/Montserrat-Bold.ttf")
@@ -157,7 +190,7 @@ if __name__ == "__main__":
     window = MainWindow(0, 0)
     window.show()
 
-    # c = draw.Canvas()
-    # c.show()
+    logging.info("One Degree North R&D GUI has launched successfully")
+    print("\033[92mOne Degree North R&D GUI has launched successfully\033[0m")
 
     app.exec()

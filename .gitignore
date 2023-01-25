@@ -6,3 +6,5 @@ __pycache__
 captures
 drawings
 testing
+
+logs.log

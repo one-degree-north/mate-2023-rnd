@@ -4,7 +4,7 @@ from PyQt6.QtCore import Qt
 
 from utils import *
 
-from pathlib import Path
+import logging
 
 class Menu(QWidget):
     def __init__(self):
@@ -76,6 +76,9 @@ class TabButtons(QWidget):
                 v.setDisabled(False)
 
     def quit_event(self):
+        logging.info("One Degree North R&D GUI has been stopped")
+        print("\033[93mOne Degree North R&D GUI has been stopped\033[0m")
+
         quit() ## make it so that it properly closes camera ports, etc
 
     def emergency_stop_event(self):
