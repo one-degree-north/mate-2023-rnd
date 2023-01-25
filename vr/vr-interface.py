@@ -1,9 +1,12 @@
-import socket, queue, threading, select, asyncio, struct, mmap, threading, collections
+import socket, queue, threading, select, asyncio, struct, mmap, threading, collections,sys, os, importlib
 from time import sleep
 # from win32.win32api import *
 import win32
 import win32pipe, win32file, pywintypes
-
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), "firmware"))
+print(os.path.join(os.path.dirname(os.path.dirname(__file__)), "firmware"))
+# VrComms = importlib.import_module(os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), "firmware"), "rov-comms.py"))
+RovComms = importlib.import_module("rov-comms")
 # obtained from https://github.com/benhoyt/namedmutex
 """Named mutex handling (for Win32)."""
 
@@ -313,16 +316,25 @@ class UnityCommsPipe:
                         # print(f'rot: {self.hset_rotation}')
                         # print(f'pos: {self.hset_position}')
                         print(f'movements: {self.movements}')
+                        
                         # self.move_camera(self.hset_rotation)
 if __name__ == "__main__":  # simple vr-interface for test driving
     # comms = UnityComms()
     # while True:
     #     sleep(1)
+    rov_comms = RovComms.RovComms()
     comm_pipe = UnityCommsPipe()
     while True:
         sleep(0.01)
-        val = input()
-        if val == 'q':
-            break
-        comm_pipe.test_write()
-        comm_pipe.move_camera([0, 0, 0])
+        movements = comm_pipe.movements
+        movements[2] = comm_pipe.hset_position[1] / 5
+        if (comm_pipe.hset_position > 1):
+            movements[2] = 1
+        elif (movements < -1):
+            movements[2] = -1
+        movements[4] = comm_pipe.hset_rotation[0]
+        movements[5] = comm_pipe.hset_rotation[1]
+        for i in range(6):
+            movements[i] *= 10
+        rov_comms.set_manual_thrust(comm_pipe.movements)
+        # comm_pipe.movements
