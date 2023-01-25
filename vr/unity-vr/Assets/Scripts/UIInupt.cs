@@ -27,10 +27,10 @@ public class UIInupt : MonoBehaviour
         //     Debug.Log(dev.name);
         // }
         if (devices.Length != 0){
-        // webTex = new WebCamTexture(devices[0].name);
-        // Debug.Log(devices[0].name);
-        // rawImage.texture = webTex;
-        // webTex.Play();
+        webTex = new WebCamTexture(devices[0].name);
+        Debug.Log(devices[0].name);
+        rawImage.texture = webTex;
+        webTex.Play();
         }
         // rawImage.texture = webTex;
         // webTex = new WebCamTexture(devices[0].name);

@@ -313,7 +313,7 @@ class UnityCommsPipe:
                         # print(f'rot: {self.hset_rotation}')
                         # print(f'pos: {self.hset_position}')
                         print(f'movements: {self.movements}')
-                        self.move_camera(self.hset_rotation)
+                        # self.move_camera(self.hset_rotation)
 if __name__ == "__main__":  # simple vr-interface for test driving
     # comms = UnityComms()
     # while True:

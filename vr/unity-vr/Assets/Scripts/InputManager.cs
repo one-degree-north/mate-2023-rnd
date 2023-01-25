@@ -29,9 +29,10 @@ public class InputManager : MonoBehaviour
     public Transform headTransform;
     public Vector3 pastRotation;
     public Vector3 pastPosition;
-    public static int SEND_DELAY = 10;  // milliseconds
+    public static int SEND_DELAY = 30;  // milliseconds
     private float sendClock = 0;  // for fixed update time
     private bool[] sendReady = new bool[5]; // for fixed update time. probably a better way to do this
+    public RectTransform canvas;
     void Start()
     {
         // moveForwardSide.AddOnChangeListener(sendForwardSide, SteamVR_Input_Sources.Any);
@@ -89,5 +90,6 @@ public class InputManager : MonoBehaviour
             moveRightClaw.axis, moveLeftClaw.axis, moveForwardSide.lastAxis.x, moveForwardSide.lastAxis.y, moveUpRoll.axis.y, moveUpRoll.axis.x, pitch.axis, (yawR.axis - yawL.axis)
             );
         }
+        canvas.eulerAngles = headTransform.localEulerAngles;
     }
 }
