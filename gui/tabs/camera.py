@@ -29,8 +29,8 @@ class CameraTab(QWidget):
         self.setLayout(self.layout)
 
     def resizeEvent(self, e):
-        self.cam_width = (self.cam_1.width() + self.cam_2.width()) / 2
-        self.cam_height = (self.cam_1.height() + self.cam_2.height()) / 2
+        self.cam_width = (self.cam_1.width() + self.cam_2.width()) // 2
+        self.cam_height = (self.cam_1.height() + self.cam_2.height()) // 2
 
 
 class CameraFrame(QWidget):

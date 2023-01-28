@@ -142,22 +142,22 @@ class MainWindow(QMainWindow):
         self.tabs = Tabs()
 
         # layout
-        # self.layout = QVBoxLayout()
+        self.layout = QVBoxLayout()
 
-        # self.layout.addWidget(self.upper_section)
-        # self.layout.addWidget(self.tabs)
-        # self.layout.addWidget(self.lower_section)
+        self.layout.addWidget(self.upper_section)
+        self.layout.addWidget(self.tabs)
+        self.layout.addWidget(self.lower_section)
 
-        # self.layout.setContentsMargins(0,0,0,0)
-        # self.layout.setSpacing(0)
+        self.layout.setContentsMargins(0,0,0,0)
+        self.layout.setSpacing(0)
 
-        # # parent layout
-        # self.parent = QWidget()
-        # self.parent.setLayout(self.layout)
+        # parent layout
+        self.parent = QWidget()
+        self.parent.setLayout(self.layout)
 
-        # self.setCentralWidget(self.parent)
+        self.setCentralWidget(self.parent)
 
-        # self.showMaximized()
+        self.showMaximized()
 
         # keyboard input stuff
         self.speed = 10
@@ -165,10 +165,14 @@ class MainWindow(QMainWindow):
         self.target_thrust = [0, 0, 0, 0, 0, 0]
         self.target_orientation = [0, 0, 0]
 
+        if self.rov_comms:
+            logging.info("Comms have been connected to the GUI")
+
     def keyPressEvent(self, e):
-        if not e.isAutoRepeat():
-            if self.lower_section.console.command_line.key_logging:
-                logging.debug(f"{e.text()} ({e.key()})")
+        if self.lower_section.console.command_line.key_logging:
+            logging.debug(f"{e.text()} ({e.key()})")
+
+        if self.rov_comms and not e.isAutoRepeat():
             if e.key() == Qt.Key.Key_1:
                 self.speed = 0
             if e.key() == Qt.Key.Key_2:
@@ -251,7 +255,7 @@ class MainWindow(QMainWindow):
                 self.rov_comms.set_manual_thrust(self.target_thrust)
 
     def keyReleaseEvent(self, e):
-        if not e.isAutoRepeat():
+        if self.rov_comms and not e.isAutoRepeat():
             if e.key() == Qt.Key.Key_W:
                 self.target_thrust[0] = 0
             if e.key() == Qt.Key.Key_D:
@@ -307,43 +311,3 @@ class MainWindow(QMainWindow):
                 print("manual thrust: ")
                 print(self.target_thrust)
                 self.rov_comms.set_manual_thrust(self.target_thrust)
-
-
-
-if __name__ == "__main__":
-    try:
-        os.mkdir("gui/captures")
-        print("gui/captures has been created")
-    except FileExistsError:
-        print("gui/captures exists")
-
-    try:
-        os.mkdir("gui/captures/images")
-        print("gui/captures/images has been created")
-    except FileExistsError:
-        print("gui/captures/images exists")
-
-    try:
-        os.mkdir("gui/captures/videos")
-        print("gui/captures/videos has been created")
-    except FileExistsError:
-        print("gui/captures/videos exists")
-
-    try:
-        with open("gui/logs.log", "x") as f:
-            print("gui/logs.log has been created")
-    except FileExistsError:
-        print("gui/logs.log exists")
-    
-    app = QApplication(sys.argv)
-
-    QFontDatabase.addApplicationFont(f"{os.path.dirname(__file__)}/assets/fonts/Montserrat/static/Montserrat-Bold.ttf")
-    QFontDatabase.addApplicationFont(f"{os.path.dirname(__file__)}/assets/fonts/Inter/Inter-Regular.ttf")
-
-    window = MainWindow(" ok", 0, 0)
-    window.show()
-
-    logging.info("One Degree North R&D GUI has launched successfully")
-    print("\033[92mOne Degree North R&D GUI has launched successfully\033[0m")
-
-    app.exec()
