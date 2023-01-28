@@ -19,9 +19,9 @@ public class CommPipe : MonoBehaviour{
     private NamedPipeClientStream toPythonPipe;
     // private Task readTask;
     // private Task writeTask;
-    private Queue<InputData> writeQueue;
+    private ConcurrentQueue<InputData> writeQueue;
     private Stream stream;
-    private Queue<InputData> readQueue;
+    private ConcurrentQueue<InputData> readQueue;
     public RectTransform canvas;
     void Start(){
         // System.IO.Pipes.Pipe
@@ -36,8 +36,8 @@ public class CommPipe : MonoBehaviour{
         toPythonPipe.Connect();
         fromPythonPipe.ReadMode = PipeTransmissionMode.Message;
         // namedPipe.ReadMode = PipeTransmissionMode.Message;
-        writeQueue = new Queue<InputData>();
-        readQueue = new Queue<InputData>();
+        writeQueue = new ConcurrentQueue<InputData>();
+        readQueue = new ConcurrentQueue<InputData>();
         // stream = new Stream(namedPipe);
         // readTask = new Task(readLoop);
         // readTask.Start();
@@ -97,10 +97,20 @@ public class CommPipe : MonoBehaviour{
         }
         writeQueue.Enqueue(new InputData(0x0A, buffer));
     }
+    public void writeCurrTime(){    // sends the current time, test for latency
+        byte[] buffer = BitConverter.GetBytes(DateTimeOffset.Now.ToUnixTimeMilliseconds());
+        writeQueue.Enqueue(new InputData(0x0B, buffer));
+    }
+    public void writeData(InputData data){
+    }
     void writeLoop(){
         while (true){
-            if (writeQueue.Count > 0){
-                InputData data = writeQueue.Dequeue();
+            InputData data;
+            bool dataPresent = writeQueue.TryDequeue(out data);
+            // Debug.Log("writing loop");
+            // Debug.Log(writeQueue.Count);
+            if (dataPresent){
+                // InputData data = writeQueue.Dequeue();
                 // Debug.Log("writing");
                 // Debug.Log(string.Join(", ", data.returnWriteData()));
                 // Debug.Log(data.returnWriteData());
@@ -118,8 +128,10 @@ public class CommPipe : MonoBehaviour{
         }
     }
     void Update(){
-        if (readQueue.Count > 0){
-            processReadData(readQueue.Dequeue());
+        InputData inputData;
+        bool dataPresent = readQueue.TryDequeue(out inputData);
+        if (dataPresent){
+            processReadData(inputData);
         }
         // Debug.Log("a");
         //     byte[] buffer = new byte[2048];
