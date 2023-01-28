@@ -1,0 +1,92 @@
+{
+   "action_manifest_version" : 0,
+   "alias_info" : {},
+   "app_key" : "application.generated.unity.vrtest.exe",
+   "bindings" : {
+      "/actions/buggy" : {
+         "chords" : [],
+         "haptics" : [],
+         "poses" : [],
+         "skeleton" : [],
+         "sources" : []
+      },
+      "/actions/default" : {
+         "chords" : [],
+         "haptics" : [],
+         "poses" : [],
+         "skeleton" : [],
+         "sources" : []
+      },
+      "/actions/platformer" : {
+         "chords" : [],
+         "haptics" : [],
+         "poses" : [],
+         "skeleton" : [],
+         "sources" : []
+      },
+      "/actions/robotinput" : {
+         "sources" : [
+            {
+               "inputs" : {
+                  "position" : {
+                     "output" : "/actions/robotinput/in/moveforwardside"
+                  }
+               },
+               "mode" : "joystick",
+               "path" : "/user/hand/left/input/joystick"
+            },
+            {
+               "inputs" : {
+                  "position" : {
+                     "output" : "/actions/robotinput/in/moveuproll"
+                  }
+               },
+               "mode" : "joystick",
+               "path" : "/user/hand/right/input/joystick"
+            },
+            {
+               "inputs" : {
+                  "pull" : {
+                     "output" : "/actions/robotinput/in/pitch"
+                  }
+               },
+               "mode" : "trigger",
+               "path" : "/user/hand/right/input/trigger"
+            },
+            {
+               "inputs" : {
+                  "pull" : {
+                     "output" : "/actions/robotinput/in/yaw"
+                  }
+               },
+               "mode" : "trigger",
+               "path" : "/user/hand/left/input/trigger"
+            },
+            {
+               "inputs" : {
+                  "pull" : {
+                     "output" : "/actions/robotinput/in/moverightclaw"
+                  }
+               },
+               "mode" : "trigger",
+               "path" : "/user/hand/right/input/grip"
+            },
+            {
+               "inputs" : {
+                  "pull" : {
+                     "output" : "/actions/robotinput/in/moveleftclaw"
+                  }
+               },
+               "mode" : "trigger",
+               "path" : "/user/hand/left/input/grip"
+            }
+         ]
+      }
+   },
+   "category" : "steamvr_input",
+   "controller_type" : "oculus_touch",
+   "description" : "",
+   "name" : "oculus_touch",
+   "options" : {},
+   "simulated_actions" : []
+}

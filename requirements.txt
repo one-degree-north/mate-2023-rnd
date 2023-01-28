@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 PyQt6==6.2.0
 opencv-python==4.5.5
 numpy>=1.21.4
 requests>=2.26.0
 Pillow>=9.4.0
+=======
+pywin32-305
+>>>>>>> 97e2b5f00a37d7c55562ef731f55b396d34910be
