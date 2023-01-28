@@ -1,0 +1,34 @@
+{
+    "cameras": {
+        "port-1": 0,
+        "port-2": 1
+    },
+    
+    "ip": "8.8.8.8", // update only when clicked
+
+    "location-data": { // update only when clicked
+        "latitude": 37.42240, // used for calc for map
+        "longitude": -122.08421,
+
+        "country": "United States", // country_name  // country_flag -- maybe get rid of later & just save in assets/saved-data --- ok
+        "state": "California", // state_prov
+        "city": "Mountain View",
+
+        "timezone": "America/Los_Angeles", // time_zone["name"]
+        "utc_offset": -8 // time_zone["offset"]
+    },
+
+    "weather-data": { // update whenever possibe
+        // forecast (weather), temp, windspeeds, etc
+        "weather": "Clouds",
+        "description": "overcast clouds",
+
+        "temp": 288.08, // kelvin
+        "humidity": 86, // percentage
+
+        "wind-speed": 6.26, // meters/second
+        "wind-direction": 247
+    },
+
+    "metric": true
+}
