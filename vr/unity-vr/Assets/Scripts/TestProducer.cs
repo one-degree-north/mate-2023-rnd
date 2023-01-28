@@ -22,8 +22,10 @@ public class TestProducer : MonoBehaviour
             delayClock = DELAY + delayClock;
             // send test data
             // comms.updateHeadPosition(new Vector3(1, 1, 1));
+            // Debug.Log("sending");
             num++;
-            commPipe.writeData(new Vector3(num, 1, 1));
+            commPipe.writeCurrTime();
+            // commPipe.writeData(new Vector3(num, 1, 1));
         }
     }
 }

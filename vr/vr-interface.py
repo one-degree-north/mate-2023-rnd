@@ -1,5 +1,6 @@
 import socket, queue, threading, select, asyncio, struct, mmap, threading, collections,sys, os, importlib
 from time import sleep
+import time
 # from win32.win32api import *
 import win32
 import win32pipe, win32file, pywintypes
@@ -281,10 +282,10 @@ class UnityCommsPipe:
         # print("AAA")
         while True:
             # print(self.write_queue.empty)
-            if not self.write_queue.empty():
-                data = self.write_queue.get()
-                print("writing")
-                win32file.WriteFile(self.toUnityPipe, data)
+            # if not self.write_queue.empty():
+            data = self.write_queue.get(block=True)
+            print("writing")
+            win32file.WriteFile(self.toUnityPipe, data)
 
     def move_camera(self, position):
         # position is 3 floats describing rotation
@@ -318,6 +319,11 @@ class UnityCommsPipe:
                         print(f'movements: {self.movements}')
                         
                         # self.move_camera(self.hset_rotation)
+                case 0x0B:
+                    if len(input_data) == 9:
+                        unity_time = struct.unpack("=q", input_data[1:])[0]
+                        print(f"delay: {time.time() *1000 - unity_time}")
+
 if __name__ == "__main__":  # simple vr-interface for test driving
     # comms = UnityComms()
     # while True:
