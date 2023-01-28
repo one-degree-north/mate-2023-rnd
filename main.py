@@ -11,27 +11,27 @@ import os
 if __name__ == "__main__":
     try:
         os.mkdir("gui/captures")
-        print("gui/captures has been created")
+        print("Directory gui/captures has been created")
     except FileExistsError:
-        print("gui/captures exists")
+        print("Directory gui/captures exists")
 
     try:
         os.mkdir("gui/captures/images")
-        print("gui/captures/images has been created")
+        print("Directory gui/captures/images has been created")
     except FileExistsError:
-        print("gui/captures/images exists")
+        print("Directory gui/captures/images exists")
 
     try:
         os.mkdir("gui/captures/videos")
-        print("gui/captures/videos has been created")
+        print("Directory gui/captures/videos has been created")
     except FileExistsError:
-        print("gui/captures/videos exists")
+        print("Directory gui/captures/videos exists")
 
     try:
         with open("gui/logs.log", "x") as f:
-            print("gui/logs.log has been created")
+            print("File gui/logs.log has been created")
     except FileExistsError:
-        print("gui/logs.log exists")
+        print("File gui/logs.log exists")
     
     app = QApplication(sys.argv)
 
@@ -43,6 +43,7 @@ if __name__ == "__main__":
     if input("Connect comms (y/n)? ") == "y":
         print("Searching for serial...")
         comms = rov_comms.RovComms()
+        print("Serial found")
 
     window = MainWindow(comms, 0, 0)
     window.show()

@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QSlider, QLabel
 from PyQt6.QtGui import QImage, QPixmap
-from PyQt6.QtCore import Qt, QDateTime, QThread, pyqtSignal, pyqtSlot
+from PyQt6.QtCore import Qt, QDateTime, QThread, QTimer, pyqtSignal, pyqtSlot
 
 import cv2
 from numpy import ndarray
@@ -39,6 +39,7 @@ class CameraFrame(QWidget):
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
 
         self.name = name
+        self.seconds = 0
 
         self.setStyleSheet("""
             QWidget {
@@ -68,6 +69,12 @@ class CameraFrame(QWidget):
         self.control_bar.capture_button.clicked.connect(self.capture_event)
         self.control_bar.record_button.clicked.connect(self.record_event)
 
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.update_record_timer)
+        self.timer.start(1000)
+
+
+
     def capture_event(self):
         try:
             time = QDateTime.currentDateTime().toString("dd-MM-yyyy@hh-mm-ss.zz")
@@ -95,10 +102,20 @@ class CameraFrame(QWidget):
         else:
             self.cam.thread.recording = False
 
+            self.seconds = 0
+            self.control_bar.record_timer.setText(f"{self.seconds // 60:02d}:{self.seconds % 60:02d}")
+
             self.cam.thread.video_recording.release()
             logging.info(f"Video capture on {self.name.upper()} camera has been saved to {self.fn}")
 
             self.control_bar.record_button.setIcon(QIcon("gui/assets/icons/record.png"))
+
+    def update_record_timer(self):
+        if self.cam.thread.recording:
+            self.seconds += 1
+            self.control_bar.record_timer.setText(f"{self.seconds // 60:02d}:{self.seconds % 60:02d}")
+
+
 
             
 

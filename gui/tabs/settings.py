@@ -1,7 +1,8 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTabWidget, QPushButton, QCheckBox
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTabWidget, QPushButton, QSlider
 from PyQt6.QtGui import QIcon
 from PyQt6.QtCore import Qt
 
+from functools import partial
 from gui.utils import Color
 
 class SettingsTab(QWidget):
@@ -32,7 +33,7 @@ class Tabs(QTabWidget):
 
             QTabBar:tab {
                 background-color: %s;
-                margin-right: 20px;
+                margin-right: 10px;
             }
 
             QTabBar::tab:selected, QTabBar::tab:hover {
@@ -69,6 +70,43 @@ class AppSettings(QWidget):
 class PIDSettings(QWidget):
     def __init__(self):
         super().__init__()
+
+        self.layout = QHBoxLayout()
+
+        for i in range(18):
+            slider = QSlider(Qt.Orientation.Vertical)
+
+            slider.setStyleSheet("""
+                QSlider:groove {
+                    background: %s;
+                    border-radius: 4px;
+
+                    width: 10px;
+                }
+
+                QSlider:handle {
+                    background: %s;
+                    border-radius: 4px;
+                    
+                    height: 20px;
+                }
+            """ % (Color.cyber_grape, Color.tinted_white))
+
+
+            slider.setRange(0, 300)
+            slider.valueChanged.connect(partial(self.slider_updated, i))
+
+            self.layout.addWidget(slider)
+
+        self.layout.addStretch()
+
+        self.layout.setSpacing(20)
+
+        self.setLayout(self.layout)
+
+    def slider_updated(self, value, slider_id):
+        print(value, slider_id)
+
 
 
 class LocationSettings(QWidget):
