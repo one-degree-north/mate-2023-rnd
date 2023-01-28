@@ -6,7 +6,7 @@
 
 #define SELFID 0x23
 #define BNO_RATE 25 //refresh rate, ms
-#define SENSOR_RATE 40  // send rate, in 10s of ms
+#define SENSOR_RATE 10  // send rate, in BNO_RATE ms
 #define DEVICE_ID 1 //device id for use in canbus
 #define MAXTHRUST 70  // maximum thrust percentage permited
 #define MINTHRUST 5 // minimum thrust percentage for blades to move
@@ -388,7 +388,7 @@ void printPid(pidc_t pidVal, float error, float currValue){
   Serial.print(" error: "); Serial.print(error); Serial.print(" | "); Serial.print("total error: "); Serial.println(pidVal.totalError);
 }
 
-void moveThrusters(move_t mov){
+void moveThrusters(move_t mov){ // move thrusters given move_t
   if (serialDebug){
 //    Serial.println("----- current thruster target -----");
 //    Serial.print("forward: "); Serial.print(mov.f); Serial.print(" | "); Serial.print("side: "); Serial.print(mov.s) + Serial.print(" | ");
@@ -406,8 +406,8 @@ void moveThrusters(move_t mov){
   thrusterVals[5] = mov.u + mov.p + mov.r;
   thrusterVals[6] = mov.u - mov.p + mov.r;
   thrusterVals[7] = mov.u - mov.p - mov.r;
-  // if any thruster vals are greater than MAXTHRUST (PWM), scale everything so that it's fine
-  // I'm not sure if scaling everything linearly is actually correct (scaling tMov values seems to be the correct choice, but eh.)
+  // if any thruster vals are greater than MAXTHRUST (PWM), scale everything down
+  // I'm not sure if scaling everything linearly is actually correct
   float thrustPercent = 1;
   for (int i = 0; i < 8; i++){
     if (thrusterVals[i] != 0){
@@ -446,7 +446,7 @@ void moveThrusters(move_t mov){
   }
 }
 
-void moveThrust(){
+void moveThrust(){  // adjust so that thrusters increase slowly over time
 //  Serial.println(tMov.f);
   // adjust thrust percent so they increase to target over time
   // all increase with the slowest
