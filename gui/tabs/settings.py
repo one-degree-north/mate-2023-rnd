@@ -2,8 +2,6 @@ from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTabWidge
 from PyQt6.QtGui import QIcon
 from PyQt6.QtCore import Qt
 
-from functools import partial
-
 from utils import Color
 
 class SettingsTab(QWidget):
@@ -34,57 +32,43 @@ class Tabs(QTabWidget):
 
             QTabBar:tab {
                 background-color: %s;
+                margin-right: 20px;
             }
 
             QTabBar::tab:selected, QTabBar::tab:hover {
                 background-color: #53457A;
             }
-
         """ % Color.cyber_grape)
 
-        self.ui_settings = UISettings()
+        self.app_settings = AppSettings()
+        self.pid_settings = PIDSettings()
         self.location_settings = LocationSettings()
         self.weather_settings = WeatherSettings()
 
-        self.addTab(self.ui_settings, QIcon("gui/assets/icons/"), "App Settings")
-        self.addTab(self.location_settings, "Location API Settings")
-        self.addTab(self.weather_settings, "Weather API Settings")
+        self.addTab(self.app_settings, QIcon("gui/assets/icons/app.png"), "App Settings")
+        self.addTab(self.pid_settings, "PID Settings")
+        self.addTab(self.location_settings, QIcon("gui/assets/icons/location.png"), "Location API Settings")
+        self.addTab(self.weather_settings, QIcon("gui/assets/icons/weather.png"), "Weather API Settings")
 
         self.setTabPosition(QTabWidget.TabPosition.South)
         
 
-class UISettings(QWidget):
+class AppSettings(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.setStyleSheet("""
-            QLabel {
-                font-family: Montserrat;
-                font-weight: 80px;
-
-                color: white;
-            }
-
-            QCheckBox::indicator {
-                background: %s;
-                border-radius: 4px;
-
-                width: 40px;
-                height: 40px;
-            }
-
-            QCheckBox::indicator:checked {
-                background: %s;
-            }
-        """ % (Color.tinted_white, Color.light_salmon))
-
-        self.label = QLabel("Hello")
-        self.check = QCheckBox()
-
         self.layout = QVBoxLayout()
-        self.layout.addWidget(self.label)
+
+        # hi
+
+        self.layout.setContentsMargins(0,0,0,0)
+        self.layout.setSpacing(20)
 
         self.setLayout(self.layout)
+
+class PIDSettings(QWidget):
+    def __init__(self):
+        super().__init__()
 
 
 class LocationSettings(QWidget):
