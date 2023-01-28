@@ -1,4 +1,5 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTabWidget, QPushButton, QCheckBox
+from PyQt6.QtGui import QIcon
 from PyQt6.QtCore import Qt
 
 from functools import partial
@@ -45,7 +46,7 @@ class Tabs(QTabWidget):
         self.location_settings = LocationSettings()
         self.weather_settings = WeatherSettings()
 
-        self.addTab(self.ui_settings, "App Settings")
+        self.addTab(self.ui_settings, QIcon("gui/assets/icons/"), "App Settings")
         self.addTab(self.location_settings, "Location API Settings")
         self.addTab(self.weather_settings, "Weather API Settings")
 
