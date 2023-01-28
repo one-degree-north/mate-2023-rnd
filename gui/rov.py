@@ -142,22 +142,22 @@ class MainWindow(QMainWindow):
         self.tabs = Tabs()
 
         # layout
-        self.layout = QVBoxLayout()
+        # self.layout = QVBoxLayout()
 
-        self.layout.addWidget(self.upper_section)
-        self.layout.addWidget(self.tabs)
-        self.layout.addWidget(self.lower_section)
+        # self.layout.addWidget(self.upper_section)
+        # self.layout.addWidget(self.tabs)
+        # self.layout.addWidget(self.lower_section)
 
-        self.layout.setContentsMargins(0,0,0,0)
-        self.layout.setSpacing(0)
+        # self.layout.setContentsMargins(0,0,0,0)
+        # self.layout.setSpacing(0)
 
-        # parent layout
-        self.parent = QWidget()
-        self.parent.setLayout(self.layout)
+        # # parent layout
+        # self.parent = QWidget()
+        # self.parent.setLayout(self.layout)
 
-        self.setCentralWidget(self.parent)
+        # self.setCentralWidget(self.parent)
 
-        self.showMaximized()
+        # self.showMaximized()
 
         # keyboard input stuff
         self.speed = 10
@@ -166,143 +166,147 @@ class MainWindow(QMainWindow):
         self.target_orientation = [0, 0, 0]
 
     def keyPressEvent(self, e):
-        if self.lower_section.console.command_line.key_logging:
-            logging.debug(f"{e.text()} ({e.key()})")
-        if e.key() == Qt.Key.Key_1:
-            self.speed = 0
-        if e.key() == Qt.Key.Key_2:
-            self.speed = 10
-        if e.key() == Qt.Key.Key_3:
-            self.speed = 30
-        if e.key() == Qt.Key.Key_4:
-            self.speed = 50
-        if e.key() == Qt.Key.Key_5:
-            self.speed -= 5
-        if e.key() == Qt.Key.Key_6:
-            self.speed += 5
-        if e.key() == Qt.Key.Key_W:
-            self.target_thrust[0] = 1
-        if e.key() == Qt.Key.Key_D:
-            self.target_thrust[1] = 1
-        if e.key() == Qt.Key.Key_A:
-            self.target_thrust[1] = -1
-        if e.key() == Qt.Key.Key_S:
-            self.target_thrust[0] = -1
-        if e.key() == Qt.Key.Key_I:
-            self.target_thrust[2] = 1
-        if e.key() == Qt.Key.Key_K:
-            self.target_thrust[2] = -1
-        if e.key() == Qt.Key.Key_O:
-            if self.pid:
-                self.target_thrust[3] += 5
-            else:
-                self.target_thrust[3] = 1
-        if e.key() == Qt.Key.Key_U:
-            if self.pid:
-                self.target_thrust[3] -= 5
-            else:
+        if not e.isAutoRepeat():
+            if self.lower_section.console.command_line.key_logging:
+                logging.debug(f"{e.text()} ({e.key()})")
+            if e.key() == Qt.Key.Key_1:
+                self.speed = 0
+            if e.key() == Qt.Key.Key_2:
+                self.speed = 10
+            if e.key() == Qt.Key.Key_3:
+                self.speed = 30
+            if e.key() == Qt.Key.Key_4:
+                self.speed = 50
+            if e.key() == Qt.Key.Key_5:
+                self.speed -= 5
+            if e.key() == Qt.Key.Key_6:
+                self.speed += 5
+            if e.key() == Qt.Key.Key_W:
+                self.target_thrust[0] = 1
+            if e.key() == Qt.Key.Key_D:
+                self.target_thrust[1] = 1
+            if e.key() == Qt.Key.Key_A:
+                self.target_thrust[1] = -1
+            if e.key() == Qt.Key.Key_S:
+                self.target_thrust[0] = -1
+            if e.key() == Qt.Key.Key_I:
+                self.target_thrust[2] = 1
+            if e.key() == Qt.Key.Key_K:
+                self.target_thrust[2] = -1
+            if e.key() == Qt.Key.Key_O:
+                if self.pid:
+                    self.target_thrust[3] += 5
+                else:
+                    self.target_thrust[3] = 1
+            if e.key() == Qt.Key.Key_U:
+                if self.pid:
+                    self.target_thrust[3] -= 5
+                else:
+                    self.target_thrust[3] = -1
                 self.target_thrust[3] = -1
-            self.target_thrust[3] = -1
-        if e.key() == Qt.Key.Key_Q:
+            if e.key() == Qt.Key.Key_Q:
+                if self.pid:
+                    self.target_thrust[4] -= 5
+                else:
+                    self.target_thrust[4] = -1
+            if e.key() == Qt.Key.Key_E:
+                if self.pid:
+                    self.target_thrust[4] += 5
+                else:
+                    self.target_thrust[4] = 1
+            if e.key() == Qt.Key.Key_J:
+                if self.pid:
+                    self.target_thrust[5] -= 5
+                else:
+                    self.target_thrust[5] = -1
+            if e.key() == Qt.Key.Key_L:
+                if self.pid:
+                    self.target_thrust[5] += 5
+                else:
+                    self.target_thrust[5] = 1
+            if e.key() == Qt.Key.Key_BracketRight:
+                self.pid = True
+                self.target_thrust = [0, 0, 0, 0, 0, 0]
+            if e.key() == Qt.Key.Key_BracketLeft:
+                self.pid = False
+                self.target_thrust = [0, 0, 0, 0, 0, 0]
             if self.pid:
-                self.target_thrust[4] -= 5
+                # turn values into target orientations
+                for i in range(3):
+                    self.target_thrust[i] * self.speed / 500
+                for i in range(3):
+                    self.target_thrust[i+2] = self.target_thrust[i+2] % 360
+                    if self.target_thrust[i+2] > 180:
+                        self.target_thrust[i+2] = self.target_thrust[i+2] - 360
+                    elif self.target_thrust[i+2] < -180:
+                        self.target_thrust[i+2] = 360 + self.target_thrust[i+2]
+                print("pid thrust: ")
+                print(self.target_thrust)
+                self.rov_comms.set_accelerations_thrust(self.target_thrust)
             else:
-                self.target_thrust[4] = -1
-        if e.key() == Qt.Key.Key_E:
-            if self.pid:
-                self.target_thrust[4] += 5
-            else:
-                self.target_thrust[4] = 1
-        if e.key() == Qt.Key.Key_J:
-            if self.pid:
-                self.target_thrust[5] -= 5
-            else:
-                self.target_thrust[5] = -1
-        if e.key() == Qt.Key.Key_L:
-            if self.pid:
-                self.target_thrust[5] += 5
-            else:
-                self.target_thrust[5] = 1
-        if e.key() == Qt.Key.Key_BracketRight:
-            self.pid = True
-            self.target_thrust = [0, 0, 0, 0, 0, 0]
-        if e.key() == Qt.Key.Key_BracketLeft:
-            self.pid = False
-            self.target_thrust = [0, 0, 0, 0, 0, 0]
-        if self.pid:
-            # turn values into target orientations
-            for i in range(3):
-                self.target_thrust[i] * self.speed / 500
-            for i in range(3):
-                self.target_thrust[i+2] = self.target_thrust[i+2] % 360
-                if self.target_thrust[i+2] > 180:
-                    self.target_thrust[i+2] = self.target_thrust[i+2] - 360
-                elif self.target_thrust[i+2] < -180:
-                    self.target_thrust[i+2] = 360 + self.target_thrust[i+2]
-            print("pid thrust: ")
-            print(self.target_thrust)
-            self.rov_comms.set_accelerations_thrust(self.target_thrust)
-        else:
-            for i in range(6):
-                self.target_thrust[i] *= self.speed
-            self.rov_comms.set_manual_thrust(self.target_thrust)
+                print("manual thrust")
+                print(self.target_thrust)
+                for i in range(6):
+                    self.target_thrust[i] *= self.speed
+                self.rov_comms.set_manual_thrust(self.target_thrust)
 
     def keyReleaseEvent(self, e):
-        if e.key() == Qt.Key.Key_W:
-            self.target_thrust[0] = 0
-        if e.key() == Qt.Key.Key_D:
-            self.target_thrust[1] = 0
-        if e.key() == Qt.Key.Key_A:
-            self.target_thrust[1] = 0
-        if e.key() == Qt.Key.Key_S:
-            self.target_thrust[0] = 0
-        if e.key() == Qt.Key.Key_I:
-            self.target_thrust[2] = 0
-        if e.key() == Qt.Key.Key_K:
-            self.target_thrust[2] = 0
-        if e.key() == Qt.Key.Key_O:
-            if not self.pid:
-                self.target_thrust[3] = 0
-        if e.key() == Qt.Key.Key_U:
-            if not self.pid:
-                self.target_thrust[3] = 0
-        if e.key() == Qt.Key.Key_Q:
-            if not self.pid:
-                self.target_thrust[4] = 0
-        if e.key() == Qt.Key.Key_E:
-            if not self.pid:
-                self.target_thrust[4] = 0
-        if e.key() == Qt.Key.Key_J:
-            if not self.pid:
-                self.target_thrust[5] = 0
-        if e.key() == Qt.Key.Key_L:
-            if not self.pid:
-                self.target_thrust[5] = 0
-        # if e.key() == Qt.Key.Key_BracketRight:
-        #     self.pid = True
-        #     self.target_thrust = [0, 0, 0, 0, 0, 0]
-        # if e.key() == Qt.Key.Key_BracketLeft:
-        #     self.pid = False
-        #     self.target_thrust = [0, 0, 0, 0, 0, 0]
-        if self.pid:
-            # turn values into target orientations
-            for i in range(3):
-                self.target_thrust[i] * self.speed / 500
-            for i in range(3):
-                self.target_thrust[i+2] = self.target_thrust[i+2] % 360
-                if self.target_thrust[i+2] > 180:
-                    self.target_thrust[i+2] = self.target_thrust[i+2] - 360
-                elif self.target_thrust[i+2] < -180:
-                    self.target_thrust[i+2] = 360 + self.target_thrust[i+2]
-            print("pid thrust: ")
-            print(self.target_thrust)
-            self.rov_comms.set_accelerations_thrust(self.target_thrust)
-        else:
-            for i in range(6):
-                self.target_thrust[i] *= self.speed
-            print("manual thrust: ")
-            print(self.target_thrust)
-            self.rov_comms.set_manual_thrust(self.target_thrust)
+        if not e.isAutoRepeat():
+            if e.key() == Qt.Key.Key_W:
+                self.target_thrust[0] = 0
+            if e.key() == Qt.Key.Key_D:
+                self.target_thrust[1] = 0
+            if e.key() == Qt.Key.Key_A:
+                self.target_thrust[1] = 0
+            if e.key() == Qt.Key.Key_S:
+                self.target_thrust[0] = 0
+            if e.key() == Qt.Key.Key_I:
+                self.target_thrust[2] = 0
+            if e.key() == Qt.Key.Key_K:
+                self.target_thrust[2] = 0
+            if e.key() == Qt.Key.Key_O:
+                if not self.pid:
+                    self.target_thrust[3] = 0
+            if e.key() == Qt.Key.Key_U:
+                if not self.pid:
+                    self.target_thrust[3] = 0
+            if e.key() == Qt.Key.Key_Q:
+                if not self.pid:
+                    self.target_thrust[4] = 0
+            if e.key() == Qt.Key.Key_E:
+                if not self.pid:
+                    self.target_thrust[4] = 0
+            if e.key() == Qt.Key.Key_J:
+                if not self.pid:
+                    self.target_thrust[5] = 0
+            if e.key() == Qt.Key.Key_L:
+                if not self.pid:
+                    self.target_thrust[5] = 0
+            # if e.key() == Qt.Key.Key_BracketRight:
+            #     self.pid = True
+            #     self.target_thrust = [0, 0, 0, 0, 0, 0]
+            # if e.key() == Qt.Key.Key_BracketLeft:
+            #     self.pid = False
+            #     self.target_thrust = [0, 0, 0, 0, 0, 0]
+            if self.pid:
+                # turn values into target orientations
+                for i in range(3):
+                    self.target_thrust[i] * self.speed / 500
+                for i in range(3):
+                    self.target_thrust[i+2] = self.target_thrust[i+2] % 360
+                    if self.target_thrust[i+2] > 180:
+                        self.target_thrust[i+2] = self.target_thrust[i+2] - 360
+                    elif self.target_thrust[i+2] < -180:
+                        self.target_thrust[i+2] = 360 + self.target_thrust[i+2]
+                print("pid thrust: ")
+                print(self.target_thrust)
+                self.rov_comms.set_accelerations_thrust(self.target_thrust)
+            else:
+                for i in range(6):
+                    self.target_thrust[i] *= self.speed
+                print("manual thrust: ")
+                print(self.target_thrust)
+                self.rov_comms.set_manual_thrust(self.target_thrust)
 
 
 
