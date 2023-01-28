@@ -19,6 +19,7 @@ class RovComms:
         self.accel = [0, 0, 0]
         self.angular_rotation = [0, 0, 0]
         self.quaternion = [0, 0, 0, 0]
+        self.pidErrors = [0, 0, 0, 0, 0, 0]
 
         self.device_found = False
         self.serial_comm = None
@@ -105,18 +106,24 @@ class RovComms:
                             function(buffer)
                         data_index = (command & 0b00011)
                         match (command >> 2):
-                            case 0x01:  # orientationa
+                            case 0x00:  # orientationa
                                 if data_index in [0, 1, 2]:
                                     self.orientation[data_index] = data
-                            case 0x02:  # gyro
+                            case 0x01:  # gyro
                                 if data_index in [0, 1, 2]:
                                     self.angular_rotation[data_index] = data
-                            case 0x03:  # accel
+                            case 0x02:  # accel
                                 if data_index in [0, 1, 2]:
                                     self.accel[data_index] = data
-                            case 0x04:  # quat
+                            case 0x03:  # quat
                                 if data_index in [0, 1, 2, 3]:
                                     self.quaternion[data_index] = data
+                            case 0x05:
+                                if data_index in [0, 1, 2]:
+                                    self.pidErrors[data_index] = data
+                            case 0x06:
+                                if data_index in [0, 1, 2]:
+                                    self.pidErrors[data_index+3] = data
                         curr_index = 0
                         header_found = False
                         target_len = 0
@@ -147,6 +154,19 @@ class RovComms:
         self.write_queue.put(struct.pack("=ccicc", RovComms.HEADER, 0x20.to_bytes(length=1, byteorder='big', signed=False), int(degree), servo_num.to_bytes(length=1, byteorder="big", signed=False), RovComms.FOOTER))
         print(struct.calcsize("=ic"))
 
+    def change_pid(self, movement, constant, new_value):
+        num_constant = 0
+        if constant == 'p':
+            num_constant = 0
+        elif constant == 'i':
+            num_constant = 1
+        elif constant == 'd':
+            num_constant = 2
+        num_constant = int(num_constant).to_bytes(length=1, byteorder="big", signed=False)
+        movement = int(movement).to_bytes(length=1, byteorder="big", signed=False)
+        self.write_queue.put(struct.pack("=ccccfc", RovComms.HEADER, 0x02.to_bytes(length=1, byteorder='big', signed=False), movement, num_constant, new_value, RovComms.FOOTER))
+        
+
 if __name__ == "__main__":
     comms = RovComms()
     while True:
@@ -164,6 +184,13 @@ if __name__ == "__main__":
                 comms.set_manual_thrust([0, 0, float(deg), 0, 0, 0])
             case 'w':
                 comms.move_camera_servo(0, int(deg))
+            case '1':
+                comms.set_accelerations_thrust([0, 0, 0, 90, 0, 0])
+            case '2':
+                comms.change_pid(movement=1, constant=0, new_value=1)
+            case '3':
+                print(comms.orientation)
+                print(comms.pidErrors)
             case _:
                 print(comms.orientation)
                 print(comms.accel)

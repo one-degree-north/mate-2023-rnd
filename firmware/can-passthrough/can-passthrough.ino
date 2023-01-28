@@ -50,6 +50,10 @@ void loop() {
       Serial.write(command);
       // get length of data to read
       switch (command){
+        case 0x02:
+          dataLen = 6;
+          deviceSel = 0x00;
+        break;
         case 0x1A:
           dataLen = 24;
           deviceSel = 0x000;
@@ -89,6 +93,13 @@ void loop() {
 //        Serial.write('b');
 //        Serial.write(command);
         switch (command){
+          case 0x02:  // change PID
+            CAN.beginPacket(uint16_t(uint16_t(0b01100000000) + uint16_t((deviceSel)<<5)+(uint16_t)(0x02)));
+            for (int i = 0; i < 6; i++){
+              CAN.write(data[i]);
+            }
+            CAN.endPacket();
+          break;
           case 0x1A:
             for (int i = 0; i < 6; i++){
               CAN.beginPacket(uint16_t(uint16_t(0b01100000000) + uint16_t((deviceSel)<<5) + (uint16_t)(0x10+i)));

@@ -6,7 +6,7 @@
 
 #define SELFID 0x23
 #define BNO_RATE 25 //refresh rate, ms
-#define SENSOR_RATE 10  // send rate, in BNO_RATE ms
+#define SENSOR_RATE 1  // send rate, in BNO_RATE ms
 #define DEVICE_ID 1 //device id for use in canbus
 #define MAXTHRUST 70  // maximum thrust percentage permited
 #define MINTHRUST 5 // minimum thrust percentage for blades to move
@@ -34,6 +34,7 @@ Servo thrusters[8];
 //int camServoPins[] = {4};
 //Servo camServo[1];
 bool serialDebug = true;
+bool sendPidError = true;
 int pastThrustVals[] = {1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500};
 
 
@@ -188,10 +189,10 @@ void sendSensorData(){
               val = orientationData.data[j];
             break;
             case 1:
-              val = gyroData.data[i];
+              val = gyroData.data[j];
             break;
             case 2:
-              val = accelData.data[i];
+              val = accelData.data[j];
             break;
           }
 
@@ -209,6 +210,25 @@ void sendSensorData(){
           CAN.write(((byte*)&val)[3]);
           CAN.endPacket();
         }
+    }
+//    send pid error
+    for (int i = 0; i < 3; i++){
+      float error = pidVals[i]->pastError;
+      CAN.beginPacket(0b00001100000 + (byte(0x05)<<2) + i);
+      CAN.write(((byte*)&error)[0]);
+          CAN.write(((byte*)&error)[1]);
+          CAN.write(((byte*)&error)[2]);
+          CAN.write(((byte*)&error)[3]);
+      CAN.endPacket();
+    }
+    for (int i = 3; i < 6; i++){
+      float error = pidVals[i]->pastError;
+      CAN.beginPacket(0b00001100000 + (byte(0x06)<<2) + i);
+      CAN.write(((byte*)&error)[0]);
+          CAN.write(((byte*)&error)[1]);
+          CAN.write(((byte*)&error)[2]);
+          CAN.write(((byte*)&error)[3]);
+      CAN.endPacket();
     }
   }
 }
@@ -267,8 +287,6 @@ void readCan(int packetLength){
     switch (command){
       case 0x01:  // set settings ()
       break;
-      case 0x02:  
-      break;
 //      case 0x05:
 ////        Serial.print("moving cam");
 ////        Serial.println("degree");
@@ -276,6 +294,36 @@ void readCan(int packetLength){
 ////        Serial.println(((int*)commandValues)[0]);
 //        moveCamServo(((int*)commandValues)[0], commandValues[4]);
 //      break;
+      case 0x02:  // change pid front
+        if (packetLength == 6){
+          byte chosenPidNum = commandValues[0];
+          byte sel = commandValues[1];
+          float pidValue = ((float*)(&(commandValues[2])))[0];
+          if (serialDebug){
+            Serial.print("----change pid command----");
+            Serial.print("chosenPid: ");
+            Serial.println(chosenPidNum);
+            Serial.print("pidSelect: ");
+            Serial.println(sel);
+            Serial.println("new val: ");
+            Serial.print(pidValue);
+          }
+          if (chosenPidNum < 6){
+            pidc_t* chosenPid = pidVals[chosenPidNum];
+            if (sel < 3){
+              ((float*)chosenPid)[sel] = pidValue;
+            }
+            if (serialDebug){
+              Serial.print("pid p: ");
+              Serial.println(chosenPid->pConstant);
+              Serial.print("pid i: ");
+              Serial.println(chosenPid->iConstant);
+              Serial.print("pid d: ");
+              Serial.println(chosenPid->dConstant);
+            }
+          }
+        }
+      break;
       case 0x0A:  // set front acceleration
         setPid();
         pidF.targetVal = ((float*)commandValues)[0];

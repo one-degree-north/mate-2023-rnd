@@ -31,6 +31,8 @@ Command bits 3-4: specifies the axis (eg. front, side, up). The value in axis wi
 | acceleration data | 0x03 | x, y, z | float, accel |
 | quaternion data | 0x04 | ?? | float, quaternion |
 | settings | 0x04 | none (default 00) | int, sensor send rate (in 10s of ms) | bool, pid enabled |
+| error1 | 0x05 | f, s, u | float, error |
+| error2 | 0x06 | r, p, y | float, error |
 
 ## Acting on command (onshore -> ROV)
 ### Commands for main tube
