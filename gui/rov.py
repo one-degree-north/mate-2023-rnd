@@ -38,6 +38,7 @@ class LowerSection(QWidget):
 
         self.navigation.widget_buttons.console_button.clicked.connect(self.console_event)
 
+
     def console_event(self):
         self.console.setVisible(not self.console.isVisible())
 
@@ -117,9 +118,9 @@ class Tabs(QTabWidget):
 
 
 class MainWindow(QMainWindow):
-    def __init__(self, cam_port_1, cam_port_2):
+    def __init__(self, cam_port_1, cam_port_2, rov_comms):
         super().__init__()
-
+        self.rov_comms = rov_comms
         self.setWindowTitle("User Interface")
         self.setMinimumSize(800, 600)
 
@@ -157,9 +158,21 @@ class MainWindow(QMainWindow):
 
         self.showMaximized()
 
+        # keyboard input stuff
+        self.speed = 10
+        self.pid = False
+
     def keyPressEvent(self, e):
         if self.lower_section.console.command_line.key_logging:
             logging.debug(f"{e.text()} ({e.key()})")
+        
+        if e.key() == Qt.Key.Key_1:
+            pass
+        if e.key() == Qt.Key.Key_W:
+            self.rov_comms.
+
+    def keyReleaseEvent(self, e):
+
 
 
 
