@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QColorDialog, QFileDialog, QPushButton, QSpinBox, QInputDialog
 from PyQt6.QtGui import QPainter, QPen, QColor, QImage, QIcon, QFont
-from PyQt6.QtCore import Qt, QPoint, QRect, QSize, QBuffer
+from PyQt6.QtCore import Qt, QPoint, QBuffer
 
 from gui.utils import Color, IconButton
 

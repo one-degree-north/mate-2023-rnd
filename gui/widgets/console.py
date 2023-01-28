@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPlainTextEdit, QLabel, QDialog, QLineEdit
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPlainTextEdit, QDialog, QLineEdit
 from PyQt6.QtCore import Qt
 
 import logging

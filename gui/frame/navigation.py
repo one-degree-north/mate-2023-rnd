@@ -1,6 +1,6 @@
 # include map, compass, and buttons
 
-from PyQt6.QtWidgets import QWidget, QGridLayout, QVBoxLayout, QHBoxLayout, QLabel
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel
 from PyQt6.QtGui import QIcon, QPixmap
 from PyQt6.QtCore import Qt
 

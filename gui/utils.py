@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QPushButton, QSlider
+from PyQt6.QtWidgets import QPushButton
 from PyQt6.QtGui import QIcon
 from PyQt6.QtCore import QSize
 
