@@ -47,6 +47,7 @@ if __name__ == "__main__":
 
     window = MainWindow(comms, 0, 0)
     window.show()
+    window.showMaximized()
 
 
     logging.info("One Degree North R&D GUI has launched successfully")

@@ -72,7 +72,7 @@ class Map(QWidget):
         image = QPixmap('gui/assets/saved-data/map.png')
         self.map_frame.setPixmap(image)
 
-        self.map_frame.setFixedSize(140,140)
+        self.map_frame.setFixedSize(140, 140)
         self.map_frame.setScaledContents(True)
 
         self.map_frame.setAlignment(Qt.AlignmentFlag.AlignCenter)

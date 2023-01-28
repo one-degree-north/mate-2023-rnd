@@ -9,8 +9,8 @@
     "metric": true,
 
     "location-data": { // update only when clicked
-        "latitude": 37.42240, // used for calc for map
         "longitude": -122.08421,
+        "latitude": 37.42240, // used for calc for map
 
         "country": "United States", // country_name  // country_flag -- maybe get rid of later & just save in assets/saved-data --- ok
         "state": "California", // state_prov
@@ -30,5 +30,9 @@
 
         "wind-speed": 6.26, // meters/second
         "wind-direction": 247
+    },
+
+    "map-parameters": {
+        "zoom": 4
     }
 }

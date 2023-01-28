@@ -157,8 +157,6 @@ class MainWindow(QMainWindow):
 
         self.setCentralWidget(self.parent)
 
-        self.showMaximized()
-
         # keyboard input stuff
         self.speed = 10
         self.pid = False
