@@ -6,7 +6,7 @@
 
 #define SELFID 0x23
 #define BNO_RATE 25 //refresh rate, ms
-#define SENSOR_RATE 1  // send rate, in BNO_RATE ms
+#define SENSOR_RATE 4  // send rate, in BNO_RATE ms
 #define DEVICE_ID 1 //device id for use in canbus
 #define MAXTHRUST 70  // maximum thrust percentage permited
 #define MINTHRUST 5 // minimum thrust percentage for blades to move
@@ -284,6 +284,8 @@ void readCan(int packetLength){
     }
 //    Serial.print(((float*)commandValues)[0]);
 //    commandPayload = ((input_t*)commandValues)[0];
+    Serial.print("command: ");
+    Serial.println(command);
     switch (command){
       case 0x01:  // set settings ()
       break;
@@ -350,28 +352,52 @@ void readCan(int packetLength){
       break;
       case 0x10:  // set front percent (manual)
         setThrustPercent();
+        if (serialDebug){
+          Serial.print("front: ");
+          Serial.println(((float*)commandValues)[0]);
+        }
         tMov.f = ((float*)commandValues)[0];
 //        Serial.print("A");
 //        Serial.print(tMov.f);
       break;
       case 0x11:  // set side percent (manual)
         setThrustPercent();
+        if (serialDebug){
+          Serial.print("side: ");
+          Serial.println(((float*)commandValues)[0]);
+        }
         tMov.s = ((float*)commandValues)[0];
       break;
       case 0x12:  // set up percent (manual)
         setThrustPercent();
+        if (serialDebug){
+          Serial.print("up: ");
+          Serial.println(((float*)commandValues)[0]);
+        }
         tMov.u = ((float*)commandValues)[0];
       break;
       case 0x13:  // set roll percent (manual)
         setThrustPercent();
+        if (serialDebug){
+          Serial.print("roll: ");
+          Serial.println(((float*)commandValues)[0]);
+        }
         tMov.r = ((float*)commandValues)[0];
       break;
       case 0x14:  // set pitch percent (manual)
         setThrustPercent();
+        if (serialDebug){
+          Serial.print("pitch: ");
+          Serial.println(((float*)commandValues)[0]);
+        }
         tMov.p = ((float*)commandValues)[0];
       break;
       case 0x15:  // set yaw percent (manual)
         setThrustPercent();
+        if (serialDebug){
+          Serial.print("yaw: ");
+          Serial.println(((float*)commandValues)[0]);
+        }
         tMov.y = ((float*)commandValues)[0];
       break;
     }
