@@ -31,8 +31,8 @@ int thrusterPins[] = {25, 11, 10, 24, 19, 12, 9, 23};
 
 int CAN_ID = 0x32;
 Servo thrusters[8];
-int camServoPins[] = {4};
-Servo camServo[1];
+//int camServoPins[] = {4};
+//Servo camServo[1];
 bool serialDebug = true;
 int pastThrustVals[] = {1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500};
 
@@ -108,10 +108,10 @@ void setup() {
     thrusters[i].attach(thrusterPins[i]);
 //    thrusters[i].writeMicroseconds(1500);
   }
-  for (int i = 0; i < 1; i++){
-    camServo[i].attach(camServoPins[i]);
-    camServo[i].write(0);
-  }
+//  for (int i = 0; i < 1; i++){
+//    camServo[i].attach(camServoPins[i]);
+//    camServo[i].write(0);
+//  }
   pastTime = millis();
   CAN.begin(500000);
   CAN.onReceive(readCan);
@@ -269,13 +269,13 @@ void readCan(int packetLength){
       break;
       case 0x02:  
       break;
-      case 0x05:
-//        Serial.print("moving cam");
-//        Serial.println("degree");
-//        Serial.println(commandValues[4]);
-//        Serial.println(((int*)commandValues)[0]);
-        moveCamServo(((int*)commandValues)[0], commandValues[4]);
-      break;
+//      case 0x05:
+////        Serial.print("moving cam");
+////        Serial.println("degree");
+////        Serial.println(commandValues[4]);
+////        Serial.println(((int*)commandValues)[0]);
+//        moveCamServo(((int*)commandValues)[0], commandValues[4]);
+//      break;
       case 0x0A:  // set front acceleration
         setPid();
         pidF.targetVal = ((float*)commandValues)[0];
@@ -527,9 +527,9 @@ void moveThrust(){  // adjust so that thrusters increase slowly over time
   // }
 }
 
-void moveCamServo(int degree, byte pin){
-  Serial.println("degree");
-  Serial.println(degree);
-  Serial.println(int(pin));
-  camServo[int(pin)].write(degree);
-}
+//void moveCamServo(int degree, byte pin){
+////  Serial.println("degree");
+////  Serial.println(degree);
+////  Serial.println(int(pin));
+//  camServo[int(pin)].write(degree);
+//}
