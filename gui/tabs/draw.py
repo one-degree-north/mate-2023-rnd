@@ -2,7 +2,7 @@ from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QLab
 from PyQt6.QtGui import QPainter, QPen, QColor, QImage, QIcon, QFont
 from PyQt6.QtCore import Qt, QPoint, QRect, QSize, QBuffer
 
-from utils import Color, IconButton
+from gui.utils import Color, IconButton
 
 from PIL import Image
 from functools import partial

@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel
 from PyQt6.QtCore import Qt, QTimer, QTime
 
-from utils import Color
+from gui.utils import Color
 
 class Time(QWidget):
     def __init__(self):

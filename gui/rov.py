@@ -2,11 +2,11 @@ from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHB
 from PyQt6.QtGui import QFontDatabase, QFont, QIcon
 from PyQt6.QtCore import Qt
 
-from frame import menu, navigation, time, stopwatch
-from tabs import camera, draw, settings
-from widgets import console
+from gui.frame import menu, navigation, time, stopwatch
+from gui.tabs import camera, draw, settings
+from gui.widgets import console
 
-from utils import Color
+from gui.utils import Color
 
 import logging
 import sys
@@ -42,6 +42,7 @@ class LowerSection(QWidget):
     def console_event(self):
         self.console.setVisible(not self.console.isVisible())
 
+# orientation, acell, gyro, 
 
 class UpperSection(QWidget):
     def __init__(self):
@@ -335,7 +336,7 @@ if __name__ == "__main__":
     QFontDatabase.addApplicationFont(f"{os.path.dirname(__file__)}/assets/fonts/Montserrat/static/Montserrat-Bold.ttf")
     QFontDatabase.addApplicationFont(f"{os.path.dirname(__file__)}/assets/fonts/Inter/Inter-Regular.ttf")
 
-    window = MainWindow(0, 0)
+    window = MainWindow(" ok", 0, 0)
     window.show()
 
     logging.info("One Degree North R&D GUI has launched successfully")

@@ -3,7 +3,7 @@ from PyQt6.QtCore import Qt
 
 import logging
 
-from utils import Color
+from gui.utils import Color
 
 class Console(QWidget):
     def __init__(self):

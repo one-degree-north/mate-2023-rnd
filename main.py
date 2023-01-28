@@ -1,5 +1,12 @@
+from PyQt6.QtWidgets import QApplication
+from PyQt6.QtGui import QFontDatabase
+
 from firmware import rov_comms
 from gui import rov
+
+import logging
+import sys
+import os
 
 if __name__ == "__main__":
     try:

@@ -2,7 +2,7 @@ from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel
 from PyQt6.QtCore import QTimer
 from PyQt6.QtCore import Qt
 
-from utils import *
+from gui.utils import *
 
 class StopwatchMenu(QWidget):
     def __init__(self):

@@ -2,7 +2,7 @@ from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTabWidge
 from PyQt6.QtGui import QIcon
 from PyQt6.QtCore import Qt
 
-from utils import Color
+from gui.utils import Color
 
 class SettingsTab(QWidget):
     def __init__(self):

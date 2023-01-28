@@ -4,7 +4,7 @@ from PyQt6.QtWidgets import QWidget, QGridLayout, QVBoxLayout, QHBoxLayout, QLab
 from PyQt6.QtGui import QIcon, QPixmap
 from PyQt6.QtCore import Qt
 
-from utils import *
+from gui.utils import *
 
 import io
 

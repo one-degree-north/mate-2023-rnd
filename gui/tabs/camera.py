@@ -7,7 +7,7 @@ from numpy import ndarray
 
 import logging
 
-from utils import *
+from gui.utils import *
 
 class CameraTab(QWidget):
     def __init__(self):
