@@ -118,7 +118,7 @@ class Tabs(QTabWidget):
 
 
 class MainWindow(QMainWindow):
-    def __init__(self, cam_port_1, cam_port_2, rov_comms):
+    def __init__(self, rov_comms, cam_port_1, cam_port_2):
         super().__init__()
         self.rov_comms = rov_comms
         self.setWindowTitle("User Interface")
