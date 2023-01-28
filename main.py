@@ -38,9 +38,9 @@ if __name__ == "__main__":
     QFontDatabase.addApplicationFont(f"{os.path.dirname(__file__)}/assets/fonts/Montserrat/static/Montserrat-Bold.ttf")
     QFontDatabase.addApplicationFont(f"{os.path.dirname(__file__)}/assets/fonts/Inter/Inter-Regular.ttf")
 
-    comms = rov_comms.RovComms()
+    # comms = rov_comms.RovComms()
 
-    window = MainWindow(comms, 0, 0)
+    window = MainWindow(0, 0, 0)
     window.show()
 
 

@@ -103,7 +103,7 @@ class Tabs(QTabWidget):
         self.camera_tab = camera.CameraTab()
         self.draw_tab = draw.DrawTab()
         self.autonomous_tab = QWidget()
-        self.settings_tab = settings.SettingsTab()
+        self.settings_tab = settings.Tabs()
 
         self.addTab(self.camera_tab, QIcon("gui/assets/icons/camera.png"), "Camera")
         self.addTab(self.draw_tab, QIcon("gui/assets/icons/draw.png"), "Draw")
