@@ -54,8 +54,8 @@ class Tabs(QTabWidget):
 
         self.addTab(self.app_settings, QIcon("gui/assets/icons/app.png"), "App Settings")
         self.addTab(self.pid_settings, QIcon("gui/assets/icons/pid.png"), "PID Settings")
-        self.addTab(self.location_settings, QIcon("gui/assets/icons/location.png"), "Location API Settings")
-        self.addTab(self.weather_settings, QIcon("gui/assets/icons/weather.png"), "Weather API Settings")
+        self.addTab(self.location_settings, QIcon("gui/assets/icons/location.png"), "Location Settings")
+        self.addTab(self.weather_settings, QIcon("gui/assets/icons/weather.png"), "Weather Settings")
 
         self.setTabPosition(QTabWidget.TabPosition.South)
         
