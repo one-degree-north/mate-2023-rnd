@@ -1,57 +1,55 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTabWidget, QPushButton, QCheckBox
 from PyQt6.QtCore import Qt
 
+from functools import partial
+
 from utils import Color
 
 class SettingsTab(QWidget):
     def __init__(self):
         super().__init__()
-        
-        self.sidebar = Sidebar()
+
         self.tabs = Tabs()
 
         self.layout = QHBoxLayout()
 
-        self.layout.addWidget(self.sidebar)
-        self.layout.addWidget(self.tabs)
+        self.layout.addWidget(self.tabs, 1)
 
         self.setLayout(self.layout)
 
-        self.sidebar
 
-    def tab_clicked(self, i):
-        self.tabs.setCurrentIndex(i)
-
-
-class Sidebar(QWidget):
-    def __init__(self):
-        super().__init__()
-        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
-
-        self.setStyleSheet("""
-            QWidget {
-                background: %s;
-                border-radius: 10px;
-            }
-        """ % Color.cyber_grape)
-
-        self.setFixedWidth(300)
-
-class TabButton(QPushButton):
-    def __init__(self):
-        super().__init__()
-
-        
+# matplotlib graph
+# pid
 
 class Tabs(QTabWidget):
     def __init__(self):
         super().__init__()
 
+        self.setStyleSheet("""
+            QTabWidget:tab-bar {
+                top: 0;
+                left: 0;
+            }
+
+            QTabBar:tab {
+                background-color: %s;
+            }
+
+            QTabBar::tab:selected, QTabBar::tab:hover {
+                background-color: #53457A;
+            }
+
+        """ % Color.cyber_grape)
+
         self.ui_settings = UISettings()
         self.location_settings = LocationSettings()
         self.weather_settings = WeatherSettings()
 
-        self.addTab(self.ui_settings, "")
+        self.addTab(self.ui_settings, "App Settings")
+        self.addTab(self.location_settings, "Location API Settings")
+        self.addTab(self.weather_settings, "Weather API Settings")
+
+        self.setTabPosition(QTabWidget.TabPosition.South)
         
 
 class UISettings(QWidget):
@@ -88,43 +86,28 @@ class UISettings(QWidget):
         self.setLayout(self.layout)
 
 
-class APISettings(QWidget):
+class LocationSettings(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.location_settings = LocationSettings()
-        self.weather_settings = WeatherSettings()
-
         self.layout = QVBoxLayout()
-        
-        self.layout.addWidget(self.location_settings)
-        self.layout.addWidget(self.weather_settings)
+
+        # hi
 
         self.layout.setContentsMargins(0,0,0,0)
         self.layout.setSpacing(20)
 
         self.setLayout(self.layout)
 
-class LocationSettings(QWidget):
-    def __init__(self):
-        super().__init__()
-        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
-
-        self.setStyleSheet("""
-            QWidget {
-                background: %s;
-                border-radius: 20px;
-            }
-        """ % Color.cyber_grape)
-
 class WeatherSettings(QWidget):
     def __init__(self):
         super().__init__()
-        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
 
-        self.setStyleSheet("""
-            QWidget {
-                background: %s;
-                border-radius: 20px;
-            }
-        """ % Color.cyber_grape)
+        self.layout = QVBoxLayout()
+
+        # hi
+
+        self.layout.setContentsMargins(0,0,0,0)
+        self.layout.setSpacing(20)
+
+        self.setLayout(self.layout)

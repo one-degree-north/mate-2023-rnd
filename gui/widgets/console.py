@@ -77,10 +77,8 @@ class Logs(QDialog, QPlainTextEdit, logging.Handler):
         logging.getLogger().setLevel(logging.DEBUG)
         fh.setLevel(logging.DEBUG)
 
-
-        fm = logging.Formatter("[%(asctime)s] [%(levelname)s] %(message)s", "%H:%M:%S")
-        self.setFormatter(fm)
-        fh.setFormatter(fm)
+        self.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(message)s", "[%H:%M:%S]"))
+        fh.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(message)s", "[%d/%m/%y] [%H:%M:%S]"))
 
         logging.getLogger().addHandler(self)
         logging.getLogger().addHandler(fh)
@@ -146,9 +144,9 @@ class CommandLine(QLineEdit):
                 ↪ prints out information to the console
                 """)
 
-            elif msg[0] == "keys":
+            elif msg[0] == "key":
                 logging.info("""
-                keys
+                key
                 ↪ toggles key logging
                 """)
 

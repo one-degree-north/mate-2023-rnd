@@ -22,12 +22,12 @@ class LowerSection(QWidget):
         self.navigation = navigation.Navigation()
 
         self.console = console.Console()
+        self.console.hide()
 
         self.layout = QHBoxLayout()
 
         self.layout.addWidget(self.menu)
         self.layout.addWidget(self.console)
-        
         self.layout.addStretch()
         self.layout.addWidget(self.navigation)
 
@@ -35,6 +35,12 @@ class LowerSection(QWidget):
         self.layout.setSpacing(20)
 
         self.setLayout(self.layout)
+
+        self.navigation.widget_buttons.console_button.clicked.connect(self.console_event)
+
+    def console_event(self):
+        self.console.setVisible(not self.console.isVisible())
+
 
 class UpperSection(QWidget):
     def __init__(self):
