@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 def detect_contours(img):
-    img_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     blurred = cv2.GaussianBlur(img_hsv, (3,3), 0)
 
     lower = np.array([50,70,70])
