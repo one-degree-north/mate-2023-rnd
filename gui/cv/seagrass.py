@@ -1,20 +1,30 @@
 import cv2
 import numpy as np
 
-def detect_contours(img):
-    img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    blurred = cv2.GaussianBlur(img_hsv, (3,3), 0)
+class Seagrass:
+    def __init__(self):
+        self.contrast = 1
+        self.brightness = 1
 
-    lower = np.array([50,70,70])
-    upper = np.array([200,255,200])
+    def change(self, before, after):
+        return after - before
+        
+    def healed_seagrass(self, img):
+        img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+        adjust = cv2.convertScaleAbs(img_hsv, beta=self.contrast, alpha=self.brightness)
 
-    mask = cv2.inRange(blurred, lower, upper)
-    contours, h = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    
-    img_contours = img.copy()
-    cv2.drawContours(img_contours, contours, -1, (0, 0, 255), 1)
+        blurred = cv2.GaussianBlur(adjust, (3,3), 0)
 
-    return len(contours), img_contours
+        lower = np.array([50,70,70])
+        upper = np.array([200,255,200])
+
+        mask = cv2.inRange(blurred, lower, upper)
+        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        
+        img_contours = img.copy()
+        cv2.drawContours(img_contours, contours, -1, (0, 0, 255), 2)
+
+        return len(contours), img_contours
 
 
 if __name__ == "__main__":
@@ -23,9 +33,12 @@ if __name__ == "__main__":
     while True:
         ret, frame = cap.read()
 
-        frame_contours = detect_contours(frame)
+        grass = Seagrass()
 
-        cv2.imshow("seagrass", frame_contours[1])
+        count, frame_contours = grass.detect_contours(frame)
+
+        print(count)
+        cv2.imshow("seagrass", frame_contours)
 
         if cv2.waitKey(1) == ord("q"):
             break
