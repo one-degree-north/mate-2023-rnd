@@ -205,7 +205,6 @@ class MainWindow(QMainWindow):
                     self.target_thrust[3] -= 5
                 else:
                     self.target_thrust[3] = -1
-                self.target_thrust[3] = -1
             if e.key() == Qt.Key.Key_Q:
                 if self.pid:
                     self.target_thrust[4] -= 5
@@ -234,23 +233,27 @@ class MainWindow(QMainWindow):
                 self.target_thrust = [0, 0, 0, 0, 0, 0]
             if self.pid:
                 # turn values into target orientations
+                temp_thrust = [0, 0, 0, 0, 0, 0]
                 for i in range(3):
-                    self.target_thrust[i] * self.speed / 500
+                    temp_thrust[i] = self.target_thrust[i] * self.speed / 500
                 for i in range(3):
-                    self.target_thrust[i+2] = self.target_thrust[i+2] % 360
-                    if self.target_thrust[i+2] > 180:
-                        self.target_thrust[i+2] = self.target_thrust[i+2] - 360
-                    elif self.target_thrust[i+2] < -180:
-                        self.target_thrust[i+2] = 360 + self.target_thrust[i+2]
+                    temp_thrust[i+3] = self.target_thrust[i+3] % 360
+                    if temp_thrust[i+3] > 180:
+                        temp_thrust[i+3] = temp_thrust[i+3] - 360
+                    elif temp_thrust[i+3] < -180:
+                        temp_thrust[i+3] = 360 + temp_thrust[i+3]
+                print("self thrust: ")
+                print(self.target_thrust)
                 print("pid thrust: ")
-                print(self.target_thrust)
-                self.rov_comms.set_accelerations_thrust(self.target_thrust)
+                print(temp_thrust)
+                self.rov_comms.set_accelerations_thrust(temp_thrust)
             else:
-                print("manual thrust")
-                print(self.target_thrust)
+                temp_thrust = [0, 0, 0, 0, 0, 0]
                 for i in range(6):
-                    self.target_thrust[i] *= self.speed
-                self.rov_comms.set_manual_thrust(self.target_thrust)
+                    temp_thrust[i] = self.target_thrust[i]* self.speed
+                print("manual thurst: ")
+                print(temp_thrust)
+                self.rov_comms.set_manual_thrust(temp_thrust)
 
     def keyReleaseEvent(self, e):
         if self.rov_comms and not e.isAutoRepeat():
@@ -292,20 +295,62 @@ class MainWindow(QMainWindow):
             #     self.target_thrust = [0, 0, 0, 0, 0, 0]
             if self.pid:
                 # turn values into target orientations
+                temp_thrust = [0, 0, 0, 0, 0, 0]
                 for i in range(3):
-                    self.target_thrust[i] * self.speed / 500
+                    temp_thrust[i] = self.target_thrust[i] * self.speed / 500
                 for i in range(3):
-                    self.target_thrust[i+2] = self.target_thrust[i+2] % 360
-                    if self.target_thrust[i+2] > 180:
-                        self.target_thrust[i+2] = self.target_thrust[i+2] - 360
-                    elif self.target_thrust[i+2] < -180:
-                        self.target_thrust[i+2] = 360 + self.target_thrust[i+2]
+                    temp_thrust[i+2] = self.target_thrust[i+2] % 360
+                    if temp_thrust[i+2] > 180:
+                        temp_thrust[i+2] = temp_thrust[i+2] - 360
+                    elif temp_thrust[i+2] < -180:
+                        temp_thrust[i+2] = 360 + temp_thrust[i+2]
                 print("pid thrust: ")
-                print(self.target_thrust)
-                self.rov_comms.set_accelerations_thrust(self.target_thrust)
+                print(temp_thrust)
+                self.rov_comms.set_accelerations_thrust(temp_thrust)
             else:
+                temp_thrust = [0.0, 0, 0, 0, 0, 0]
                 for i in range(6):
-                    self.target_thrust[i] *= self.speed
-                print("manual thrust: ")
-                print(self.target_thrust)
-                self.rov_comms.set_manual_thrust(self.target_thrust)
+                    temp_thrust[i] = self.target_thrust[i]* self.speed
+                print("manual thurst: ")
+                print(temp_thrust)
+                self.rov_comms.set_manual_thrust(temp_thrust)
+
+
+
+if __name__ == "__main__":
+    try:
+        os.mkdir("gui/captures")
+        print("gui/captures has been created")
+    except FileExistsError:
+        print("gui/captures exists")
+
+    try:
+        os.mkdir("gui/captures/images")
+        print("gui/captures/images has been created")
+    except FileExistsError:
+        print("gui/captures/images exists")
+
+    try:
+        os.mkdir("gui/captures/videos")
+        print("gui/captures/videos has been created")
+    except FileExistsError:
+        print("gui/captures/videos exists")
+
+    try:
+        with open("gui/logs.log", "x") as f:
+            print("gui/logs.log has been created")
+    except FileExistsError:
+        print("gui/logs.log exists")
+    
+    app = QApplication(sys.argv)
+
+    QFontDatabase.addApplicationFont(f"{os.path.dirname(__file__)}/assets/fonts/Montserrat/static/Montserrat-Bold.ttf")
+    QFontDatabase.addApplicationFont(f"{os.path.dirname(__file__)}/assets/fonts/Inter/Inter-Regular.ttf")
+
+    window = MainWindow(" ok", 0, 0)
+    window.show()
+
+    logging.info("One Degree North R&D GUI has launched successfully")
+    print("\033[92mOne Degree North R&D GUI has launched successfully\033[0m")
+
+    app.exec()

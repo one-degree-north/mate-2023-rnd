@@ -22,7 +22,11 @@ class RovComms:
         self.pidErrors = [0, 0, 0, 0, 0, 0]
 
         self.device_found = False
-        self.serial_comm = None
+        self.angular_rotation = [0, 0, 0]
+        self.quaternion = [0, 0, 0, 0]
+        self.pidErrors = [0, 0, 0, 0, 0, 0]
+
+        self.device_found = False
         self.serial_port = None
 
         self.read_thread = None
@@ -121,6 +125,7 @@ class RovComms:
                             case 0x05:
                                 if data_index in [0, 1, 2]:
                                     self.pidErrors[data_index] = data
+                                    print("f error: ")
                             case 0x06:
                                 if data_index in [0, 1, 2]:
                                     self.pidErrors[data_index+3] = data
@@ -138,7 +143,7 @@ class RovComms:
 
     def set_accelerations_thrust(self, accels):
         # acceleration in m/s, values in front, side, up, roll, pitch, yaw
-        self.write_queue.put(struct.pack("=ccffffffc", RovComms.HEADER, 0x1A.to_bytes(length=1, byteorder='big', signed=False), accels[0], accels[1], accels[2], accels[3], accels[4], accels[5], RovComms.FOOTER))
+        self.write_queue.put(struct.pack("=ccffffffc", RovComms.HEADER, 0x1A.to_bytes(length=1, byteorder='big', signed=False), float(accels[0]), float(accels[1]), float(accels[2]), float(accels[3]), float(accels[4]), float(accels[5]), RovComms.FOOTER))
         # send_data = bytearray(7)
         # send_data[0] = 0x01
         # for i in range(6):
@@ -146,7 +151,7 @@ class RovComms:
         
     def set_manual_thrust(self, thrusts):
         # manual thrust for each, percentage of thrust to each (same as accel) from -100 to 100
-        self.write_queue.put(struct.pack("=ccffffffc", RovComms.HEADER, 0x1B.to_bytes(length=1, byteorder='big', signed=False), thrusts[0], thrusts[1], thrusts[2], thrusts[3], thrusts[4], thrusts[5], RovComms.FOOTER))
+        self.write_queue.put(struct.pack("=ccffffffc", RovComms.HEADER, 0x1B.to_bytes(length=1, byteorder='big', signed=False), float(thrusts[0]), float(thrusts[1]), float(thrusts[2]), float(thrusts[3]), float(thrusts[4]), float(thrusts[5]), RovComms.FOOTER))
         print("finished")
 
     def move_camera_servo(self, servo_num, degree):

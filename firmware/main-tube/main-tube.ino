@@ -8,9 +8,9 @@
 #define BNO_RATE 25 //refresh rate, ms
 #define SENSOR_RATE 4  // send rate, in BNO_RATE ms
 #define DEVICE_ID 1 //device id for use in canbus
-#define MAXTHRUST 70  // maximum thrust percentage permited
+#define MAXTHRUST 30  // maximum thrust percentage permited
 #define MINTHRUST 5 // minimum thrust percentage for blades to move
-#define MAXTHRUSTOVERTIME 10 // maximum change in thrust percentage over time permited
+#define MAXTHRUSTOVERTIME 1 // maximum change in thrust percentage over time permited
 #define THRUSTWRITEDELAY 4
 
 #define DEBUG_SERIAL Serial
@@ -212,6 +212,7 @@ void sendSensorData(){
         }
     }
 //    send pid error
+    if (pidEnabled && serialDebug){
     for (int i = 0; i < 3; i++){
       float error = pidVals[i]->pastError;
       CAN.beginPacket(0b00001100000 + (byte(0x05)<<2) + i);
@@ -229,6 +230,7 @@ void sendSensorData(){
           CAN.write(((byte*)&error)[2]);
           CAN.write(((byte*)&error)[3]);
       CAN.endPacket();
+    }
     }
   }
 }
@@ -284,8 +286,6 @@ void readCan(int packetLength){
     }
 //    Serial.print(((float*)commandValues)[0]);
 //    commandPayload = ((input_t*)commandValues)[0];
-    Serial.print("command: ");
-    Serial.println(command);
     switch (command){
       case 0x01:  // set settings ()
       break;
@@ -328,26 +328,50 @@ void readCan(int packetLength){
       break;
       case 0x0A:  // set front acceleration
         setPid();
+        if (serialDebug){
+          Serial.print("PID front: ");
+          Serial.println(((float*)commandValues)[0]);
+        }
         pidF.targetVal = ((float*)commandValues)[0];
       break;
       case 0x0B:  // set side acceleration
         setPid();
+        if (serialDebug){
+          Serial.print("PID side: ");
+          Serial.println(((float*)commandValues)[0]);
+        }
         pidS.targetVal = ((float*)commandValues)[0];
       break;
       case 0x0C:  // set up acceleration
         setPid();
+        if (serialDebug){
+          Serial.print("PID up: ");
+          Serial.println(((float*)commandValues)[0]);
+        }
         pidU.targetVal = ((float*)commandValues)[0];
       break;
       case 0x0D:  // set roll acceleration
         setPid();
+        if (serialDebug){
+          Serial.print("PID roll: ");
+          Serial.println(((float*)commandValues)[0]);
+        }
         pidR.targetVal = ((float*)commandValues)[0];
       break;
       case 0x0E:  // set pitch acceleration
         setPid();
+        if (serialDebug){
+          Serial.print("PID pitch: ");
+          Serial.println(((float*)commandValues)[0]);
+        }
         pidP.targetVal = ((float*)commandValues)[0];
       break;
       case 0x0F:  // set yaw acceleration
         setPid();
+        if (serialDebug){
+          Serial.print("PID yaw: ");
+          Serial.println(((float*)commandValues)[0]);
+        }
         pidY.targetVal = ((float*)commandValues)[0];
       break;
       case 0x10:  // set front percent (manual)
@@ -498,10 +522,10 @@ void moveThrusters(move_t mov){ // move thrusters given move_t
   for (int i = 0; i < 8; i++){
     int thrust;;
     if (reverseThrusts[i]){
-      thrust = 1500 - (int)(thrusterVals[i]*thrustPercent*5.0);
+      thrust = 1492 - (int)(thrusterVals[i]*thrustPercent*5.0);
     }
     else{
-       thrust = 1500 + (int)(thrusterVals[i]*thrustPercent*5.0);
+       thrust = 1492 + (int)(thrusterVals[i]*thrustPercent*5.0);
     }
     if (pastThrustVals[i] != thrust){
 //      Serial.print("thruster: ");

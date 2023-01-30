@@ -102,7 +102,7 @@ void loop() {
           break;
           case 0x1A:
             for (int i = 0; i < 6; i++){
-              CAN.beginPacket(uint16_t(uint16_t(0b01100000000) + uint16_t((deviceSel)<<5) + (uint16_t)(0x10+i)));
+              CAN.beginPacket(uint16_t(uint16_t(0b01100000000) + uint16_t((deviceSel)<<5) + (uint16_t)(0x0A+i)));
               for (int j = 0; j < 4; j++){
                 CAN.write(data[i*4+j]);
               }
@@ -112,7 +112,7 @@ void loop() {
           case 0x1B:
 //            Serial.print(3);
             for (int i = 0; i < 6; i++){
-              CAN.beginPacket(uint16_t(uint16_t(0b01100000000) + uint16_t((deviceSel)<<5) + (uint16_t)(0x0A+i)));
+              CAN.beginPacket(uint16_t(uint16_t(0b01100000000) + uint16_t((deviceSel)<<5) + (uint16_t)(0x10+i)));
 //                CAN.beginPacket(0b00000000011);
               for (int j = 0; j < 4; j++){
                 CAN.write(data[i*4+j]);
