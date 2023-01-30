@@ -21,10 +21,10 @@ class Seagrass:
         mask = cv2.inRange(blurred, lower, upper)
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         
-        img_contours = img.copy()
-        cv2.drawContours(img_contours, contours, -1, (0, 0, 255), 2)
+        result = img.copy()
+        cv2.drawContours(result, contours, -1, (0, 0, 255), 2)
 
-        return len(contours), img_contours
+        return len(contours), result
 
 
 if __name__ == "__main__":
@@ -34,11 +34,12 @@ if __name__ == "__main__":
         ret, frame = cap.read()
 
         grass = Seagrass()
+        grass.brightness = 1.2
 
-        count, frame_contours = grass.detect_contours(frame)
+        count, result = grass.healed_seagrass(frame)
 
         print(count)
-        cv2.imshow("seagrass", frame_contours)
+        cv2.imshow("seagrass", result)
 
         if cv2.waitKey(1) == ord("q"):
             break
