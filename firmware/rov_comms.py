@@ -172,7 +172,15 @@ class RovComms:
         num_constant = int(num_constant).to_bytes(length=1, byteorder="big", signed=False)
         movement = int(movement).to_bytes(length=1, byteorder="big", signed=False)
         self.write_queue.put(struct.pack("=ccccfc", RovComms.HEADER, 0x02.to_bytes(length=1, byteorder='big', signed=False), movement, num_constant, new_value, RovComms.FOOTER))
-        
+    
+    def move_claw(self, claw_num, claw_deg):
+        self.write_queue.put(struct.pack("=ccicc", RovComms.HEADER, 0x05.to_bytes(length=1, byteorder='big', signed=False), int(claw_deg), claw_num.to_bytes(length=1, byteorder="big", signed=False), RovComms.FOOTER))
+
+    def turn_flashlight_on(self):
+        self.write_queue.put(struct.pack("=ccicc", RovComms.HEADER, 0x05.to_bytes(length=1, byteorder='big', signed=False), 0x00.to_bytes(length=1, byteorder="big", signed=False), RovComms.FOOTER))
+
+    def turn_flashlight_off(self):
+        self.write_queue.put(struct.pack("=ccicc", RovComms.HEADER, 0x05.to_bytes(length=1, byteorder='big', signed=False), 0x01.to_bytes(length=1, byteorder="big", signed=False), RovComms.FOOTER))
 
 if __name__ == "__main__":
     comms = RovComms()
