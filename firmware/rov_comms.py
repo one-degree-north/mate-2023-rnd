@@ -113,6 +113,8 @@ class RovComms:
                             case 0x00:  # orientationa
                                 if data_index in [0, 1, 2]:
                                     self.orientation[data_index] = data
+                                    # print("orientation")
+                                    # print(self.orientation)
                             case 0x01:  # gyro
                                 if data_index in [0, 1, 2]:
                                     self.angular_rotation[data_index] = data
@@ -125,7 +127,7 @@ class RovComms:
                             case 0x05:
                                 if data_index in [0, 1, 2]:
                                     self.pidErrors[data_index] = data
-                                    print("f error: ")
+                                    # print("f error: ")
                             case 0x06:
                                 if data_index in [0, 1, 2]:
                                     self.pidErrors[data_index+3] = data
@@ -190,7 +192,7 @@ if __name__ == "__main__":
             case 'w':
                 comms.move_camera_servo(0, int(deg))
             case '1':
-                comms.set_accelerations_thrust([0, 0, 0, 90, 0, 0])
+                comms.set_accelerations_thrust([0, 0, 0, float(deg), 0, 0])
             case '2':
                 comms.change_pid(movement=1, constant=0, new_value=1)
             case '3':
@@ -201,3 +203,4 @@ if __name__ == "__main__":
                 print(comms.accel)
                 print(comms.angular_rotation)
                 print(comms.quaternion)
+                print(comms.pidErrors)

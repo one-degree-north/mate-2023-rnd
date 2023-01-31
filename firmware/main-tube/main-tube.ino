@@ -68,7 +68,7 @@ typedef struct PID{
   float pastError;
 } pidc_t;
 
-byte commandValues[8];
+byte commandValues[256];
 
 //BNO DATA
 sensors_event_t orientationData;
@@ -223,7 +223,7 @@ void sendSensorData(){
       CAN.endPacket();
     }
     for (int i = 3; i < 6; i++){
-      float error = pidVals[i]->pastError;
+      float error = pidVals[i+3]->pastError;
       CAN.beginPacket(0b00001100000 + (byte(0x06)<<2) + i);
       CAN.write(((byte*)&error)[0]);
           CAN.write(((byte*)&error)[1]);
@@ -451,17 +451,10 @@ void allPidLoop(){
 }
 
 float getAngleError(float currAngle, float targetAngle){
-//  currAngle is from 0-359
-  currAngle -= -180;
-  float error = 0;
-  float eP = targetAngle - currAngle;
-  float eN = -1 * (360 - eP);
-  if (abs(eP) > abs(eN)){
-    return eP;
-  }
-  else{
-    return eN;
-  }
+//  currAngle is from 0-359, targetAngle also from 0-359
+  float error = targetAngle - currAngle;
+  error = (error + 180)%360-180;
+  return error;
 }
 
 float pidLoop(float error, pidc_t *pidVals){
@@ -533,6 +526,7 @@ void moveThrusters(move_t mov){ // move thrusters given move_t
 //      Serial.print(" ");
 //      Serial.println(thrust);
       thrusters[i].writeMicroseconds(thrust);
+      pastThrustVals[i] = thrust;
     }
     else{
 //      Serial.print("thruster: ");
@@ -540,7 +534,7 @@ void moveThrusters(move_t mov){ // move thrusters given move_t
 //      Serial.print(" ");
 //      Serial.println(thrust);
     }
-    pastThrustVals[i] = thrust;
+//    pastThrustVals[i] = thrust;
   }
 }
 
