@@ -250,6 +250,7 @@ class Setting(QWidget):
         self.layout = QHBoxLayout()
         
         self.layout.addWidget(self.label)
+        self.layout.addStretch()
         self.layout.addWidget(self.box)
 
         self.layout.setContentsMargins(0,0,0,0)

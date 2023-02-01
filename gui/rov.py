@@ -137,25 +137,25 @@ class MainWindow(QMainWindow):
             }
         """ % (Color.light_salmon, Color.apricot))
 
-        # self.lower_section = LowerSection()
-        # self.upper_section = UpperSection()
-        # self.tabs = Tabs()
+        self.lower_section = LowerSection()
+        self.upper_section = UpperSection()
+        self.tabs = Tabs()
 
-        # # layout
-        # self.layout = QVBoxLayout()
+        # layout
+        self.layout = QVBoxLayout()
 
-        # self.layout.addWidget(self.upper_section)
-        # self.layout.addWidget(self.tabs)
-        # self.layout.addWidget(self.lower_section)
+        self.layout.addWidget(self.upper_section)
+        self.layout.addWidget(self.tabs)
+        self.layout.addWidget(self.lower_section)
 
-        # self.layout.setContentsMargins(0,0,0,0)
-        # self.layout.setSpacing(0)
+        self.layout.setContentsMargins(0,0,0,0)
+        self.layout.setSpacing(0)
 
-        # # parent layout
-        # self.parent = QWidget()
-        # self.parent.setLayout(self.layout)
+        # parent layout
+        self.parent = QWidget()
+        self.parent.setLayout(self.layout)
 
-        # self.setCentralWidget(self.parent)
+        self.setCentralWidget(self.parent)
 
         # keyboard input stuff
         self.speed = 10
