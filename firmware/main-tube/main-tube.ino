@@ -15,28 +15,32 @@
 
 #define DEBUG_SERIAL Serial
 
+// thrusters
 long thrustDelay = THRUSTWRITEDELAY;
 long thrustDeltaTime = 0;
 bool reverseThrusts[] = {false, true, false, false, false, true, true, false};
 int thrusterPins[] = {25, 11, 10, 24, 19, 12, 9, 23};
-//0: right forward
-//1: left forward
-//2: left down
-//3: right down
-// upward facing
-//4: right forward
-//5: left forward
-//6: left down
-//7: right down
-
+/*
+Thruster pin configuration
+0: right forward
+1: left forward
+2: left down
+3: right down
+upward facing
+4: right forward
+5: left forward
+6: left down
+7: right down
+*/
 int CAN_ID = 0x32;
 Servo thrusters[8];
-//int camServoPins[] = {4};
-//Servo camServo[1];
+int camServoPins[] = {4};
+Servo camServo[1];
+
+// settings
 bool serialDebug = true;
 bool sendPidError = true;
-int pastThrustVals[] = {1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500};
-
+int pastThrustVals[] = {1492, 1492, 1492, 1492, 1492, 1492, 1492, 1492};
 
 typedef struct canInput{
   byte id;
@@ -109,15 +113,16 @@ void setup() {
     thrusters[i].attach(thrusterPins[i]);
 //    thrusters[i].writeMicroseconds(1500);
   }
-//  for (int i = 0; i < 1; i++){
-//    camServo[i].attach(camServoPins[i]);
-//    camServo[i].write(0);
-//  }
+ for (int i = 0; i < 1; i++){
+   camServo[i].attach(camServoPins[i]);
+   camServo[i].write(0);
+ }
   pastTime = millis();
   CAN.begin(500000);
   CAN.onReceive(readCan);
   bno.begin();
   Serial.begin(9600);
+  // initialize thrusters
   for (int i = 0; i < 8; i++){
     thrusters[i].writeMicroseconds(2000);
   }
@@ -130,15 +135,10 @@ void setup() {
 
 void loop() {
   unsigned long now = millis();
-//  Serial.println(now);
   deltaTime = now - pastTime;
   pastTime = now;
   // control movement
    sensorUpdateLoop();
-  // if (!pidEnabled){
-  //   parseManualMoveCommand(manualSpeeds[0], manualSpeeds[1], manualSpeeds[2], manualSpeeds[3], manualSpeeds[4], manualSpeeds[5]);
-  // }
-  // moveThrusters(tMov);
 //  timer between writing PWM
   if (thrustDelay < 0){
 //    Serial.print("delta time: ");
@@ -150,7 +150,6 @@ void loop() {
   else{
     thrustDeltaTime += deltaTime;
     thrustDelay -= deltaTime;
-    delay(1);
   }
 }
 
@@ -176,8 +175,6 @@ void sensorUpdateLoop(){
 }
 
 void sendSensorData(){
-  //Serial.print("imuUpdateDelay: ");
-  //Serial.println(imuUpdateDelay);
   imuUpdateDelay--;
   if(imuUpdateDelay <= 0){
       imuUpdateDelay = SENSOR_RATE;
@@ -195,14 +192,6 @@ void sendSensorData(){
               val = accelData.data[j];
             break;
           }
-
-//           Serial.println("sending sensor data");
-          // Serial.println(i*3+j, BIN);
-          // Serial.println(((byte*)&val)[0], BIN);
-          // Serial.println(((byte*)&val)[1], BIN);
-          // Serial.println(((byte*)&val)[2], BIN);
-          // Serial.println(((byte*)&val)[3], BIN);
-
           CAN.beginPacket(0b00001100000 + ((byte(i))<<2) + j);
           CAN.write(((byte*)&val)[0]);
           CAN.write(((byte*)&val)[1]);
@@ -237,37 +226,32 @@ void sendSensorData(){
 
 void setThrustPercent(){
   pidEnabled = false;
-//  for (int i = 0; i < 8; i++){
-//    pidVals[i]->targetVal = 0;
-//  }
-//  for (int i = 0; i < 6; i++){
-//    ((float*)&tMov)[i] = 0;
-//  }
 }
 
 void setPid(){
   pidEnabled = true;
-//  for (int i = 0; i < 8; i++){
-//    pidVals[i]->targetVal = 0;
-//  }
-//  for (int i = 0; i < 6; i++){
-//    ((float*)&tMov)[i] = 0;
-//  }
 }
 
 void readCan(int packetLength){
 //  set command values all to 0
-//  Serial.println("read can");
   long idPacket = CAN.packetId();
   byte device = idPacket>>8;
   byte destDevice = (idPacket&0b00011100000)>>5;
   byte command = (idPacket&0b00000011111);
-//  Serial.println(idPacket, HEX);
-//  Serial.println(device, HEX);
-//  Serial.println(destDevice, HEX);
-//  Serial.println(command, HEX);
-//  Serial.println(packetLength);
-  for (int i = 0; i < 8; i++){
+  if (serialDebug){
+    Serial.println("--recieved data--")
+    Serial.print("id: ");
+    Serial.println(idPacket, HEX);
+    Serial.print("send device: ");
+    Serial.println(device, HEX);
+    Serial.print("destination device: ")
+    Serial.println(destDevice, HEX);
+    Serial.print("command: ");
+    Serial.println(command, HEX);
+    Serial.print("packet len: ");
+    Serial.println(packetLength);
+  }
+  for (int i = 0; i < 256; i++){
     commandValues[i] = 0;
   }
 //  input_t commandPayload;
@@ -279,23 +263,25 @@ void readCan(int packetLength){
 //010: claw 2
 //011: main board
     if (destDevice != 0b000){
+      // message was not sent for main-tube!
       return;
     }
     for (int i = 0; i < packetLength; i++){
       commandValues[i] = CAN.read();
     }
-//    Serial.print(((float*)commandValues)[0]);
-//    commandPayload = ((input_t*)commandValues)[0];
     switch (command){
       case 0x01:  // set settings ()
+        if (packetLength == 1){
+          pidEnabled = 0
+        }
       break;
-//      case 0x05:
-////        Serial.print("moving cam");
-////        Serial.println("degree");
-////        Serial.println(commandValues[4]);
-////        Serial.println(((int*)commandValues)[0]);
-//        moveCamServo(((int*)commandValues)[0], commandValues[4]);
-//      break;
+     case 0x05:  // camera
+//        Serial.print("moving cam");
+//        Serial.println("degree");
+//        Serial.println(commandValues[4]);
+//        Serial.println(((int*)commandValues)[0]);
+       moveCamServo(((int*)commandValues)[0], commandValues[4]);
+     break;
       case 0x02:  // change pid front
         if (packetLength == 6){
           byte chosenPidNum = commandValues[0];
@@ -528,24 +514,14 @@ void moveThrusters(move_t mov){ // move thrusters given move_t
       thrusters[i].writeMicroseconds(thrust);
       pastThrustVals[i] = thrust;
     }
-    else{
-//      Serial.print("thruster: ");
-//      Serial.print(i);
-//      Serial.print(" ");
-//      Serial.println(thrust);
-    }
-//    pastThrustVals[i] = thrust;
   }
 }
 
 void moveThrust(){  // adjust so that thrusters increase slowly over time
-//  Serial.println(tMov.f);
   // adjust thrust percent so they increase to target over time
   // all increase with the slowest
   float maxDiff = 0;
   float maxDeltaThrust = thrustDeltaTime * MAXTHRUSTOVERTIME;
-//  Serial.print("max delta thrust: ");
-//  Serial.println(maxDeltaThrust);
   for (int i = 0; i < 6; i++){
     float currT = ((float*)&tMov)[i];
     float currP = ((float*)&pMov)[i];
@@ -619,9 +595,9 @@ void moveThrust(){  // adjust so that thrusters increase slowly over time
   // }
 }
 
-//void moveCamServo(int degree, byte pin){
-////  Serial.println("degree");
-////  Serial.println(degree);
-////  Serial.println(int(pin));
-//  camServo[int(pin)].write(degree);
-//}
+void moveCamServo(int degree, byte pin){
+//  Serial.println("degree");
+//  Serial.println(degree);
+//  Serial.println(int(pin));
+ camServo[int(pin)].write(degree);
+}

@@ -167,8 +167,8 @@ class MainWindow(QMainWindow):
             logging.info("Comms have been connected to the GUI")
 
     def keyPressEvent(self, e):
-        if self.lower_section.console.command_line.key_logging:
-            logging.debug(f"{e.text()} ({e.key()})")
+        # if self.lower_section.console.command_line.key_logging:
+        #     logging.debug(f"{e.text()} ({e.key()})")
 
         if self.rov_comms and not e.isAutoRepeat():
             if e.key() == Qt.Key.Key_1:

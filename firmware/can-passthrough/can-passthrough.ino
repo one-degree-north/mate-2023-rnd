@@ -54,6 +54,14 @@ void loop() {
           dataLen = 6;
           deviceSel = 0x00;
         break;
+        case 0x05:
+          dataLen=5;
+          deviceSel=0x01;
+        break;
+        case 0x06:
+          dataLen = 1;
+          deviceSel=0x01;
+        break;
         case 0x1A:
           dataLen = 24;
           deviceSel = 0x000;
@@ -98,6 +106,18 @@ void loop() {
             for (int i = 0; i < 6; i++){
               CAN.write(data[i]);
             }
+            CAN.endPacket();
+          break;
+          case 0x05:  // move claw servo
+            CAN.beginPacket(uint16_t(uint16_t(0b01100000000) + uint16_t((deviceSel)<<5)+(uint16_t)(0x05)));
+            for (int i = 0; i < 5; i++){
+              CAN.write(data[i]);
+            }
+            CAN.endPacket();
+          break;
+          case 0x06:  // turn flashlight on / off
+            CAN.beginPacket(uint16_t(uint16_t(0b01100000000) + uint16_t((deviceSel)<<5)+(uint16_t)(0x06)));
+            CAN.write(data[0]);
             CAN.endPacket();
           break;
           case 0x1A:
