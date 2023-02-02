@@ -39,12 +39,18 @@ class RovComms:
             # get the port with the given device
             ports = list_ports.comports()
             for port in ports:
+                print(port)
                 # print(port.product)
-                # print(port.)
-                if port.product == "Feather M4 CAN":
+                #print(ports[1].device)
+                if input("use port? ").lower().startswith('y'):
                     self.serial_port = port.device
                     self.device_found = True
                     break
+                # print(port)
+                # if port.product == "Feather M4 CAN":
+                #     self.serial_port = port.device
+                #     self.device_found = True
+                #     break
             # device not found, continue until found
             sleep(0.1)
 
@@ -55,9 +61,11 @@ class RovComms:
         self.write_thread.start()
 
     def read_loop(self):
-        # while True:
+        # while True:y
+
         #     if self.serial_comm.in_waiting > 0:
-        #         print(self.serial_comm.read(), sep="")
+        #         print(self.serial_comm.read(), sep="")n
+        
         # print('a')
 
 
