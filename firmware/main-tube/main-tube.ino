@@ -499,7 +499,7 @@ void moveThrusters(move_t mov){ // move thrusters given move_t
 //      Serial.print("up: "); Serial.print(mov.u); Serial.print(" | "); Serial.print("roll: "); Serial.println(mov.r); 
 //      Serial.print("pitch: "); Serial.print(mov.p); Serial.print(" | "); Serial.print(" yaw: "); Serial.println(mov.y);
   for (int i = 0; i < 8; i++){
-    int thrust;;
+    int thrust;
     if (reverseThrusts[i]){
       thrust = 1492 - (int)(thrusterVals[i]*thrustPercent*5.0);
     }
