@@ -125,7 +125,7 @@ class PIClient:
     def move_claw(self, claw_num, claw_deg):
         assert isinstance(claw_num, int), "claw_num must be an int specifying the selected claw"
         assert isinstance(claw_deg, int), "claw_deg must be an int specifying the degree to write to the selected claw"
-        assert claw_deg <= 180 and claw_deg >=0, "claw deg must be between 0 and 180"
+        assert claw_deg <= 2000 and claw_deg >= 1000, "claw deg must be between 1000 and 2000"
         assert claw_num >= 0 and claw_num <= 1, "claw_num must be 0 or 1" 
         self.out_queue.put(struct.pack("=ccH", 0x02.to_bytes(length=1, byteorder='big', signed=False), claw_num.to_bytes(length=1, byteorder='big', signed=False), claw_deg))
 
@@ -137,7 +137,7 @@ class PIClient:
 
 
 if __name__ == "__main__":
-    comms = PIClient(("127.0.0.1", 7772))
+    comms = PIClient(("192.168.1.100", 27777))
     while True:
         command = input()
         match(command):
@@ -146,9 +146,9 @@ if __name__ == "__main__":
             case 'fs':
                 comms.set_manual_thrust([0, -10, 0, 0, 0, 0])
             case 's1':
-                comms.move_claw(0, 90)
+                comms.move_claw(0, 1500)
             case 's0':
-                comms.move_claw(1, 0)
+                comms.move_claw(1, 1150)
             case 'on':
                 comms.turn_flashlight_on()
             case 'off':

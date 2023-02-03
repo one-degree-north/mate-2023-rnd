@@ -11,20 +11,8 @@
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
-#define u8 uint8_t
-#define u16 uint16_t
-
-#define NUM_THRUSTERS 8
-
 #define PERIOD_US 4000
 #define MAX_DELTA 10    // maximum change per tick (4ms)
-
-typedef struct Thruster {
-    u8 enable;      // 0 if disabled
-    u8 pin;         // board pin according to wiringPi
-    u16 target;     // target pulse in us (1000-1800)
-    u16 current;    // current pulse in us (1000-1800)
-} thruster_t;
 
 thruster_t thrusters[NUM_THRUSTERS];
 pthread_t update_tid;
