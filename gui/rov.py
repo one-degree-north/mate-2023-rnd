@@ -162,6 +162,7 @@ class MainWindow(QMainWindow):
         self.pid = False
         self.target_thrust = [0, 0, 0, 0, 0, 0]
         self.target_orientation = [0, 0, 0]
+        self.claw_open = False
 
         if self.rov_comms:
             logging.info("Comms have been connected to the GUI")
@@ -231,6 +232,20 @@ class MainWindow(QMainWindow):
             if e.key() == Qt.Key.Key_BracketLeft:
                 self.pid = False
                 self.target_thrust = [0, 0, 0, 0, 0, 0]
+            if e.key() == Qt.Key.Key_T:
+                self.rov_comms.turn_flashlight_on()
+            if e.key() == Qt.Key.Key_Y:
+                self.rov_comms.turn_flashlight_off()
+            if e.key() == Qt.Key.Key_R:
+                
+                if self.claw_open:
+                    print("closing claw")
+                    self.rov_comms.move_claw(0, 2000)
+                    self.claw_open = False
+                else:
+                    print("opening claws")
+                    self.rov_comms.move_claw(0, 1000)
+                    self.claw_open = True
             if self.pid:
                 # turn values into target orientations
                 temp_thrust = [0, 0, 0, 0, 0, 0]
@@ -250,7 +265,7 @@ class MainWindow(QMainWindow):
                 print(self.rov_comms.orientation)
                 print("error: ")
                 print(self.rov_comms.pidErrors)
-                self.rov_comms.set_accelerations_thrust(temp_thrust)
+                # self.rov_comms.set_accelerations_thrust(temp_thrust)
             else:
                 temp_thrust = [0, 0, 0, 0, 0, 0]
                 for i in range(6):

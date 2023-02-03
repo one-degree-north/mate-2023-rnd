@@ -5,6 +5,8 @@ from PyQt6.QtCore import Qt
 from functools import partial
 from gui.utils import Color, IconButton
 
+from pygrabber.dshow_graph import FilterGraph
+
 class SettingsTab(QWidget):
     def __init__(self):
         super().__init__()

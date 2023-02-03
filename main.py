@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtGui import QFontDatabase
 
-from firmware import rov_comms
+from firmware import pi_comms
 from gui.rov import MainWindow
 
 import logging
@@ -42,10 +42,10 @@ if __name__ == "__main__":
 
     if input("Connect comms (y/n)? ") == "y":
         print("Searching for serial...")
-        comms = rov_comms.RovComms()
+        comms = pi_comms.PIClient()
         print("Serial found")
 
-    window = MainWindow(comms, 0, 0)
+    window = MainWindow(comms, 0, 1)
     window.show()
     window.showMaximized()
 
