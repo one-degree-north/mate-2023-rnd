@@ -12,7 +12,7 @@ class PIClient:
     MAX_THRUST = int(CENTER_THRUST + MAX_RANGE * MAX_THRUST_PERCENT / 100.0)
     MIN_THRUST = int(CENTER_THRUST - MAX_RANGE * MAX_THRUST_PERCENT / 100.0)
     REVERSE_THRUSTS = [False, True, False, False, False, True, True, False]
-    def __init__(self, server_address=("192.168.1.100", 27777)):
+    def __init__(self, server_address=("192.168.13.101", 27777)):
         self.out_queue = queue.Queue()
         self.client_thread = threading.Thread(target=self.client_loop, args=[server_address], daemon=True)
         self.client_thread.start()
@@ -40,9 +40,10 @@ class PIClient:
     def process_data(self, data):
         pass
 
-    def set_manual_thrust_test(self, thrusts):
+    def set_manual_thrust_test(self, thrusts, verticle_thrust_adjustments=[0, 0, 0, 0]):
         assert isinstance(thrusts, list), "thrusts must be an array of floats"
         assert len(thrusts) == 6, "thrusts must be array of 6 floats"
+        assert len(verticle_thrust_adjustments) == 4, "only 4 verticle thrusters"
         for i in range(len(thrusts)):
             try:
                 thrusts[i] = float(thrusts[i])
@@ -57,10 +58,10 @@ class PIClient:
         thrust_vals[0] = mov.f - mov.s + mov.y
         thrust_vals[6] = mov.f + mov.s - mov.y
         # up thrusters
-        thrust_vals[5] = mov.u + mov.p - mov.r
-        thrust_vals[3] = mov.u + mov.p + mov.r
-        thrust_vals[1] = mov.u - mov.p + mov.r
-        thrust_vals[4] = mov.u - mov.p - mov.r
+        thrust_vals[5] = mov.u + mov.p - mov.r + verticle_thrust_adjustments[0]
+        thrust_vals[3] = mov.u + mov.p + mov.r + verticle_thrust_adjustments[1]
+        thrust_vals[1] = mov.u - mov.p + mov.r + verticle_thrust_adjustments[2]
+        thrust_vals[4] = mov.u - mov.p - mov.r + verticle_thrust_adjustments[3]
         
         # convert thrust percentage to pwm milliseconds
         for i in range(8):
@@ -85,7 +86,7 @@ class PIClient:
         print(f"sending data: {send_bytes}")
         self.out_queue.put(send_bytes)
 
-    def set_manual_thrust(self, thrusts):
+    def set_manual_thrust(self, thrusts, verticle_thrust_adjustments=[0, 0, 0, 0]):
         assert isinstance(thrusts, list), "thrusts must be an array of floats"
         assert len(thrusts) == 6, "thrusts must be array of 6 floats"
         for i in range(len(thrusts)):
@@ -102,10 +103,10 @@ class PIClient:
         thrust_vals[0] = mov.f - mov.s + mov.y
         thrust_vals[6] = mov.f + mov.s - mov.y
         # up thrusters
-        thrust_vals[5] = mov.u + mov.p - mov.r
-        thrust_vals[3] = mov.u + mov.p + mov.r
-        thrust_vals[1] = mov.u - mov.p + mov.r
-        thrust_vals[4] = mov.u - mov.p - mov.r
+        thrust_vals[5] = mov.u + mov.p - mov.r + verticle_thrust_adjustments[0]
+        thrust_vals[3] = mov.u + mov.p + mov.r + verticle_thrust_adjustments[1]
+        thrust_vals[1] = mov.u - mov.p + mov.r + verticle_thrust_adjustments[2]
+        thrust_vals[4] = mov.u - mov.p - mov.r + verticle_thrust_adjustments[3]
         
         # adjust all thrust values linearly down based on maximum thrust present
         thrust_percent = 1
@@ -144,7 +145,7 @@ class PIClient:
 
 
 if __name__ == "__main__":
-    comms = PIClient(("192.168.1.100", 27777))
+    comms = PIClient(("192.168.13.100", 27777))
     while True:
         command = input()
         match(command):

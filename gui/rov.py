@@ -8,6 +8,8 @@ from gui.widgets import console
 
 from gui.utils import Color
 
+from functools import partial
+
 import logging
 import sys
 import os
@@ -110,12 +112,6 @@ class Tabs(QTabWidget):
         self.addTab(self.autonomous_tab, QIcon("gui/assets/icons/chart.png"), "Autonomous")
         self.addTab(self.settings_tab, QIcon("gui/assets/icons/settings.png"), "Settings")
 
-        
-
-        
-
-
-
 
 
 class MainWindow(QMainWindow):
@@ -163,9 +159,18 @@ class MainWindow(QMainWindow):
         self.target_thrust = [0, 0, 0, 0, 0, 0]
         self.target_orientation = [0, 0, 0]
         self.claw_open = False
+        self.up_thrust_adjustments = [0, 0, 0, 0]
 
         if self.rov_comms:
             logging.info("Comms have been connected to the GUI")
+
+        for i, v in enumerate(self.tabs.settings_tab.manual_adjustment_settings.children()):
+            if isinstance(v, settings.Slider):
+                v.valueChanged.connect(partial(self.slider_updated, i))
+
+    def slider_updated(self, value, slider_id):
+        print(value, slider_id)
+        self.up_thrust_adjustments[slider_id] = value
 
     def keyPressEvent(self, e):
         # if self.lower_section.console.command_line.key_logging:
@@ -272,7 +277,8 @@ class MainWindow(QMainWindow):
                     temp_thrust[i] = self.target_thrust[i]* self.speed
                 print("manual thurst: ")
                 print(temp_thrust)
-                self.rov_comms.set_manual_thrust(temp_thrust)
+                print(f"up thrust adjustments {self.up_thrust_adjustments}")
+                self.rov_comms.set_manual_thrust(temp_thrust, self.up_thrust_adjustments)
 
     def keyReleaseEvent(self, e):
         if self.rov_comms and not e.isAutoRepeat():
@@ -332,7 +338,8 @@ class MainWindow(QMainWindow):
                     temp_thrust[i] = self.target_thrust[i]* self.speed
                 print("manual thurst: ")
                 print(temp_thrust)
-                self.rov_comms.set_manual_thrust(temp_thrust)
+                print(f"up thrust adjustments {self.up_thrust_adjustments}")
+                self.rov_comms.set_manual_thrust(temp_thrust, self.up_thrust_adjustments)
 
 
 

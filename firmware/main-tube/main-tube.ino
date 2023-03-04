@@ -22,15 +22,15 @@ bool reverseThrusts[] = {false, true, false, false, false, true, true, false};
 int thrusterPins[] = {25, 11, 10, 24, 19, 12, 9, 23};
 /*
 Thruster pin configuration
-0: right forward
-1: left forward
-2: left down
-3: right down
+0: right forward, 7, backward at 1200
+1: left forward, 2, forward at 1200
+2: left down, 0, backward at 1200
+3: right down, 6, backward at 1200
 upward facing
-4: right forward
-5: left forward
-6: left down
-7: right down
+4: right forward, 5, down at 1200
+5: left forward, 3, up at 1200
+6: left down, 1, up at 1200
+7: right down, 4, down at 1200
 */
 int CAN_ID = 0x32;
 Servo thrusters[8];

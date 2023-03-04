@@ -51,11 +51,13 @@ class Tabs(QTabWidget):
         self.location_settings = LocationSettings()
         self.weather_settings = WeatherSettings()
         self.pid_settings = PIDSettings()
+        self.manual_adjustment_settings = ManualAdjustmentSettings()
 
         self.addTab(self.app_settings, QIcon("gui/assets/icons/app.png"), "App Settings")
         self.addTab(self.location_settings, QIcon("gui/assets/icons/location.png"), "Location Settings")
         self.addTab(self.weather_settings, QIcon("gui/assets/icons/weather.png"), "Weather Settings")
         self.addTab(self.pid_settings, QIcon("gui/assets/icons/pid.png"), "PID Settings")
+        self.addTab(self.manual_adjustment_settings, QIcon("gui/assets/icons/pid.png"), "I Don't Know Manual Adjustment Settings")
 
         self.setTabPosition(QTabWidget.TabPosition.South)
         
@@ -176,6 +178,34 @@ class PIDSettings(QWidget):
 
         self.setLayout(self.layout)
 
+
+class ManualAdjustmentSettings(QWidget):
+    def __init__(self):
+        super().__init__()
+
+
+
+        self.layout = QHBoxLayout()
+
+
+        for i in range(4):
+            slider = Slider(Color.tinted_white)
+
+            slider.setRange(-30, 30)
+
+            self.layout.addWidget(slider)
+
+        self.layout.addStretch()
+
+        self.layout.setSpacing(20)
+
+        self.setLayout(self.layout)
+
+    def slider_updated(self, value, slider_id):
+        print(value, slider_id)
+        
+
+
 class CameraSelection(QComboBox):
     def __init__(self):
         super().__init__()
@@ -265,8 +295,6 @@ class PIDSliders(QWidget):
         self.layout = QHBoxLayout()
 
         for i in range(18):
-            slider = QSlider()
-
             match i//6:
                 case 0:
                     color = Color.tinted_white
@@ -275,7 +303,26 @@ class PIDSliders(QWidget):
                 case 2:
                     color = Color.coral
 
-            slider.setStyleSheet("""
+            slider = Slider(color)
+
+            slider.setRange(0, 300)
+            slider.valueChanged.connect(partial(self.slider_updated, i))
+
+            self.layout.addWidget(slider)
+
+        self.layout.setSpacing(20)
+
+        self.setLayout(self.layout)
+
+    def slider_updated(self, value, slider_id):
+        print(value, slider_id)
+
+
+class Slider(QSlider):
+    def __init__(self, color):
+        super().__init__()
+
+        self.setStyleSheet("""
                 QSlider:groove {
                     background: %s;
                     border-radius: 4px;
@@ -290,16 +337,3 @@ class PIDSliders(QWidget):
                     height: 20px;
                 }
             """ % (Color.cyber_grape, color))
-
-
-            slider.setRange(0, 300)
-            slider.valueChanged.connect(partial(self.slider_updated, i))
-
-            self.layout.addWidget(slider)
-
-        self.layout.setSpacing(20)
-
-        self.setLayout(self.layout)
-
-    def slider_updated(self, value, slider_id):
-        print(value, slider_id)

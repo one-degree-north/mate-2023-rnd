@@ -20,6 +20,9 @@
 
 // Driver code
 void* udp_thread(void* input) {
+    // Start serial!
+    int serialfd = open("/dev/ttyUSB0");
+
     thruster_t* thrusters = (thruster_t*) input;
 
     int sockfd;
@@ -84,4 +87,8 @@ void parse_data(int n, char* buf, thruster_t* thrusters) {
             uint8_t enable = *(buf + 1);
             break;
     }
+}
+
+void send_serial(){
+
 }

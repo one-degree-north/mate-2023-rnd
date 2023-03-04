@@ -16,7 +16,7 @@ class CameraTab(QWidget):
         self.cam_width = 720
         self.cam_height = 480
 
-        self.cam_1 = CameraFrame(self, "front", 0)
+        self.cam_1 = CameraFrame(self, "front", 2)
         self.cam_2 = CameraFrame(self, "down", 1)
 
         self.layout = QHBoxLayout()

@@ -42,10 +42,10 @@ if __name__ == "__main__":
 
     if input("Connect comms (y/n)? ") == "y":
         print("Searching for serial...")
-        comms = pi_comms.PIClient()
+        comms = pi_comms.PIClient((input("enter ip: "), 27777))
         print("Serial found")
 
-    window = MainWindow(comms, 0, 1)
+    window = MainWindow(comms, 1, 2)
     window.show()
     window.showMaximized()
 
