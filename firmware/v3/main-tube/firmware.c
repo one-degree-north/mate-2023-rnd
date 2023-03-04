@@ -40,12 +40,18 @@ void reset() {
 
 void setup() {
     setup_outputs();
-    bno_setup(BNO055_ADDR);
+    //bno_setup(BNO055_ADDR);
+    //bno_configure();
     uart_setup();
+
+    // LED on 13
+    gpio_init(13);
+    gpio_set_dir(13, GPIO_OUT);
+    gpio_put(13, 1);
 }
 
 void loop() {
-    bno_read();
+    //bno_read();
     uart_read();
     loop_outputs();
 }
@@ -457,7 +463,7 @@ void loop_outputs() {
 }
 
 int main() {
-    bi_decl(bi_program_description("UART version of SAS SAUVC 2022 firmware"));
+    bi_decl(bi_program_description("SAS MATE 2023 R&D Firmware V3"));
 
     set_sys_clock_khz(96000, false);
     setup();

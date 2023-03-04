@@ -14,9 +14,8 @@
 #define BNO_SDA 2
 #define BNO_I2C i2c1
 
-
-static u8 bno_addr = 0x28;
-static i2c_inst_t* bno_port = BNO_I2C;
+u8 bno_addr;
+i2c_inst_t* bno_port = BNO_I2C;
 
 float accel[3];
 float mag[3];
@@ -35,7 +34,7 @@ void bno_configure() {
 
     // SYS_TRIGGER: internal oscillator, reset all interrupts, start self-test
     config[0] = 0x3F;
-    config[1] = 0b01000001;
+    config[1] = 0b00100000;
     i2c_write_blocking(bno_port, bno_addr, config, 2, true);
 
     // PWR_MODE: normal
@@ -77,7 +76,7 @@ bool bno_setup(u8 addr) {
     gpio_pull_up(BNO_SCL);
 
     // bno_setup should be called only once, since it initializes bno_addr and bno_port
-    sleep_ms(1);
+    sleep_ms(30);
     bno_addr = addr;
     bno_port = BNO_I2C;
     u8 reg = 0x00;
@@ -89,7 +88,7 @@ bool bno_setup(u8 addr) {
         return false;
     }
 
-    bno_configure();
+    // bno_configure();
 
     return true;
 }

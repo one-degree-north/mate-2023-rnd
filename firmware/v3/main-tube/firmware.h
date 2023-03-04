@@ -31,7 +31,6 @@ void cmd_return_echo(u8 len, u8 *data);
 void cmd_return_thruster(u8 idx);
 void cmd_return_all_thrusters();
 
-void cmd_return_float(u8 param, float* data);
 void cmd_return_vec3(u8 param, float* x, float* y, float* z);
 void cmd_return_quaternion(u8 param, float* w, float* x, float* y, float* z);
 void cmd_return_int(u8 param, u16 data);

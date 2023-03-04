@@ -79,9 +79,6 @@ class SensorData:
     system: SystemStatus
     outputs: ThrusterServoData
     temperature: float
-    voltage: float
-    depth: float
-    killswitch: bool
     other: str
 
     def __init__(self):
@@ -96,9 +93,6 @@ class SensorData:
         self.system = SystemStatus()
         self.outputs = ThrusterServoData()
         self.temperature = 0.0
-        self.voltage = 12  # hopefully!
-        self.depth = 0
-        self.killswitch = False
         self.other = ''
 
 
@@ -108,7 +102,6 @@ class Packet:
     param: int
     len: int
     data: list[int]
-    lrc: int
     footer: int
     size: int
 
@@ -118,12 +111,11 @@ class Packet:
         self.param = bytes[2]
         self.len = bytes[3]
         self.data = list(bytes[4:4 + self.len])
-        self.lrc = bytes[4 + self.len]
-        self.footer = bytes[4 + self.len + 1]
+        self.footer = bytes[4 + self.len]
         self.size = len(bytes)
         self.bytes = bytes
     def to_network_packet(self):
-        return bytes[1:-2]
+        return bytes[1:-1]
 
 
 @dataclass
@@ -232,7 +224,4 @@ SENSOR_TYPES = {
         SENSOR_CALIB: int,
         SENSOR_SYSTEM: int,
         SENSOR_TEMP: int,
-        SENSOR_VOLT: float,
-        SENSOR_DEPTH: int,
-        SENSOR_KILLSWITCH: int
 }
