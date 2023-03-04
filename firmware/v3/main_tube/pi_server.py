@@ -31,6 +31,8 @@ class PIServer:
             for sock in r:  #ready to read!
                 print("attempting to read")
                 data, address = sock.recvfrom(2048)
+                if address != self.client_addr: #client switched address (something wrong happened)
+                    self.client_addr = address
                 self._parse_data(data, address)
                 print("received data")
             
@@ -42,7 +44,8 @@ class PIServer:
                     print("wrote data")
             
             for sock in x:  #exception 8^(. Create new socket and try to connect again.
-                break
+                print("exception apparently")
+                pass
             # events = self.poller.poll()
             # for sock, event in events:
             #     if event & select.POLLIN:   # can write data!
@@ -62,13 +65,17 @@ class PIServer:
         self.connected = True
         self.client_addr = address
         cmd = data[0]
+        vals = data[1:]
         print(f"received data from {address} with command: {cmd}, datalen: {len(data)}")
         match (cmd):
             case 0x00:  #test communications
-                pass
-                # self.mcu.send_packet(0x00, 0x00, 0x00, bytes([]))
+                self.mcu.send_packet(0x00, 0x00, 0x00, bytes([]))
             case 0x01:  #move thrusters
-                pass
+                # pass
+                if len(vals) == 16:
+                    thrusts = struct.unpack("!HHHHHHHH", vals)
+                    self.mcu.send_packet(0x18, 0x08, 0x08, thrusts)
+                    print(f"moving with thrusts {thrusts}")
             case 0x02:  #move servos
                 pass
             case 0x03:  #toggle flashlight

@@ -74,7 +74,7 @@ class UARTMCUInterface(MCUInterface):
         to_lrc = bytes([command, param, length]) + bytes(data)
         lrc = LRC(to_lrc)
 
-        trmt = bytes([HEADER_TRMT, command, param, length]) + bytes(data) + bytes([lrc, FOOTER_TRMT])
+        trmt = bytes([HEADER_TRMT, command, param, length]) + bytes(data) + bytes(FOOTER_TRMT)
 
         self.send_bytes(trmt)
 

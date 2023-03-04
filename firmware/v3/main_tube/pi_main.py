@@ -13,7 +13,7 @@ from time import sleep
 
 if __name__ == "__main__":
     server_address = ("127.0.0.1", 7772)
-    port = "/dev/ttyUSB0"
+    port = "/dev/ttyS"
     out_queue = queue.Queue()
     mcu = UARTMCUInterface(port, out_queue)
     print(type(mcu))

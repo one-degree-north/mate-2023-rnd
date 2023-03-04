@@ -125,22 +125,11 @@ class IncompletePacket:
     param: int
     len: int
     data: list[int]
-    lrc: int
     footer: int
     curr_size: int
 
     def __init__(self):
         self.curr_size = 0
-
-    def lrc_check(self, expected: int) -> bool:
-        lrc = 0
-        lrc = (lrc + self.cmd) & 0xFF
-        lrc = (lrc + self.param) & 0xFF
-        lrc = (lrc + self.len) & 0xFF
-        for byte in self.data:
-            lrc = (lrc + byte) & 0xFF
-        lrc = (((lrc ^ 0xFF) + 1) & 0xFF)
-        return lrc == expected
 
     def is_complete(self) -> bool:
         return self.header and self.cmd and self.param and \
@@ -173,11 +162,6 @@ class IncompletePacket:
         elif 4 <= self.curr_size < 4 + self.len:
             self.data.append(byte)
         elif self.curr_size == 4 + self.len:
-            self.lrc = byte
-            lrc_success = self.lrc_check(LRC(bytes([self.cmd, self.param, self.len, *self.data])))
-            if not lrc_success:
-                print("LRC failed on packet! continuing anyways...")
-        elif self.curr_size == 4 + self.len + 1:
             if byte == FOOTER_RECV:
                 self.footer = byte
             else:
