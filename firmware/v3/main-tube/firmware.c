@@ -80,8 +80,8 @@ void cmd_set_thruster(u8 param, u8 len, u8 *data) {
         thruster_set_target(param, val);
     }
 
-    if (len == 12) {
-        for (int i = 0; i < 6; ++i) {
+    if (len == 16) {
+        for (int i = 0; i < 8; ++i) {
             u16 val = data[i * 2] * 0xFF + data[i * 2 + 1];
             thruster_set_target(i, val);
         }
@@ -89,14 +89,11 @@ void cmd_set_thruster(u8 param, u8 len, u8 *data) {
 }
 
 void cmd_set_thruster_mask(u8 param, u8 len, u8 *data) {
-    if (param >> 6 != 0b11)
-        return;
-
     if (len == 2) {
         u8 param_ptr = param;
         u16 val = data[0] * 0xFF + data[1];
 
-        for (int i = 0; i < 6; ++i) {
+        for (int i = 0; i < 8; ++i) {
             param_ptr >>= 1;
             if (param_ptr & 0b1) {
                 thruster_set_target(i, val);

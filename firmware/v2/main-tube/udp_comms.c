@@ -12,12 +12,6 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <pthread.h>
-<<<<<<< HEAD
-#include "esc_software_pwm.h"
-
-#define UDP_PORT     27777
-#define MAXLINE  1024
-=======
 #include <fcntl.h> // Contains file controls like O_RDWR
 #include <errno.h> // Error integer and strerror() function
 #include <termios.h> // Contains POSIX terminal control definitions
@@ -25,17 +19,10 @@
 
 #define UDP_PORT     27777
 #define MAXLINE      1024
->>>>>>> 88096d4 (work changes: add udp, other stuff)
 
 
 // Driver code
 void* udp_thread(void* input) {
-<<<<<<< HEAD
-    // Start serial!
-    int serialfd = open("/dev/ttyUSB0");
-
-=======
->>>>>>> 88096d4 (work changes: add udp, other stuff)
     thruster_t* thrusters = (thruster_t*) input;
 
     int sockfd;
@@ -64,11 +51,8 @@ void* udp_thread(void* input) {
         exit(EXIT_FAILURE);
     }
 
-<<<<<<< HEAD
-=======
     int serial_port = setup_serial();
 
->>>>>>> 88096d4 (work changes: add udp, other stuff)
     for (;;){
         socklen_t len;
 
@@ -81,21 +65,12 @@ void* udp_thread(void* input) {
         buffer[n] = '\0';
         printf("Client : %s\n", buffer);
 
-<<<<<<< HEAD
-        parse_data(n, buffer, thrusters);
-=======
         parse_data(n, buffer, thrusters, serial_port);
->>>>>>> 88096d4 (work changes: add udp, other stuff)
     }
 
     return 0;
 }
 
-<<<<<<< HEAD
-void parse_data(int n, char* buf, thruster_t* thrusters) {
-    if (n == 0) return; // null byte
-    uint8_t cmd = buf[0];
-=======
 int setup_serial() {
     int serial_port = open("/dev/ttyS3", O_RDWR);
     if (serial_port < 0) {
@@ -142,7 +117,6 @@ void parse_data(int n, char* buf, thruster_t* thrusters, int serial_port) {
     msg[0] = 0xa9;
     msg[5] = 0x9a;
 
->>>>>>> 88096d4 (work changes: add udp, other stuff)
     switch (cmd) {
         case 0x01:
             uint16_t* ptr = (uint16_t*) (buf + 1);
@@ -152,19 +126,6 @@ void parse_data(int n, char* buf, thruster_t* thrusters, int serial_port) {
             break;
         case 0x02:
             uint8_t servo = *(buf + 1);
-<<<<<<< HEAD
-            uint16_t value = *(buf + 2);
-            break;
-        case 0x03:
-            uint8_t enable = *(buf + 1);
-            break;
-    }
-}
-
-void send_serial(){
-
-}
-=======
             uint16_t value = (*(buf + 3) << 8) + *(buf + 2);
 
             msg[1] = 0x05;
@@ -184,4 +145,3 @@ void send_serial(){
             break;
     }
 }
->>>>>>> 88096d4 (work changes: add udp, other stuff)

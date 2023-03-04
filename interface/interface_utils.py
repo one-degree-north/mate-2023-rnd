@@ -54,8 +54,8 @@ class ThrusterServoData:
     def update(self, param: int, value: int):
         if THRUSTER_ONE <= param <= THRUSTER_SIX:
             self.thrusters[param - THRUSTER_ONE].value = value
-        if SERVO_LEFT <= param <= SERVO_RIGHT:
-            self.servos[param - SERVO_LEFT].value = value
+        # if SERVO_LEFT <= param <= SERVO_RIGHT:
+        #     self.servos[param - SERVO_LEFT].value = value
 
     def update_all_thrusters(self, values):
         for i in range(6):
@@ -229,7 +229,4 @@ SENSOR_TYPES = {
         SENSOR_CALIB: int,
         SENSOR_SYSTEM: int,
         SENSOR_TEMP: int,
-        SENSOR_VOLT: float,
-        SENSOR_DEPTH: int,
-        SENSOR_KILLSWITCH: int
 }

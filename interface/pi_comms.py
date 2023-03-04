@@ -124,12 +124,6 @@ class PIClient:
                     self.data.status.sys_err    = new_data & 0x00FF
                 elif param == SENSOR_TEMP:
                     self.data.temperature = new_data
-                elif param == SENSOR_VOLT:
-                    self.data.voltage = new_data
-                elif param == SENSOR_DEPTH:
-                    self.data.depth = depth_mapping(new_data)
-                elif param == SENSOR_KILLSWITCH:
-                    self.data.killswitch = new_data
 
     def set_manual_thrust_test(self, thrusts, verticle_thrust_adjustments=[0, 0, 0, 0]):
         assert isinstance(thrusts, list), "thrusts must be an array of floats"
@@ -177,7 +171,10 @@ class PIClient:
         print(f"sending data: {send_bytes}")
         self.out_queue.put(send_bytes)
 
-    def _parse_read(self):
+    def _parse_read(self, data):
+        cmd = data[0]
+        param=data[2]
+        data = data[2:]
         # I wish I could use match case here...
         # too bad we need to maintain Py3.9 compatibility
         if cmd == 0x00:
@@ -249,12 +246,6 @@ class PIClient:
                 self.data.status.sys_err    = new_data & 0x00FF
             elif param == SENSOR_TEMP:
                 self.data.temperature = new_data
-            elif param == SENSOR_VOLT:
-                self.data.voltage = new_data
-            elif param == SENSOR_DEPTH:
-                self.data.depth = depth_mapping(new_data)
-            elif param == SENSOR_KILLSWITCH:
-                self.data.killswitch = new_data
 
     def set_manual_thrust(self, thrusts, verticle_thrust_adjustments=[0, 0, 0, 0]):
         assert isinstance(thrusts, list), "thrusts must be an array of floats"
@@ -312,13 +303,26 @@ class PIClient:
 
     def turn_flashlight_on(self):
         self.out_queue.put(struct.pack("=cc", 0x03.to_bytes(length=1, byteorder='big', signed=False), 0x01.to_bytes(length=1, byteorder="big", signed=False)))
-
+    def set_thrust(self, thrusts : list[float]):
+        assert isinstance(thrusts, list), "thrusts must be an array of floats"
+        assert len(thrusts) == 8, "thrusts must be 8 long"
+        for i in thrusts:
+            assert isinstance(thrusts[i], float), "thrust must be floats"
+            assert thrusts[i] <= 1 or thrusts[1] >= -1, "thrust values must be between -1 and 1"
+        thrusts_int = []
+        for i in thrusts:
+            thrusts_int.append(1500+500*thrusts[i])
+        self.out_queue.put(struct.pack("!cHHHHHHHH"), thrusts_int)
 
 if __name__ == "__main__":
     comms = PIClient(("127.0.0.1", 7772))
     while True:
         command = input()
         match(command):
+            case 'tt':
+                comms.set_thrust([0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2])
+            case 'stop':
+                comms.set_thrust([0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,])
             case 'tf':
                 comms.set_manual_thrust([10.0, 0, 0, 0, 0, 0])
             case 'fs':
