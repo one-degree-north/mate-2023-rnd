@@ -2,6 +2,13 @@
 import socket, select, queue, threading, struct
 from collections import namedtuple
 
+import sys
+from pathlib import Path
+path = Path(sys.path[0])
+sys.path.insert(1, str((path.parent.parent.parent).absolute()))
+
+from interface_utils import *
+
 class PIClient:
     #code to communicate to opi
     move = namedtuple("move", ['f', 's', 'u', 'p', 'r', 'y'])
@@ -16,6 +23,7 @@ class PIClient:
         self.out_queue = queue.Queue()
         self.client_thread = threading.Thread(target=self.client_loop, args=[server_address], daemon=True)
         self.client_thread.start()
+        self.data = SensorData()
     
     def client_loop(self, server_address):
         while True:
@@ -38,7 +46,90 @@ class PIClient:
                     break
 
     def process_data(self, data):
-        pass
+        # turn into packet
+        cmd = data[0]
+        param = data[1]
+        len = data[2]
+        data = []
+        for i in range(len):
+            data.append(data[i+3])
+        # your wish for match has been fulfilled
+        match(cmd):
+            case 0x00:
+                # echo or hello
+                self.data.other = bytes(data).decode('latin')
+            case 0x0A:
+                # get system attribute
+                if not data:
+                    return
+                self.data.system.sys_enable = data[0]
+            case 0x0F:
+                # success
+                if not data:
+                    self.data.system.failed = 1
+                    return
+                self.data.system.failed = data[0]
+            case 0x1A:
+                # thruster positions
+                if len == 2 and THRUSTER_ONE <= param <= THRUSTER_SIX:
+                    self.data.outputs.update(param, struct.unpack('>H', data)[0])
+                if len == 12 and param == THRUSTER_ALL:
+                    self.data.outputs.update_all_thrusters(struct.unpack('>HHHHHH', data))
+            case 0x2A:
+                # servo positions
+                if len == 2 and SERVO_LEFT <= param <= SERVO_RIGHT:
+                    self.data.outputs.update(param, struct.unpack('>H', data)[0])
+                if len == 4 and param == SERVO_ALL:
+                    self.data.outputs.update_all_servos(struct.unpack('>HH', data))
+            case 0x33:
+                # some type of sensor data
+                new_data = None
+                if len == 2:
+                    new_data = struct.unpack('>H', data)[0]
+                elif len == 4:
+                    new_data = struct.unpack('>f', data)[0]
+                elif len == 12:
+                    new_data = Vector3.from_arr(struct.unpack('>fff', data))
+                elif len == 16:
+                    new_data = Quaternion.from_arr(struct.unpack('>ffff', data))
+
+                # make sure type is correct
+                if param in SENSOR_TYPES:
+                    assert type(new_data) == SENSOR_TYPES[param], f"wrong type for packet type {param}, expected {SENSOR_TYPES[param]}, got {type(new_data)}"
+                else:
+                    print("?????????")
+
+                # every possible ..
+                if param == SENSOR_ACCEL:
+                    self.data.accel = new_data
+                elif param == SENSOR_MAG:
+                    self.data.mag = new_data
+                elif param == SENSOR_GYRO:
+                    self.data.gyro = new_data
+                elif param == SENSOR_EULER:
+                    self.data.orientation = new_data
+                elif param == SENSOR_QUATERNION:
+                    self.data.quaternion = new_data
+                elif param == SENSOR_LINACCEL:
+                    self.data.linaccel = new_data
+                elif param == SENSOR_GRAVITY:
+                    self.data.gravity = new_data
+                elif param == SENSOR_CALIBRATION:
+                    self.data.status.calib_sys = new_data & 0b11000000
+                    self.data.status.calib_gyr = new_data & 0b00110000
+                    self.data.status.calib_acc = new_data & 0b00001100
+                    self.data.status.calib_mag = new_data & 0b00000011
+                elif param == SENSOR_SYSTEM:
+                    self.data.status.sys_status = new_data & 0xFF00
+                    self.data.status.sys_err    = new_data & 0x00FF
+                elif param == SENSOR_TEMP:
+                    self.data.temperature = new_data
+                elif param == SENSOR_VOLT:
+                    self.data.voltage = new_data
+                elif param == SENSOR_DEPTH:
+                    self.data.depth = depth_mapping(new_data)
+                elif param == SENSOR_KILLSWITCH:
+                    self.data.killswitch = new_data
 
     def set_manual_thrust_test(self, thrusts, verticle_thrust_adjustments=[0, 0, 0, 0]):
         assert isinstance(thrusts, list), "thrusts must be an array of floats"
@@ -85,6 +176,85 @@ class PIClient:
         send_bytes[0:17] = struct.pack("=cHHHHHHHH", 0x01.to_bytes(length=1, byteorder='big', signed=False), thrust_vals[0], thrust_vals[1], thrust_vals[2], thrust_vals[3], thrust_vals[4], thrust_vals[5], thrust_vals[6], thrust_vals[7])
         print(f"sending data: {send_bytes}")
         self.out_queue.put(send_bytes)
+
+    def _parse_read(self):
+        # I wish I could use match case here...
+        # too bad we need to maintain Py3.9 compatibility
+        if cmd == 0x00:
+            # echo or hello
+            self.data.other = bytes(data).decode('latin')
+        elif cmd == 0x0A:
+            # get system attribute
+            if not data:
+                return
+            self.data.system.sys_enable = data[0]
+        elif cmd == 0x0F:
+            # success
+            if not data:
+                self.data.system.failed = 1
+                return
+            self.data.system.failed = data[0]
+        elif cmd == 0x1A:
+            # thruster positions
+            if len == 2 and THRUSTER_ONE <= param <= THRUSTER_SIX:
+                self.data.outputs.update(param, struct.unpack('>H', data)[0])
+            if len == 12 and param == THRUSTER_ALL:
+                self.data.outputs.update_all_thrusters(struct.unpack('>HHHHHH', data))
+        elif cmd == 0x2A:
+            # servo positions
+            if len == 2 and SERVO_LEFT <= param <= SERVO_RIGHT:
+                self.data.outputs.update(param, struct.unpack('>H', data)[0])
+            if len == 4 and param == SERVO_ALL:
+                self.data.outputs.update_all_servos(struct.unpack('>HH', data))
+        elif cmd == 0x33:
+            # some type of sensor data
+            new_data = None
+            if len == 2:
+                new_data = struct.unpack('>H', data)[0]
+            elif len == 4:
+                new_data = struct.unpack('>f', data)[0]
+            elif len == 12:
+                new_data = Vector3.from_arr(struct.unpack('>fff', data))
+            elif len == 16:
+                new_data = Quaternion.from_arr(struct.unpack('>ffff', data))
+
+            # make sure type is correct
+            if param in SENSOR_TYPES:
+                assert type(new_data) == SENSOR_TYPES[param], f"wrong type for packet type {param}, expected {SENSOR_TYPES[param]}, got {type(new_data)}"
+            else:
+                print("?????????")
+
+            # every possible ..
+            if param == SENSOR_ACCEL:
+                self.data.accel = new_data
+            elif param == SENSOR_MAG:
+                self.data.mag = new_data
+            elif param == SENSOR_GYRO:
+                self.data.gyro = new_data
+            elif param == SENSOR_EULER:
+                self.data.orientation = new_data
+            elif param == SENSOR_QUATERNION:
+                self.data.quaternion = new_data
+            elif param == SENSOR_LINACCEL:
+                self.data.linaccel = new_data
+            elif param == SENSOR_GRAVITY:
+                self.data.gravity = new_data
+            elif param == SENSOR_CALIBRATION:
+                self.data.status.calib_sys = new_data & 0b11000000
+                self.data.status.calib_gyr = new_data & 0b00110000
+                self.data.status.calib_acc = new_data & 0b00001100
+                self.data.status.calib_mag = new_data & 0b00000011
+            elif param == SENSOR_SYSTEM:
+                self.data.status.sys_status = new_data & 0xFF00
+                self.data.status.sys_err    = new_data & 0x00FF
+            elif param == SENSOR_TEMP:
+                self.data.temperature = new_data
+            elif param == SENSOR_VOLT:
+                self.data.voltage = new_data
+            elif param == SENSOR_DEPTH:
+                self.data.depth = depth_mapping(new_data)
+            elif param == SENSOR_KILLSWITCH:
+                self.data.killswitch = new_data
 
     def set_manual_thrust(self, thrusts, verticle_thrust_adjustments=[0, 0, 0, 0]):
         assert isinstance(thrusts, list), "thrusts must be an array of floats"
@@ -145,7 +315,7 @@ class PIClient:
 
 
 if __name__ == "__main__":
-    comms = PIClient(("192.168.13.100", 27777))
+    comms = PIClient(("127.0.0.1", 7772))
     while True:
         command = input()
         match(command):

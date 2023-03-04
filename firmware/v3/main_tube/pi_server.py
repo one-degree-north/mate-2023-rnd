@@ -22,19 +22,22 @@ class PIServer:
         self.mcu = mcu
         print(f"server set up at {server_address}")
         self.client_addr = ()
-        self.server_thread = threading.Thread(target=self.server_loop)
+        self.server_thread = threading.Thread(target=self.server_loop, daemon=True)
         self.server_thread.start()
 
     def server_loop(self):
-        while self.connected: # server should only have 1 client
+        while True:
             r, w, x = select.select([self.sock], [self.sock], [self.sock])
             for sock in r:  #ready to read!
+                print("attempting to read")
                 data, address = sock.recvfrom(2048)
                 self._parse_data(data, address)
                 print("received data")
             
             for sock in w:  #ready to write!
+                # print("attempting to write")
                 if not self.out_queue.empty() and self.connected:
+                    print("attempting to write")
                     sock.sendto(self.out_queue.get(), self.client_addr)
                     print("wrote data")
             
@@ -62,7 +65,8 @@ class PIServer:
         print(f"received data from {address} with command: {cmd}, datalen: {len(data)}")
         match (cmd):
             case 0x00:  #test communications
-                self.mcu.send_packet(0x00, 0x00, 0x00, bytes([]))
+                pass
+                # self.mcu.send_packet(0x00, 0x00, 0x00, bytes([]))
             case 0x01:  #move thrusters
                 pass
             case 0x02:  #move servos
