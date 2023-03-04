@@ -6,6 +6,7 @@
 #include <pthread.h>
 #include <time.h>
 #include <sys/time.h>
+#include "udp_comms.h"
 #include "esc_software_pwm.h"
 
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
@@ -96,7 +97,7 @@ void setup() {
     printf("setting up threads...\n");
     struct sched_param param;
     param.sched_priority = 95;
-    pthread_create(&update_tid, NULL, update_cycle, "update");
+    pthread_create(&update_tid, NULL, udp_thread, thrusters);
 
     printf("ready!\n");
     printf("format: [id], then [target]\n");
