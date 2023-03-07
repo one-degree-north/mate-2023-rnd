@@ -86,7 +86,7 @@ class UARTMCUInterface(MCUInterface):
 
         # self.send_bytes(trmt)
     def send_packet(self, command: int, param: int, length: int, data: tuple):
-        self.send_bytes(bytes([HEADER_TRMT, command, param, length]) + bytes([*data]) + bytes([FOOTER_TRMT]))
+        self.send_bytes(struct.pack(">BBBBBBBBBBBBBBBBBBBBB", HEADER_TRMT, command, param, length, *data, FOOTER_TRMT))
 
     def send_data(self, data: Union[list[Union[int, str]], str]):
         if type(data) == str:
