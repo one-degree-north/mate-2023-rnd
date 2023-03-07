@@ -76,7 +76,7 @@ class UARTMCUInterface(MCUInterface):
     def send_bytes(self, data: bytes):
         self.ser.write(data)
 
-    def send_packet(self, command: int, param: int, length: int, data: Union[bytes, list[int]]):
+    def send_packet(self, command: int, param: int, length: int, data: bytes):
         # to_lrc = bytes([command, param, length]) + bytes(data)
         # lrc = LRC(to_lrc)
         print(f"sending packet: command: {command}, param: {param}, length: {length}, data: {data}")
