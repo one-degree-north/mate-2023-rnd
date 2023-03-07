@@ -315,7 +315,8 @@ class PIClient:
         self.out_queue.put(struct.pack("!cHHHHHHHH"), thrusts_int)
 
 if __name__ == "__main__":
-    comms = PIClient(("127.0.0.1", 7772))
+    addr = str(input("enter server address> "))
+    comms = PIClient((addr, 7772))
     while True:
         command = input()
         match(command):
