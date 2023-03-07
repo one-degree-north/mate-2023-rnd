@@ -303,16 +303,21 @@ class PIClient:
 
     def turn_flashlight_on(self):
         self.out_queue.put(struct.pack("=cc", 0x03.to_bytes(length=1, byteorder='big', signed=False), 0x01.to_bytes(length=1, byteorder="big", signed=False)))
-    def set_thrust(self, thrusts : list[float]):
+    def set_thrust(self, thrusts):
         assert isinstance(thrusts, list), "thrusts must be an array of floats"
         assert len(thrusts) == 8, "thrusts must be 8 long"
-        for i in thrusts:
-            assert isinstance(thrusts[i], float), "thrust must be floats"
-            assert thrusts[i] <= 1 or thrusts[1] >= -1, "thrust values must be between -1 and 1"
+        # print(thrusts[1])
+        for thrust in thrusts:
+            assert isinstance(thrust, float), "thrust must be floats"
+            assert thrust <= 1 or thrust >= -1, "thrust values must be between -1 and 1"
         thrusts_int = []
-        for i in thrusts:
-            thrusts_int.append(1500+500*thrusts[i])
-        self.out_queue.put(struct.pack("!cHHHHHHHH"), thrusts_int)
+        for thrust in thrusts:
+            thrusts_int.append(int(1500+500*thrust))
+        # self.out_queue.put(struct.pack("!cHHHHHHHH"), thrusts_int[0], thrusts_int[1], thrusts_int[2])
+        self.out_queue.put(struct.pack("!cHHHHHHHH", 0x01.to_bytes(length=1, byteorder='big', signed=False), *thrusts_int))
+
+    def test_connection(self):
+        self.out_queue.put(struct.pack("!c"), 0x00.to_bytes(length=1, byteorder='big', signed=False))
 
 if __name__ == "__main__":
     addr = str(input("enter server address> "))
@@ -320,6 +325,8 @@ if __name__ == "__main__":
     while True:
         command = input()
         match(command):
+            case "bruh":
+                comms.test_connection()
             case 'tt':
                 comms.set_thrust([0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2])
             case 'stop':

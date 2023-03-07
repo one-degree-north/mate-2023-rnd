@@ -67,6 +67,7 @@ class PIServer:
         cmd = data[0]
         vals = data[1:]
         print(f"received data from {address} with command: {cmd}, datalen: {len(data)}")
+        print(f"data: {data}")
         if cmd == 0x00: # test communications
             self.mcu.send_packet(0x00, 0x00, 0x00, bytes([]))
         elif cmd == 0x01:   #move thrusters
