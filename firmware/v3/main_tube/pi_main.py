@@ -12,8 +12,10 @@ from time import sleep
 # sys.path.insert(1, str((path.parent.parent.parent).absolute()))
 
 if __name__ == "__main__":
-    server_address = ("127.0.0.1", 7772)
-    port = "/dev/ttyS"
+    addr = str(input("enter server address: "))
+    server_address = (addr, 7772)
+    serial_port = str(input("enter serial port"))
+    port = serial_port
     out_queue = queue.Queue()
     mcu = UARTMCUInterface(port, out_queue)
     print(type(mcu))
