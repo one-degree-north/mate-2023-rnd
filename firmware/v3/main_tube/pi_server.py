@@ -67,21 +67,35 @@ class PIServer:
         cmd = data[0]
         vals = data[1:]
         print(f"received data from {address} with command: {cmd}, datalen: {len(data)}")
-        match (cmd):
-            case 0x00:  #test communications
-                self.mcu.send_packet(0x00, 0x00, 0x00, bytes([]))
-            case 0x01:  #move thrusters
-                # pass
-                if len(vals) == 16:
-                    thrusts = struct.unpack("!HHHHHHHH", vals)
-                    self.mcu.send_packet(0x18, 0x08, 0x08, thrusts)
-                    print(f"moving with thrusts {thrusts}")
-            case 0x02:  #move servos
-                pass
-            case 0x03:  #toggle flashlight
-                pass
-            case 0x10:  #data autoreport
-                pass
+        if cmd == 0x00: # test communications
+            self.mcu.send_packet(0x00, 0x00, 0x00, bytes([]))
+        elif cmd == 0x01:   #move thrusters
+            # pass
+            if len(vals) == 16:
+                thrusts = struct.unpack("!HHHHHHHH", vals)
+                self.mcu.send_packet(0x18, 0x08, 0x08, thrusts)
+                print(f"moving with thrusts {thrusts}")
+        elif cmd == 0x02:   #move servos
+            pass
+        elif cmd == 0x03:   #toggle flashlight
+            pass
+        elif cmd == 0x10:   #data autoreport
+            pass
+        # match (cmd):
+        #     case 0x00:  #test communications
+        #         self.mcu.send_packet(0x00, 0x00, 0x00, bytes([]))
+        #     case 0x01:  #move thrusters
+        #         # pass
+        #         if len(vals) == 16:
+        #             thrusts = struct.unpack("!HHHHHHHH", vals)
+        #             self.mcu.send_packet(0x18, 0x08, 0x08, thrusts)
+        #             print(f"moving with thrusts {thrusts}")
+        #     case 0x02:  #move servos
+        #         pass
+        #     case 0x03:  #toggle flashlight
+        #         pass
+        #     case 0x10:  #data autoreport
+        #         pass
 
 
 if __name__ == "__main__":
