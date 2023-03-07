@@ -76,15 +76,17 @@ class UARTMCUInterface(MCUInterface):
     def send_bytes(self, data: bytes):
         self.ser.write(data)
 
-    def send_packet(self, command: int, param: int, length: int, data: bytes):
-        # to_lrc = bytes([command, param, length]) + bytes(data)
-        # lrc = LRC(to_lrc)
-        print(f"sending packet: command: {command}, param: {param}, length: {length}, data: {data}")
-        # trmt = bytes([HEADER_TRMT, command, param, length]) + bytes(data) + bytes(FOOTER_TRMT)
-        print(type(data))
-        trmt = bytes([HEADER_TRMT, command, param, length]) + data + bytes([FOOTER_TRMT])
+    # def send_packet(self, command: int, param: int, length: int, data: bytes):
+    #     # to_lrc = bytes([command, param, length]) + bytes(data)
+    #     # lrc = LRC(to_lrc)
+    #     print(f"sending packet: command: {command}, param: {param}, length: {length}, data: {data}")
+    #     # trmt = bytes([HEADER_TRMT, command, param, length]) + bytes(data) + bytes(FOOTER_TRMT)
+    #     print(type(data))
+    #     trmt = bytes([HEADER_TRMT, command, param, length]) + data + bytes([FOOTER_TRMT])
 
-        self.send_bytes(trmt)
+        # self.send_bytes(trmt)
+    def send_packet(self, command: int, param: int, length: int, data: tuple):
+        self.send_bytes(bytes[HEADER_TRMT, command, param, length] + bytes([*data]) + bytes([FOOTER_TRMT]))
 
     def send_data(self, data: Union[list[Union[int, str]], str]):
         if type(data) == str:
