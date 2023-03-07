@@ -130,6 +130,7 @@ class IncompletePacket:
 
     def __init__(self):
         self.curr_size = 0
+        self.clear()
 
     def is_complete(self) -> bool:
         return self.header and self.cmd and self.param and \
