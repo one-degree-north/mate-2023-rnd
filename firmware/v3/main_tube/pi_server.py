@@ -74,7 +74,7 @@ class PIServer:
             # pass
             if len(vals) == 16:
                 thrusts = struct.unpack("!cccccccccccccccc", vals)
-                self.mcu.send_packet(0x18, 0x08, 0x016, thrusts)
+                self.mcu.send_packet(0x18, 8, 16, thrusts)
                 print(f"moving with thrusts {thrusts}")
         elif cmd == 0x02:   #move servos
             pass
