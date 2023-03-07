@@ -43,7 +43,8 @@ class UARTMCUInterface(MCUInterface):
     def _write(self):
         while self.enable_signal.enabled:
             if self.write_queue.not_empty:
-                pkt: Packet = self.write_queue.get_nowait()
+                # pkt: Packet = self.write_queue.get_nowait()
+                pkt : Packet = self.write_queue.get()
                 if pkt:
                     self.ser.write(pkt.data)
 

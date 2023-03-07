@@ -18,6 +18,7 @@ if __name__ == "__main__":
     port = serial_port
     out_queue = queue.Queue()
     mcu = UARTMCUInterface(port, out_queue)
+    mcu.start()
     print(type(mcu))
     pi_s = PIServer(server_address=server_address, mcu=mcu, out_queue=out_queue)
     mcu.start()
