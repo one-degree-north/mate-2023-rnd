@@ -20,6 +20,7 @@ if __name__ == "__main__":
     mcu = UARTMCUInterface(port, out_queue)
     print(type(mcu))
     pi_s = PIServer(server_address=server_address, mcu=mcu, out_queue=out_queue)
+    mcu.start()
     print("AAA")
     while True:
         sleep(10)

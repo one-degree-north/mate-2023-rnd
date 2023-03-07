@@ -62,10 +62,15 @@ class UARTMCUInterface(MCUInterface):
         self.enable_signal.enabled = True
         if not self.ser.is_open:
             self.ser.open()
+        self.write_thread.start()
+        self.read_thread.start()
 
     def stop(self):
+        self.enable_signal.enabled = False
         if self.ser.is_open:
             self.ser.close()
+        self.write_thread.join()
+        self.read_thread.join()
 
     def send_bytes(self, data: bytes):
         self.ser.write(data)
