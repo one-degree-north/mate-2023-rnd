@@ -81,7 +81,8 @@ class UARTMCUInterface(MCUInterface):
         # lrc = LRC(to_lrc)
         print(f"sending packet: command: {command}, param: {param}, length: {length}, data: {data}")
         # trmt = bytes([HEADER_TRMT, command, param, length]) + bytes(data) + bytes(FOOTER_TRMT)
-        trmt = bytes([HEADER_TRMT, command, param, length]) + data + bytes(FOOTER_TRMT)
+        print(type(data))
+        trmt = bytes([HEADER_TRMT, command, param, length]) + data + bytes([FOOTER_TRMT])
 
         self.send_bytes(trmt)
 
