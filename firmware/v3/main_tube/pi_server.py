@@ -29,19 +29,17 @@ class PIServer:
         while True:
             r, w, x = select.select([self.sock], [self.sock], [self.sock])
             for sock in r:  #ready to read!
-                print("attempting to read")
+                print("attempting to read network data")
                 data, address = sock.recvfrom(2048)
                 if address != self.client_addr: #client switched address (something wrong happened)
                     self.client_addr = address
                 self._parse_data(data, address)
-                print("received data")
             
             for sock in w:  #ready to write!
                 # print("attempting to write")
                 if not self.out_queue.empty() and self.connected:
-                    print("attempting to write")
+                    print("attempting to write to network")
                     sock.sendto(self.out_queue.get(), self.client_addr)
-                    print("wrote data")
             
             for sock in x:  #exception 8^(. Create new socket and try to connect again.
                 print("exception apparently")
@@ -74,8 +72,8 @@ class PIServer:
             # pass
             if len(vals) == 16:
                 thrusts = struct.unpack("!cccccccccccccccc", vals)
-                print(vals)
-                print(thrusts)
+                # print(vals)
+                # print(thrusts)
                 self.mcu.send_packet(0x18, 8, 16, thrusts)
                 print(f"moving with thrusts {thrusts}")
         elif cmd == 0x02:   #move servos

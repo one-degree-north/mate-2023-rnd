@@ -57,6 +57,7 @@ class UARTMCUInterface(MCUInterface):
                     self._parse(self.build_packet.to_packet())
 
     def _parse(self, packet: Packet):
+        print("received serial data")
         self.net_out_queue.put(packet.to_network_packet())
 
     def start(self):
@@ -90,7 +91,7 @@ class UARTMCUInterface(MCUInterface):
 
         if length:
             byte_type = "@" + "B" * length
-            self.send_bytes(struct.pack(byte_type, *data))
+            self.send_bytes(struct.pack(byte_type, *[ord(i) for i in [*data]]))
 
         self.send_bytes(struct.pack("@B", FOOTER_TRMT))
 
