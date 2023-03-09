@@ -297,6 +297,9 @@ u8 uart_packet_length = 0;
 
 void uart_setup() {
     uart_init(uart0, UART_BAUD);
+
+    gpio_set_function(UART_PIN_RX, GPIO_FUNC_UART);
+    gpio_set_function(UART_PIN_TX, GPIO_FUNC_UART);
 }
 
 void uart_reset_queue() {

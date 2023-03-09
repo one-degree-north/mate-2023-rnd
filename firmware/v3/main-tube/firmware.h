@@ -40,6 +40,8 @@ void cmd_return_int(u8 param, u16 data);
 #define UART_QUEUE_SIZE 40 // max 256
 #define UART_HEADER 0xa7
 #define UART_FOOTER 0x7a
+#define UART_PIN_RX 1
+#define UART_PIN_TX 0
 
 void uart_setup();
 void uart_reset_queue();
