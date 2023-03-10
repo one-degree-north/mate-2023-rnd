@@ -3,6 +3,7 @@
 #include "hardware/adc.h"
 #include "hardware/gpio.h"
 #include "hardware/i2c.h"
+#include "hardware/irq.h"
 #include "hardware/pwm.h"
 #include "hardware/uart.h"
 #include "pico/stdlib.h"
@@ -52,8 +53,9 @@ void setup() {
 
 void loop() {
     //bno_read();
-    uart_read();
+    //uart_read(); - replaced by interrupts
     loop_outputs();
+    tight_loop_contents(); // not sure what this does
 }
 
 /*** COMMANDS ***/
@@ -300,6 +302,19 @@ void uart_setup() {
 
     gpio_set_function(UART_PIN_RX, GPIO_FUNC_UART);
     gpio_set_function(UART_PIN_TX, GPIO_FUNC_UART);
+
+    // disable cts/rts
+    uart_set_hw_flow(uart0, false, false);
+
+    // create interrupt
+    irq_set_exclusive_handler(UART0_IRQ, uart_read);
+    irq_set_enabled(UART0_IRQ, true);
+
+    // enable UART interrupts for RX
+    uart_set_irq_enables(uart0, true, false);
+
+    // say hi
+    cmd_return_hello();
 }
 
 void uart_reset_queue() {
@@ -372,7 +387,7 @@ void uart_parse_byte(u8 c) {
 }
 
 void uart_read() {
-    if (uart_is_readable(uart0)) {
+    while (uart_is_readable(uart0)) {
         u8 c = uart_getc(uart0);
 
         if (uart_queue_index != 0 || c == UART_HEADER) {

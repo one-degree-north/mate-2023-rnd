@@ -37,11 +37,11 @@ void cmd_return_int(u8 param, u16 data);
 
 /*** COMMUNICATIONS ***/
 #define UART_BAUD 115200
-#define UART_QUEUE_SIZE 40 // max 256
+#define UART_QUEUE_SIZE 40  // max 256
 #define UART_HEADER 0xa7
 #define UART_FOOTER 0x7a
 #define UART_PIN_RX 1
-#define UART_PIN_TX 0
+#define UART_PIN_TX 28      // A2 on the rp2040 feather
 
 void uart_setup();
 void uart_reset_queue();
