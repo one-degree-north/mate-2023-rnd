@@ -30,7 +30,7 @@ class MCUInterface(ABC):
 class UARTMCUInterface(MCUInterface):
     def __init__(self, port, net_out_queue):
         # create the serial object with no port since we do not want to connect
-        self.ser = serial.Serial(None, 230400)
+        self.ser = serial.Serial(None, 115200)
         self.ser.port = port
         self.write_thread = threading.Thread(target=self._write)
         self.write_queue = Queue()  # of Packets
@@ -46,7 +46,7 @@ class UARTMCUInterface(MCUInterface):
                 # pkt: Packet = self.write_queue.get_nowait()
                 pkt : Packet = self.write_queue.get()
                 if pkt:
-                    self.ser.write(pkt.data)
+                    self.ser.write(pkt.data)    #WRITE IS BIG ENDIAN!!!!
 
     def _read(self):
         while self.enable_signal.enabled:
@@ -54,7 +54,7 @@ class UARTMCUInterface(MCUInterface):
             for byte in new_bytes:
                 self.build_packet.add_byte(byte)
                 if self.build_packet.is_complete():
-                    self._parse(self.build_packet.to_packet())
+                    self._parse(self.build_packet.to_packet())  # read is LITTLE ENDIAN!!!!
 
     def _parse(self, packet: Packet):
         print("received serial data")
@@ -87,13 +87,13 @@ class UARTMCUInterface(MCUInterface):
 
         # self.send_bytes(trmt)
     def send_packet(self, command: int, param: int, length: int, data: tuple):
-        self.send_bytes(struct.pack("@BBBB", HEADER_TRMT, command, param, length))
+        self.send_bytes(struct.pack(">BBBB", HEADER_TRMT, command, param, length))
 
         if length:
-            byte_type = "@" + "B" * length
+            byte_type = ">" + "B" * length
             self.send_bytes(struct.pack(byte_type, *[ord(i) for i in [*data]]))
 
-        self.send_bytes(struct.pack("@B", FOOTER_TRMT))
+        self.send_bytes(struct.pack(">B", FOOTER_TRMT))
 
     def send_data(self, data: Union[list[Union[int, str]], str]):
         if type(data) == str:
