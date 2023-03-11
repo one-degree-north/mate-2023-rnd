@@ -172,6 +172,27 @@ class IncompletePacket:
         else:
             self.clear()
 
+@dataclass
+class PID:
+    p_const: float
+    i_const: float
+    d_const: float
+    i: float
+    target: float
+    past_error: float
+
+    def __init__(self, p_const, i_const, d_const, target):
+        self.p_const = p_const
+        self.i_const = i_const
+        self.d_const = d_const
+        self.target = target
+        self.i = 0
+        self.past_error = 0
+
+    def get_output(self, curr: float, delta_time:float):
+        error = curr-self.target
+        i += error*delta_time
+        return self.p_const*error + self.i_const*i + self.d_const*(error-self.past_error)
 
 # dummy boolean container class for signaling purposes
 class Signal:

@@ -5,6 +5,8 @@ from firmware.v3.main_tube.mcu_utils import *
 from firmware.v3.main_tube.mcu_constants import *
 from firmware.v3.main_tube.interface import *
 
+
+
 class PIServer:
     MAX_THRUST_PERCENT = 70 # max in thrust percent
     MIN_THRUST_PERCENT = 5 #mininum thrust, if lower, automatically go to minimum
@@ -64,23 +66,22 @@ class PIServer:
         self.client_addr = address
         cmd = data[0]
         vals = data[1:]
-        print(f"received data from {address} with command: {cmd}, datalen: {len(data)}")
-        print(f"data: {data}")
+        print(f"received data from {address} with command: {cmd}, datalen: {len(data)}, and data: {data}")
         if cmd == 0x00: # test communications
             self.mcu.send_packet(0x00, 0x00, 0x00, bytes([]))
         elif cmd == 0x01:   #move thrusters
             # pass
             if len(vals) == 16:
                 thrusts = struct.unpack("!cccccccccccccccc", vals)
-                # print(vals)
-                # print(thrusts)
                 self.mcu.send_packet(0x18, 8, 16, thrusts)
                 print(f"moving with thrusts {thrusts}")
         elif cmd == 0x02:   #move servos
             pass
         elif cmd == 0x03:   #toggle flashlight
             pass
-        elif cmd == 0x10:   #data autoreport
+        elif cmd == 0x04:   #toggle PID settings
+            pass
+        elif cmd == 0x10:   #set data autoreport settings
             pass
         # match (cmd):
         #     case 0x00:  #test communications
@@ -97,6 +98,7 @@ class PIServer:
         #         pass
         #     case 0x10:  #data autoreport
         #         pass
+
 
 
 if __name__ == "__main__":
