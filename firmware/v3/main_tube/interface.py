@@ -46,6 +46,7 @@ class UARTMCUInterface(MCUInterface):
                 # pkt: Packet = self.write_queue.get_nowait()
                 pkt : Packet = self.write_queue.get()
                 if pkt:
+                    print(packet)
                     self.ser.write(pkt.data)    #WRITE IS BIG ENDIAN!!!!
 
     def _read(self):
@@ -53,11 +54,14 @@ class UARTMCUInterface(MCUInterface):
             new_bytes = self.ser.read_all()
             for byte in new_bytes:
                 self.build_packet.add_byte(byte)
+                print(self.build_packet)
                 if self.build_packet.is_complete():
                     self._parse(self.build_packet.to_packet())  # read is LITTLE ENDIAN!!!!
+                    self.build_packet.clear()
 
     def _parse(self, packet: Packet):
         print("received serial data")
+        print(packet)
         self.net_out_queue.put(packet.to_network_packet())
 
     def start(self):
@@ -75,8 +79,10 @@ class UARTMCUInterface(MCUInterface):
         self.read_thread.join()
 
     def send_bytes(self, data: bytes):
+        print(data)
         self.ser.write(data)
 
+    # replaced by new version (does not use packets!)
     # def send_packet(self, command: int, param: int, length: int, data: bytes):
     #     # to_lrc = bytes([command, param, length]) + bytes(data)
     #     # lrc = LRC(to_lrc)

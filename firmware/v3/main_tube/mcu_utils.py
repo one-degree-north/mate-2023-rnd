@@ -125,6 +125,8 @@ class Packet:
 
     def to_network_packet(self):
         return self.bytes[1:-1]
+    def __repr__(self):
+        return f"{hex(header)} {hex(cmd)} {hex(param)} {hex(len)}: [{str([hex(i) for i in data])}] {hex(footer)}"
 
 
 @dataclass
@@ -143,7 +145,7 @@ class IncompletePacket:
 
     def is_complete(self) -> bool:
         return self.header and self.cmd and self.param and \
-               self.len and self.data and self.lrc and self.footer and \
+               self.len and self.data and self.footer and \
                len(self.data) == self.len
 
     def to_packet(self) -> Packet:
@@ -160,20 +162,26 @@ class IncompletePacket:
         if self.curr_size == 0:
             if byte == HEADER_RECV:
                 self.header = byte
+                self.curr_size += 1
         elif self.curr_size == 1:
             self.cmd = byte
+            self.curr_size += 1
         elif self.curr_size == 2:
             self.param = byte
+            self.curr_size += 1
         elif self.curr_size == 3:
             if byte >= 24:
                 self.clear()
                 return
             self.len = byte
+            self.curr_size += 1
         elif 4 <= self.curr_size < 4 + self.len:
             self.data.append(byte)
+            self.curr_size += 1
         elif self.curr_size == 4 + self.len:
             if byte == FOOTER_RECV:
                 self.footer = byte
+                self.curr_size += 1
             else:
                 self.clear()
         elif self.curr_size >= 4 + self.len + 2:
