@@ -114,8 +114,20 @@ class Packet:
         self.footer = bytes[4 + self.len]
         self.size = len(bytes)
         self.bytes = bytes
+    
+    def __init__(self, cmd, param, data):
+        self.header=HEADER_TRMT
+        self.cmd = cmd
+        self.param = param
+        self.len = len(data)
+        self.data = data
+        self.footer=FOOTER_TRMT
+        self.bytes = [self.header, self.cmd, self.param, self.len, *self.data, self.footer]
+
     def to_network_packet(self):
-        return bytes[1:-1]
+        return self.bytes[1:-1]
+    def __repr__(self):
+        return f"{hex(self.header)} {hex(self.cmd)} {hex(self.param)} {hex(self.len)}: [{str([hex(i) for i in self.data])}] {hex(self.footer)}"
 
 
 @dataclass
@@ -133,12 +145,11 @@ class IncompletePacket:
         self.clear()
 
     def is_complete(self) -> bool:
-        return self.header and self.cmd and self.param and \
-               self.len and self.data and self.lrc and self.footer and \
-               len(self.data) == self.len
+        return self.header == 0xa7 and self.cmd != None and self.param != None and \
+               self.len != None and self.footer == 0x7a and len(self.data) == self.len
 
     def to_packet(self) -> Packet:
-        return Packet(bytes([self.header, self.cmd, self.param, self.len, *self.data, self.lrc, self.footer]))
+        return Packet(self.cmd, self.param, self.data)
 
     def clear(self):
         self.header = self.cmd = self.param = self.len = self.lrc = self.footer = 0
@@ -151,20 +162,26 @@ class IncompletePacket:
         if self.curr_size == 0:
             if byte == HEADER_RECV:
                 self.header = byte
+                self.curr_size += 1
         elif self.curr_size == 1:
             self.cmd = byte
+            self.curr_size += 1
         elif self.curr_size == 2:
             self.param = byte
+            self.curr_size += 1
         elif self.curr_size == 3:
             if byte >= 24:
                 self.clear()
                 return
             self.len = byte
+            self.curr_size += 1
         elif 4 <= self.curr_size < 4 + self.len:
             self.data.append(byte)
+            self.curr_size += 1
         elif self.curr_size == 4 + self.len:
             if byte == FOOTER_RECV:
                 self.footer = byte
+                self.curr_size += 1
             else:
                 self.clear()
         elif self.curr_size >= 4 + self.len + 2:

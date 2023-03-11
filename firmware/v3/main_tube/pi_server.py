@@ -40,8 +40,8 @@ class PIServer:
             for sock in w:  #ready to write!
                 # print("attempting to write")
                 if not self.out_queue.empty() and self.connected:
-                    print("attempting to write to network")
-                    sock.sendto(self.out_queue.get(), self.client_addr)
+                    print(f"attempting to write to {self.client_addr}")
+                    sock.sendto(bytes(self.out_queue.get()), self.client_addr)
             
             for sock in x:  #exception 8^(. Create new socket and try to connect again.
                 print("exception apparently")
@@ -73,7 +73,7 @@ class PIServer:
             # pass
             if len(vals) == 16:
                 thrusts = struct.unpack("!cccccccccccccccc", vals)
-                self.mcu.send_packet(0x18, 8, 16, thrusts)
+                self.mcu.send_packet(0x18, 0x0F, 16, thrusts)
                 print(f"moving with thrusts {thrusts}")
         elif cmd == 0x02:   #move servos
             pass

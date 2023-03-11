@@ -46,18 +46,23 @@ class UARTMCUInterface(MCUInterface):
                 # pkt: Packet = self.write_queue.get_nowait()
                 pkt : Packet = self.write_queue.get()
                 if pkt:
-                    self.ser.write(pkt.data)    #WRITE IS BIG ENDIAN!!!!
+                    print(pkt)
+                    self.ser.write(pkt.bytes)    #WRITE IS BIG ENDIAN!!!!
 
     def _read(self):
         while self.enable_signal.enabled:
             new_bytes = self.ser.read_all()
             for byte in new_bytes:
                 self.build_packet.add_byte(byte)
+                print(self.build_packet)
                 if self.build_packet.is_complete():
+                    print("parsing")
                     self._parse(self.build_packet.to_packet())  # read is LITTLE ENDIAN!!!!
+                    self.build_packet.clear()
 
     def _parse(self, packet: Packet):
         print("received serial data")
+        print(packet)
         self.net_out_queue.put(packet.to_network_packet())
 
     def start(self):
@@ -75,8 +80,10 @@ class UARTMCUInterface(MCUInterface):
         self.read_thread.join()
 
     def send_bytes(self, data: bytes):
+        print(data)
         self.ser.write(data)
 
+    # replaced by new version (does not use packets!)
     # def send_packet(self, command: int, param: int, length: int, data: bytes):
     #     # to_lrc = bytes([command, param, length]) + bytes(data)
     #     # lrc = LRC(to_lrc)
@@ -86,14 +93,16 @@ class UARTMCUInterface(MCUInterface):
     #     trmt = bytes([HEADER_TRMT, command, param, length]) + data + bytes([FOOTER_TRMT])
 
         # self.send_bytes(trmt)
+
     def send_packet(self, command: int, param: int, length: int, data: tuple):
-        self.send_bytes(struct.pack(">BBBB", HEADER_TRMT, command, param, length))
+        self.write_queue.put(Packet(command, param, [i[0] for i in data]))
+        # self.send_bytes(struct.pack(">BBBB", HEADER_TRMT, command, param, length))
 
-        if length:
-            byte_type = ">" + "B" * length
-            self.send_bytes(struct.pack(byte_type, *[ord(i) for i in [*data]]))
+        # if length:
+        #     byte_type = ">" + "B" * length
+        #     self.send_bytes(struct.pack(byte_type, *[ord(i) for i in [*data]]))
 
-        self.send_bytes(struct.pack(">B", FOOTER_TRMT))
+        # self.send_bytes(struct.pack(">B", FOOTER_TRMT))
 
     def send_data(self, data: Union[list[Union[int, str]], str]):
         if type(data) == str:

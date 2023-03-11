@@ -34,8 +34,8 @@ class PIClient:
             while True:
                 r, w, x = select.select([self.sock], [self.sock], [self.sock])
                 for sock in r:  #ready to read!
-                    self.process_data(sock.recv(2048))   #THERE SHOULDN'T BE DATA BEING RECEVIED AS OF NOW!
                     print("received data")
+                    self.process_data(sock.recv(2048))   #THERE SHOULDN'T BE DATA BEING RECEVIED AS OF NOW!
                 
                 for sock in w:  #ready to write!
                     if not self.out_queue.empty():
@@ -43,7 +43,8 @@ class PIClient:
                         print("wrote data")
                 
                 for sock in x:  #exception 8^(. Create new socket and try to connect again.
-                    break
+                    print("exception apparently")
+                    pass
 
     def process_data(self, data):
         print(data)
