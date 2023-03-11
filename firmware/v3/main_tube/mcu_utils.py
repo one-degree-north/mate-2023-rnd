@@ -114,8 +114,17 @@ class Packet:
         self.footer = bytes[4 + self.len]
         self.size = len(bytes)
         self.bytes = bytes
+    
+    def __init__(self, cmd, param, data):
+        self.header=HEADER_TRMT
+        self.cmd = cmd
+        self.param = param
+        self.len = len(data)
+        self.data = data
+        self.footer=FOOTER_TRMT
+
     def to_network_packet(self):
-        return bytes[1:-1]
+        return self.bytes[1:-1]
 
 
 @dataclass

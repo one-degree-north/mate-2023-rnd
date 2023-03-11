@@ -40,7 +40,7 @@ class PIServer:
             for sock in w:  #ready to write!
                 # print("attempting to write")
                 if not self.out_queue.empty() and self.connected:
-                    print("attempting to write to network")
+                    print(f"attempting to write to {self.client_addr}")
                     sock.sendto(self.out_queue.get(), self.client_addr)
             
             for sock in x:  #exception 8^(. Create new socket and try to connect again.
