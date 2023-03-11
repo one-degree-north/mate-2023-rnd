@@ -78,13 +78,13 @@ void cmd_set_thruster(u8 param, u8 len, u8 *data) {
         return;
 
     if (len == 2) {
-        u16 val = data[0] * 0xFF + data[1];
+        u16 val = data[0] * 0x100 + data[1];
         thruster_set_target(param, val);
     }
 
     if (len == 16) {
         for (int i = 0; i < 8; ++i) {
-            u16 val = data[i * 2] * 0xFF + data[i * 2 + 1];
+            u16 val = data[i * 2] * 0x100 + data[i * 2 + 1];
             thruster_set_target(i, val);
         }
     }
@@ -93,7 +93,7 @@ void cmd_set_thruster(u8 param, u8 len, u8 *data) {
 void cmd_set_thruster_mask(u8 param, u8 len, u8 *data) {
     if (len == 2) {
         u8 param_ptr = param;
-        u16 val = data[0] * 0xFF + data[1];
+        u16 val = data[0] * 0x100 + data[1];
 
         for (int i = 0; i < 8; ++i) {
             param_ptr >>= 1;
@@ -283,8 +283,8 @@ void cmd_return_quaternion(u8 param, float* w, float* x, float* y, float* z) {
 }
 
 void cmd_return_int(u8 param, u16 data) {
-    u8 upper = data / 0xFF;
-    u8 lower = data % 0xFF;
+    u8 upper = data / 0x100;
+    u8 lower = data % 0x100;
     u8 bytes[] = {
         0x33, param, 2,
         upper, lower
@@ -461,19 +461,24 @@ void setup_outputs() {
 void loop_outputs() {
     u64 now = to_us_since_boot(get_absolute_time());
     u64 elapsed_us = thruster_prev_loop_us - now;
+    u16 max_delta = MIN(MAX_DELTA_POS * elapsed_us / 1000000, 0xFFFF);
 
     // set each output to current value
     for (int i = 0; i < NUM_THRUSTERS; ++i) {
         thruster_output(i, thruster_pos[i]);
     }
+
     // lerp each output to new value (closer to target)
     for (int i = 0; i < NUM_THRUSTERS; ++i) {
         u16 delta = ABS(thruster_target_pos[i] - thruster_pos[i]);
         i8 sign = ((thruster_target_pos[i] - thruster_pos[i]) > 0) ? 1 : -1;
-        u16 max_delta = MIN(MAX_DELTA_POS * elapsed_us / 1000000, 0xFFFF);
 
-        i16 movement = MIN(delta, max_delta) * sign;
-        thruster_pos[i] += movement;
+        if (delta < max_delta) {
+            thruster_pos[i] = thruster_target_pos[i];
+        } else {
+            i16 movement = MIN(delta, max_delta) * sign;
+            thruster_pos[i] += movement;
+        }
     }
 }
 
