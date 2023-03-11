@@ -368,7 +368,7 @@ void uart_parse_byte(u8 c) {
         // len
         uart_packet_length = 5 + c;
         // if declared length is too long, discard
-        if (uart_packet_length > 20) {
+        if (uart_packet_length > UART_MAX_PACKET_LENGTH) {
             uart_reset_queue();
             return;
         }

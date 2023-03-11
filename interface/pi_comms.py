@@ -46,18 +46,21 @@ class PIClient:
                     break
 
     def process_data(self, data):
+        print(data)
         # turn into packet
         cmd = data[0]
         param = data[1]
         len = data[2]
-        data = []
+        temp = []
         for i in range(len):
-            data.append(data[i+3])
+            temp.append(data[i+3])
+        data = temp
         # your wish for match has been fulfilled
         match(cmd):
             case 0x00:
                 # echo or hello
                 self.data.other = bytes(data).decode('latin')
+                print(self.data.other)
             case 0x0A:
                 # get system attribute
                 if not data:
@@ -317,7 +320,7 @@ class PIClient:
         self.out_queue.put(struct.pack("!cHHHHHHHH", 0x01.to_bytes(length=1, byteorder='big', signed=False), *thrusts_int))
 
     def test_connection(self):
-        self.out_queue.put(struct.pack("!c"), 0x00.to_bytes(length=1, byteorder='big', signed=False))
+        self.out_queue.put(struct.pack("!c", 0x00.to_bytes(length=1, byteorder='big', signed=False)))
 
 if __name__ == "__main__":
     addr = str(input("enter server address> "))

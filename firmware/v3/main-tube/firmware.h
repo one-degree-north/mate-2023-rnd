@@ -42,6 +42,7 @@ void cmd_return_int(u8 param, u16 data);
 #define UART_FOOTER 0x7a
 #define UART_PIN_RX 1
 #define UART_PIN_TX 28      // A2 on the rp2040 feather
+#define UART_MAX_PACKET_LENGTH 48
 
 void uart_setup();
 void uart_reset_queue();
