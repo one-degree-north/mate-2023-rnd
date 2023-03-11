@@ -95,7 +95,7 @@ class UARTMCUInterface(MCUInterface):
         # self.send_bytes(trmt)
 
     def send_packet(self, command: int, param: int, length: int, data: tuple):
-        self.write_queue.put(Packet(struct.pack(">" + "B"*(5+len(data)), HEADER_TRMT, command, param, len(data), *data, FOOTER_TRMT)))
+        self.write_queue.put(Packet(command, param, [i[0] for i in data]))
         # self.send_bytes(struct.pack(">BBBB", HEADER_TRMT, command, param, length))
 
         # if length:
