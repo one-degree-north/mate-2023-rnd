@@ -46,8 +46,8 @@ class UARTMCUInterface(MCUInterface):
                 # pkt: Packet = self.write_queue.get_nowait()
                 pkt : Packet = self.write_queue.get()
                 if pkt:
-                    print(packet)
-                    self.ser.write(pkt.data)    #WRITE IS BIG ENDIAN!!!!
+                    print(pkt)
+                    self.ser.write(pkt.bytes)    #WRITE IS BIG ENDIAN!!!!
 
     def _read(self):
         while self.enable_signal.enabled:
@@ -56,6 +56,7 @@ class UARTMCUInterface(MCUInterface):
                 self.build_packet.add_byte(byte)
                 print(self.build_packet)
                 if self.build_packet.is_complete():
+                    print("parsing")
                     self._parse(self.build_packet.to_packet())  # read is LITTLE ENDIAN!!!!
                     self.build_packet.clear()
 

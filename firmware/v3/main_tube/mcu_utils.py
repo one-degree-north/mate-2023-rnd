@@ -122,11 +122,12 @@ class Packet:
         self.len = len(data)
         self.data = data
         self.footer=FOOTER_TRMT
+        self.bytes = [self.header, self.cmd, self.param, self.len, *self.data, self.footer]
 
     def to_network_packet(self):
         return self.bytes[1:-1]
     def __repr__(self):
-        return f"{hex(header)} {hex(cmd)} {hex(param)} {hex(len)}: [{str([hex(i) for i in data])}] {hex(footer)}"
+        return f"{hex(self.header)} {hex(self.cmd)} {hex(self.param)} {hex(self.len)}: [{str([hex(i) for i in self.data])}] {hex(self.footer)}"
 
 
 @dataclass
@@ -144,12 +145,11 @@ class IncompletePacket:
         self.clear()
 
     def is_complete(self) -> bool:
-        return self.header and self.cmd and self.param and \
-               self.len and self.data and self.footer and \
-               len(self.data) == self.len
+        return self.header == 0xa7 and self.cmd != None and self.param != None and \
+               self.len != None and self.footer == 0x7a and len(self.data) == self.len
 
     def to_packet(self) -> Packet:
-        return Packet(bytes([self.header, self.cmd, self.param, self.len, *self.data, self.lrc, self.footer]))
+        return Packet(self.cmd, self.param, self.data)
 
     def clear(self):
         self.header = self.cmd = self.param = self.len = self.lrc = self.footer = 0
