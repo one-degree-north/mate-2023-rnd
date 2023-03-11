@@ -134,3 +134,12 @@ class BNOSensor:
         f.close()
         return r
 
+    def __repr__(self):
+        return f"<BNOSensor[{self.bus}, {self.address}, {self.mode}, {self.power_mode}]>"
+
+
+if __name__ == "__main__":
+    bno = BNOSensor('/dev/i2c3', 0x28)
+    bno.set_mode(BNOOperationalMode.NDOF_FMC)
+    print(bno.read(BNODataOutputType.EUL))
+    print(bno.dump())
