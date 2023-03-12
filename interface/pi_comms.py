@@ -68,26 +68,26 @@ class PIClient:
             case 0x1A:
                 # thruster positions
                 if len == 2 and THRUSTER_ONE <= param <= THRUSTER_SIX:
-                    self.sens_data.outputs.update(param, struct.unpack('>H', data)[0])
+                    self.sens_data.outputs.update(param, struct.unpack('!H', data)[0])
                 if len == 12 and param == THRUSTER_ALL:
-                    self.sens_data.outputs.update_all_thrusters(struct.unpack('>HHHHHH', data))
+                    self.sens_data.outputs.update_all_thrusters(struct.unpack('!HHHHHH', data))
             case 0x2A:
                 # servo positions
                 if len == 2 and SERVO_LEFT <= param <= SERVO_RIGHT:
-                    self.sens_data.outputs.update(param, struct.unpack('>H', data)[0])
+                    self.sens_data.outputs.update(param, struct.unpack('!H', data)[0])
                 if len == 4 and param == SERVO_ALL:
-                    self.sens_data.outputs.update_all_servos(struct.unpack('>HH', data))
+                    self.sens_data.outputs.update_all_servos(struct.unpack('!HH', data))
             case 0x33:
                 # some type of sensor data
                 new_data = None
                 if len == 2:
-                    new_data = struct.unpack('>H', data)[0]
+                    new_data = struct.unpack('!H', data)[0]
                 elif len == 4:
-                    new_data = struct.unpack('>f', data)[0]
+                    new_data = struct.unpack('!f', data)[0]
                 elif len == 12:
-                    new_data = Vector3.from_arr(struct.unpack('>fff', data))
+                    new_data = Vector3.from_arr(struct.unpack('!fff', data))
                 elif len == 16:
-                    new_data = Quaternion.from_arr(struct.unpack('>ffff', data))
+                    new_data = Quaternion.from_arr(struct.unpack('!ffff', data))
 
                 # make sure type is correct
                 if param in SENSOR_TYPES:
@@ -126,13 +126,13 @@ class PIClient:
         assert isinstance(claw_deg, int), "claw_deg must be an int specifying the degree to write to the selected claw"
         # assert claw_deg <= 2000 and claw_deg >= 1000, "claw deg must be between 1000 and 2000"
         assert claw_num >= 0 and claw_num <= 1, "claw_num must be 0 or 1" 
-        self.out_queue.put(struct.pack("=ccH", 0x02.to_bytes(length=1, byteorder='big', signed=False), claw_num.to_bytes(length=1, byteorder='big', signed=False), claw_deg))
+        self.out_queue.put(struct.pack("!ccH", bytes([0x02, claw_num]), claw_deg))
 
     def turn_flashlight_off(self):
-        self.out_queue.put(struct.pack("=cc", 0x03.to_bytes(length=1, byteorder='big', signed=False), 0x00.to_bytes(length=1, byteorder="big", signed=False)))
+        self.out_queue.put(struct.pack("!cc", bytes([0x03, 0x00])))
 
     def turn_flashlight_on(self):
-        self.out_queue.put(struct.pack("=cc", 0x03.to_bytes(length=1, byteorder='big', signed=False), 0x01.to_bytes(length=1, byteorder="big", signed=False)))
+        self.out_queue.put(struct.pack("!cc", bytes([0x03, 0x01])))
     
     def set_thrust(self, thrusts):
         assert isinstance(thrusts, list), "thrusts must be an array of floats"
@@ -145,10 +145,10 @@ class PIClient:
         for thrust in thrusts:
             thrusts_int.append(int(1500+500*thrust))
         # self.out_queue.put(struct.pack("!cHHHHHHHH"), thrusts_int[0], thrusts_int[1], thrusts_int[2])
-        self.out_queue.put(struct.pack("!cHHHHHHHH", 0x01.to_bytes(length=1, byteorder='big', signed=False), *thrusts_int))
+        self.out_queue.put(struct.pack("!cHHHHHHHH", bytes([0x01]), *thrusts_int))
 
     def test_connection(self):
-        self.out_queue.put(struct.pack("!c", 0x00.to_bytes(length=1, byteorder='big', signed=False)))
+        self.out_queue.put(struct.pack("!c", bytes([0x00])))
 
 if __name__ == "__main__":
     addr = str(input("enter server address> "))

@@ -1,5 +1,5 @@
 #server communicates with the surface
-import threading, queue, socket, select
+import threading, queue, socket, select, struct
 
 def OPiServer(self):
     def __init__(self, server_address: tuple, thruster_control):
@@ -50,8 +50,9 @@ def OPiServer(self):
         elif cmd == 0x04: # drift
             pass
     
+    #data is little endian
     def send_data(self, data):
         self.out_queue.put(data)
     
     def send_sens_data(self, param, values):
-        pass
+        self.out_queue.put(struct.pack("!" + "B"*(3+len(values)), 0x33, param, len(values), *values))
