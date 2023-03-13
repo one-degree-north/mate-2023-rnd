@@ -64,11 +64,14 @@ class MCUInterface:
         self.ser = serial.Serial(None, 115200)
         self.ser_enabled = False
         self.read_packet = Packet()
-        self.server = server
+        self.server = None
     
+    def set_server(self, server):
+        self.server = server
+
     def start(self):
         self.ser_enabled = True
-        if not self.ser.is_open:
+        if not self.ser.is_open and self.server != None:
             self.ser.open()
         self.write_thread.start()
         self.read_thread.start()

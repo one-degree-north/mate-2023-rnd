@@ -1,14 +1,17 @@
 #server communicates with the surface
 import threading, queue, socket, select, struct
 
-def OPiServer(self):
-    def __init__(self, server_address: tuple, thruster_control):
+class OPiServer:
+    def __init__(self, server_address: tuple):
         self.connected = False
         self.server_address = server_address
-        self.thruster_control = thruster_control
+        self.thruster_control = None
         self.client_addr = ()
         self.server_thread = threading.Thread(target=self._server_loop, daemon=True)
     
+    def set_thruster_control(self, thruster_control):
+        self.thruster_control = thruster_control
+
     # starts the server for surface client to communicate with
     def start_server(self, server_address: tuple):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

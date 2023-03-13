@@ -134,7 +134,10 @@ class PIClient:
     def turn_flashlight_on(self):
         self.out_queue.put(struct.pack("!cc", bytes([0x03, 0x01])))
     
-    def set_thrust(self, thrusts):
+    def set_pid_thrust(self, thrusts):
+        pass
+
+    def set_manual_thrust(self, thrusts):
         assert isinstance(thrusts, list), "thrusts must be an array of floats"
         assert len(thrusts) == 8, "thrusts must be 8 long"
         # print(thrusts[1])
@@ -159,15 +162,15 @@ if __name__ == "__main__":
             case "bruh":
                 comms.test_connection()
             case 'tt':
-                comms.set_thrust([0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2])
+                comms.set_manual_thrust([0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2])
             case 'stop':
-                comms.set_thrust([0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,])
+                comms.set_manual_thrust([0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,])
             case 'tf':
-                comms.set_thrust([0.2, 0, 0, 0, 0, 0])
+                comms.set_manual_thrust([0.2, 0, 0, 0, 0, 0])
             case 'ts':
-                comms.set_thrust([0, 0.2, 0, 0, 0, 0])
+                comms.set_manual_thrust([0, 0.2, 0, 0, 0, 0])
             case 'tu':
-                comms.set_thrust([0, 0, 0.2, 0, 0, 0])
+                comms.set_manual_thrust([0, 0, 0.2, 0, 0, 0])
             case 's1':
                 comms.move_claw(0, int(input()))
             case 's0':

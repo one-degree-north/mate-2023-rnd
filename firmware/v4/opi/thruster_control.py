@@ -6,6 +6,12 @@ class OpiPosState(ABC):
     @abstractmethod
     def on_tick(): # returns thruster outputs for a single tick
         pass
+    @abstractproperty
+    def move_type():
+        return "def"
+    @abstractmethod
+    def set_target():
+        pass
 
 class OpiPosMoveState(OpiPosState):
     def __init__(self, target_vel, opi_data):
@@ -28,12 +34,46 @@ class OpiPosMoveState(OpiPosState):
                 adjust_vel[i] = -1
         return adjust_vel
 
+    def set_target(self, target_vel):
+        self.target_vel = target_vel
+
+    def move_type(self):
+        return "move"
+
+class OpiManualMoveState(OpiPosState):
+    def __init__(self, manual, opi_data):
+        self.manual = manual
+        self.data = opi_data
+    
+    def on_tick(self):
+        return self.manual
+
+    def set_target(self, manual):
+        self.manual = manual
+
+    def move_type(self):
+        return "manual"
+
+class OpiPosPidMoveState(OpiPosState):
+    def __init__(self, target_vel, opi_data):
+        self.target_vel = target_vel
+        self.data = opi_data
+
+    def on_tick(self):
+        pass
+
+    def set_target(self, target_vel):
+        self.target_vel = target_vel
+
+    def move_type(self):
+        return "pid"
+
 class OpiPosHoldState(OpiPosState):
-    def on_tick(target_vel, opi_data):
+    def on_tick(self, target_vel, opi_data):
         return [0, 0, 0]    # placeholder right now!
 
 class OpiPosDriftState(OpiPosState):
-    def on_tick(target_vel, opi_data):
+    def on_tick(self, target_vel, opi_data):
         return [0, 0, 0]
 
 class OpiRotateState(ABC):
@@ -55,18 +95,25 @@ class OpiRotDriftState(OpiRotateState):
         pass
 
 class ThrusterController:
-    def __init__(self, opi_data, mcu_interface, delta_time):
-        self.data = opi_data
+    def __init__(self, delta_time=0.05):
+        self.data = None
         self.pos_state = OpiPosMoveState()
         self.rotate_state = OpiRotDriftState()
         self.delta_time = delta_time
+        self.mcu_interface = None
+    
+    # way to solve circular dependency
+    def set_interface(self, mcu_interface):
         self.mcu_interface = mcu_interface
+
+    def set_data(self, opi_data):
+        self.data = opi_data
 
     # moves ROV based on input data
     def move_loop(self):
         while True:
-            pos_thrust = self.pos_state.on_tick()
-            rot_thrust = self.rotate_state.on_tick()
+            pos_thrust = self.pos_state.on_tick(self.delta_time)
+            rot_thrust = self.rotate_state.on_tick(self.delta_time)
             # somehow integrate pos_thrust and rot_thrust
             
             time.sleep(self.delta_time)
