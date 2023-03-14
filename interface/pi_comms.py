@@ -336,9 +336,11 @@ if __name__ == "__main__":
             case 'stop':
                 comms.set_thrust([0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,])
             case 'tf':
-                comms.set_manual_thrust([10.0, 0, 0, 0, 0, 0])
-            case 'fs':
-                comms.set_manual_thrust([0, 0, 0, 0, 0, 0])
+                comms.set_manual_thrust([0.2, 0, 0, 0, 0, 0])
+            case 'ts':
+                comms.set_manual_thrust([0, 0.2, 0, 0, 0, 0])
+            case 'tu':
+                comms.set_manual_thrust([0, 0, 0.2, 0, 0, 0])
             case 's1':
                 comms.move_claw(0, int(input()))
             case 's0':
