@@ -46,12 +46,7 @@ class UARTMCUInterface(MCUInterface):
                 # pkt: Packet = self.write_queue.get_nowait()
                 pkt : Packet = self.write_queue.get()
                 if pkt:
-<<<<<<< HEAD
-                    print(pkt)
-                    self.ser.write(pkt.bytes)    #WRITE IS BIG ENDIAN!!!!
-=======
                     self.ser.write(pkt.data)    #WRITE IS BIG ENDIAN!!!!
->>>>>>> 13f3294 (added v4 of firmware)
 
     def _read(self):
         while self.enable_signal.enabled:
