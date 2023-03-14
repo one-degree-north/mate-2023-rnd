@@ -69,12 +69,21 @@ class OpiPosPidMoveState(OpiPosState):
         return "pid"
 
 class OpiPosHoldState(OpiPosState):
+    def __init__(self, opi_data):
+        self.data = opi_data
+
     def on_tick(self, target_vel, opi_data):
         return [0, 0, 0]    # placeholder right now!
+
+    def move_type(self):
+        return "hold"
 
 class OpiPosDriftState(OpiPosState):
     def on_tick(self, target_vel, opi_data):
         return [0, 0, 0]
+    
+    def move_type(self):
+        return "drift"
 
 class OpiRotateState(ABC):
     @abstractmethod
