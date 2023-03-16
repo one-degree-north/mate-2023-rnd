@@ -45,9 +45,11 @@ class UARTMCUInterface(MCUInterface):
             if self.write_queue.not_empty:
                 # pkt: Packet = self.write_queue.get_nowait()
                 pkt : Packet = self.write_queue.get()
-                print(f"writing {pkt.bytes} to serial")
+                # print(f"writing {pkt.bytes} to serial")
                 if pkt:
+                    self.ser.write(bytes[HEADER_TRMT, pkt.cmd, pkt.param, pkt.len])
                     self.ser.write(pkt.data)    #WRITE IS BIG ENDIAN!!!!
+                    self.ser.write(bytes[FOOTER_TRMT])
 
     def _read(self):
         while self.enable_signal.enabled:
@@ -56,7 +58,6 @@ class UARTMCUInterface(MCUInterface):
                 self.build_packet.add_byte(byte)
                 print(self.build_packet)
                 if self.build_packet.is_complete():
-                    print("1 serial byte")
                     self._parse(self.build_packet.to_packet())  # read is LITTLE ENDIAN!!!!
                     self.build_packet.clear()
 
