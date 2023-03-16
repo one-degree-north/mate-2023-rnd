@@ -142,8 +142,7 @@ class IncompletePacket:
         self.clear()
 
     def is_complete(self) -> bool:
-        return self.header and self.cmd and self.param and \
-               self.len and self.data and self.lrc and self.footer and \
+        return self.header == HEADER_TRMT and self.footer == HEADER_RECV and \
                len(self.data) == self.len
 
     def to_packet(self) -> Packet:
