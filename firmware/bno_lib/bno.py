@@ -38,13 +38,13 @@ import enum
 #     CON = auto()
 
 
-class BNOPowerMode(enum):
+class BNOPowerMode(enum.Enum):
     NORMAL = "NORMAL"
     LOW = "LOW"
     SUSPEND = "SUSPEND"
 
 
-class BNOOperationalMode(enum.StrEnum):
+class BNOOperationalMode(enum.Enum):
     CONFIG = "CONFIG"
     ACCONLY = "ACCONLY"
     MAGONLY = "MAGONLY"
@@ -60,7 +60,7 @@ class BNOOperationalMode(enum.StrEnum):
     NDOF_FMC = "NDOF_FMC"
 
 
-class BNODataOutputType(enum):
+class BNODataOutputType(enum.Enum):
     ACC = "ACC"
     GYR = "GYR"
     MAG = "MAG"
