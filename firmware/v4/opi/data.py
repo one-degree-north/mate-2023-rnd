@@ -1,7 +1,13 @@
 # interperates and stores IMU data. Also autoreports data to surface.
 from dataclasses import dataclass
 import threading, time
-from firmware.bno_lib.bno import *
+
+import sys
+from pathlib import Path
+path = Path(sys.path[0])
+sys.path.insert(1, str((path.parent.parent).absolute()))
+
+from bno_lib.bno import *
 
 @dataclass
 class data:
