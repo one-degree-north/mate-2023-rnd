@@ -142,11 +142,12 @@ class IncompletePacket:
         self.clear()
 
     def is_complete(self) -> bool:
-        return self.header == HEADER_TRMT and self.footer == HEADER_RECV and \
+        return self.header == HEADER_TRMT and self.footer == FOOTER_TRMT and \
                len(self.data) == self.len
 
     def to_packet(self) -> Packet:
-        return Packet(bytes([self.header, self.cmd, self.param, self.len, *self.data, self.lrc, self.footer]))
+        return Packet(self.cmd, self.param, self.data)
+        # return Packet(bytes([self.header, self.cmd, self.param, self.len, *self.data, self.lrc, self.footer]))
 
     def clear(self):
         self.header = self.cmd = self.param = self.len = self.lrc = self.footer = 0
