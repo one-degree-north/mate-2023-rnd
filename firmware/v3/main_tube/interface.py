@@ -47,9 +47,9 @@ class UARTMCUInterface(MCUInterface):
                 pkt : Packet = self.write_queue.get()
                 # print(f"writing {pkt.bytes} to serial")
                 if pkt:
-                    self.ser.write(bytes[HEADER_TRMT, pkt.cmd, pkt.param, pkt.len])
+                    self.ser.write(bytes([HEADER_TRMT, pkt.cmd, pkt.param, pkt.len]))
                     self.ser.write(pkt.data)    #WRITE IS BIG ENDIAN!!!!
-                    self.ser.write(bytes[FOOTER_TRMT])
+                    self.ser.write(bytes([FOOTER_TRMT]))
 
     def _read(self):
         while self.enable_signal.enabled:
