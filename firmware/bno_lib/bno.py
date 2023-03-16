@@ -86,7 +86,7 @@ class BNOSensor:
         c = self.read(BNODataOutputType.INF)
 
     def reset(self) -> int:
-        subprocess.run(["getbno055", "-a", hex(self.address), "-b", self.bus, "-r"], capture_output=True)
+        c = subprocess.run(["getbno055", "-a", hex(self.address), "-b", self.bus, "-r"], capture_output=True)
         if c.returncode or "error" in c.stdout.lower():
             raise RuntimeError(c.stdout)
         return c.returncode
