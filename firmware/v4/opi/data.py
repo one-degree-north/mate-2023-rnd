@@ -80,3 +80,11 @@ class OpiDataProcess:
     # change autoreport time
     def autoreport_data(self):
         pass
+
+if __name__ == "__main__":
+    opi_data = OpiDataProcess(report_data=False)
+    while True:
+        time.sleep(0.01)
+        print(opi_data.data.accel)
+        print(opi_data.data.angles)
+        print(opi_data.data.lin)
