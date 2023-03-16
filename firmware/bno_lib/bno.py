@@ -2,41 +2,75 @@ import subprocess
 import dataclasses
 import enum
 
+# not sure why, enum has no attribute StrEnum for me
+# class BNOPowerMode(enum.StrEnum):
+#     NORMAL = auto()
+#     LOW = auto()
+#     SUSPEND = auto()
 
-class BNOPowerMode(enum.StrEnum):
-    NORMAL = auto()
-    LOW = auto()
-    SUSPEND = auto()
+
+# class BNOOperationalMode(enum.StrEnum):
+#     CONFIG = auto()
+#     ACCONLY = auto()
+#     MAGONLY = auto()
+#     GYRONLY = auto()
+#     ACCMAG = auto()
+#     ACCGYRO = auto()
+#     MAGGYRO = auto()
+#     AMG = auto()
+#     IMU = auto()
+#     COMPASS = auto()
+#     M4G = auto()
+#     NDOF = auto()
+#     NDOF_FMC = auto()
+
+
+# class BNODataOutputType(enum.StrEnum):
+#     ACC = auto()
+#     GYR = auto()
+#     MAG = auto()
+#     EUL = auto()
+#     QUA = auto()
+#     GRA = auto()
+#     LIN = auto()
+#     INF = auto()
+#     CAL = auto()
+#     CON = auto()
+
+
+class BNOPowerMode(enum):
+    NORMAL = "NORMAL"
+    LOW = "LOW"
+    SUSPEND = "SUSPEND"
 
 
 class BNOOperationalMode(enum.StrEnum):
-    CONFIG = auto()
-    ACCONLY = auto()
-    MAGONLY = auto()
-    GYRONLY = auto()
-    ACCMAG = auto()
-    ACCGYRO = auto()
-    MAGGYRO = auto()
-    AMG = auto()
-    IMU = auto()
-    COMPASS = auto()
-    M4G = auto()
-    NDOF = auto()
-    NDOF_FMC = auto()
+    CONFIG = "CONFIG"
+    ACCONLY = "ACCONLY"
+    MAGONLY = "MAGONLY"
+    GYRONLY = "GYRONLY"
+    ACCMAG = "ACCMAG"
+    ACCGYRO = "ACCGYRO"
+    MAGGYRO = "MAGGYRO"
+    AMG = "AMG"
+    IMU = "IMU"
+    COMPASS = "COMPASS"
+    M4G = "M4G"
+    NDOF = "NDOF"
+    NDOF_FMC = "NDOF_FMC"
 
 
-class BNODataOutputType(enum.StrEnum):
-    ACC = auto()
-    GYR = auto()
-    MAG = auto()
-    EUL = auto()
-    QUA = auto()
-    GRA = auto()
-    LIN = auto()
-    INF = auto()
-    CAL = auto()
-    CON = auto()
-
+class BNODataOutputType(enum):
+    ACC = "ACC"
+    GYR = "GYR"
+    MAG = "MAG"
+    EUL = "EUL"
+    QUA = "QUA"
+    GRA = "GRA"
+    LIN = "LIN"
+    INF = "INF"
+    CAL = "CAL"
+    CON = "CON"
 
 class BNOSensor:
     def __init__(self, bus='/dev/i2c-1', address=0x28):
