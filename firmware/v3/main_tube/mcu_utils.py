@@ -160,26 +160,33 @@ class IncompletePacket:
         if self.curr_size == 0:
             if byte == HEADER_RECV:
                 self.header = byte
+                self.curr_size += 1
         elif self.curr_size == 1:
             self.cmd = byte
+            self.curr_size += 1
         elif self.curr_size == 2:
             self.param = byte
+            self.curr_size += 1
         elif self.curr_size == 3:
             if byte >= 24:
                 self.clear()
                 return
             self.len = byte
+            self.curr_size += 1
         elif 4 <= self.curr_size < 4 + self.len:
             self.data.append(byte)
+            self.curr_size += 1
         elif self.curr_size == 4 + self.len:
             if byte == FOOTER_RECV:
                 self.footer = byte
+                self.curr_size += 1
             else:
                 self.clear()
         elif self.curr_size >= 4 + self.len + 2:
             self.clear()
         else:
             self.clear()
+        # self.curr_size += 1
 
 @dataclass
 class PID:

@@ -62,7 +62,7 @@ class UARTMCUInterface(MCUInterface):
                     self.build_packet.clear()
 
     def _parse(self, packet: Packet):
-        print("received serial data")
+        print("parsing packet")
         print(packet)
         self.net_out_queue.put(packet.to_network_packet())
 
