@@ -123,7 +123,7 @@ class Packet:
         self.len = len(data)
         self.data = data
         self.footer=FOOTER_TRMT
-        self.bytes = struct.pack("<BBB", self.header, self.cmd, self.param, self.len) + struct.pack("<"+"B"*self.len, *self.data) + struct.pack("<B", self.footer)
+        self.bytes = struct.pack("<BBBB", self.header, self.cmd, self.param, self.len) + struct.pack("<"+"B"*self.len, *self.data) + struct.pack("<B", self.footer)
 
 
     def to_network_packet(self):
