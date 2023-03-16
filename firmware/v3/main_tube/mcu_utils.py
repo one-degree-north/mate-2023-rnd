@@ -173,7 +173,7 @@ class IncompletePacket:
                 return
             self.len = byte
             self.curr_size += 1
-        elif 4 <= self.curr_size < 4 + self.len:
+        elif self.curr_size < 4 + self.len:
             self.data.append(byte)
             self.curr_size += 1
         elif self.curr_size == 4 + self.len:
