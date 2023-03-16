@@ -8,6 +8,7 @@ sys.path.insert(1, str((path.parent.parent.parent).absolute()))
 # from ... import utils
 from utils import *
 from firmware.v3.main_tube.mcu_constants import *
+import struct
 
 
 @dataclass
@@ -122,6 +123,7 @@ class Packet:
         self.len = len(data)
         self.data = data
         self.footer=FOOTER_TRMT
+        self.bytes = struct.pack("<BBB", self.header, self.cmd, self.param, self.len) + struct.pack("<"+"B"*self.len, *self.data) + struct.pack("<B", self.footer)
 
 
     def to_network_packet(self):
