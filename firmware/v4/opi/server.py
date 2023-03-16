@@ -1,6 +1,20 @@
 #server communicates with the surface
 import threading, queue, socket, select, struct
 
+"""
+BBBB   III  GGGG
+B   B   I  G
+BBBB    I  G  GG
+B   B   I  G   G
+BBBB   III  GGGG
+
+ CCCC H   H U   U N   N  GGGG U   U  SSSS
+C     H   H U   U NN  N G     U   U S
+C     HHHHH U   U N N N G  GG U   U  SSS
+C     H   H U   U N  NN G   G U   U     S
+ CCCC H   H  UUU  N   N  GGGG  UUU  SSSS
+"""
+
 class OPiServer:
     def __init__(self, server_address: tuple):
         self.connected = False

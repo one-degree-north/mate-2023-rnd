@@ -1,90 +1,9 @@
 # Controls thruster movement
 from abc import ABC, abstractmethod, abstractproperty
-import time
+import time, named
+from collections import namedtuple
 
-class OpiPosState(ABC):
-    @abstractmethod
-    def on_tick(): # returns thruster outputs for a single tick
-        pass
-
-class OpiPosMoveState(OpiPosState):
-    def __init__(self, target_vel):
-        self.target_vel = target_vel
-    
-    def on_tick(self, data):
-        # pretty dumb right now, turn into unit vector and send
-        max_vel = 0
-        for i in range(3):
-            if abs(self.target_vel[i]) > max_vel:
-                max_vel = abs(self.target_vel[i])
-        adjust_vel = [0, 0, 0]
-        for i in range(3):
-            adjust_vel[i] = self.target_vel[i]/max_vel
-        for i in range(3):
-            if adjust_vel[i] > 1:
-                adjust_vel[i] = 1
-            if adjust_vel[i] < -1:
-                adjust_vel[i] = -1
-        return adjust_vel
-
-class OpiPosHoldState(OpiPosState):
-    def on_tick(target_vel, data):
-        return [0, 0, 0]    # placeholder right now!
-
-class OpiPosDriftState(OpiPosState):
-    def on_tick(target_vel, data):
-        return [0, 0, 0]
-
-class OpiRotateState(ABC):
-    @abstractmethod
-    def on_tick(): # returns thruster outputs for a single tick
-        pass
-
-class OpiRotMoveState(OpiRotateState):
-    pass
-
-class OpiAngleMoveState(OpiRotateState):
-    pass
-
-class OpiRotHoldState(OpiRotateState):
-    pass
-
-class OpiRotDriftState(OpiRotateState):
-    pass
-
-class ThrusterController:
-    def __init__(self):
-        self.data
-        self.pos_state
-        self.rotate_state
-
-    # moves ROV based on input data
-    def move_loop(self):
-        while True:
-            pos_thrust = self.pos_state.on_tick()
-            rot_thrust = self.rotate_state.on_tick()
-
-    #set target velocity
-    def move_vel():
-        pass
-
-    # set target rotational velocity
-    def move_rot_vel():
-        pass
-    
-    #set target rotational angle
-    def set_angle():
-        pass
-    
-    def set_hold():
-        pass
-    
-    #no PID allowed here
-    def set_drift():
-        pass
-# Controls thruster movement
-from abc import ABC, abstractmethod, abstractproperty
-import time
+move = namedtuple("move", ['f', 's', 'u', 'p', 'r', 'y'])
 
 class OpiPosState(ABC):
     @abstractmethod
@@ -97,28 +16,16 @@ class OpiPosState(ABC):
     def set_target():
         pass
 
-class OpiPosMoveState(OpiPosState):
-    def __init__(self, target_vel, opi_data):
-        self.target_vel = target_vel
+# move with thruster values (-1 to 1)
+class OpiMoveRawState(OpiPosState):
+    def __init__(self, movements, opi_data):
+        self.movements = movements
         self.opi_data = opi_data
 
     def on_tick(self):
-        # pretty dumb right now, turn into unit vector and send
-        max_vel = 0
-        for i in range(3):
-            if abs(self.target_vel[i]) > max_vel:
-                max_vel = abs(self.target_vel[i])
-        adjust_vel = [0, 0, 0]
-        for i in range(3):
-            adjust_vel[i] = self.target_vel[i]/max_vel
-        for i in range(3):
-            if adjust_vel[i] > 1:
-                adjust_vel[i] = 1
-            if adjust_vel[i] < -1:
-                adjust_vel[i] = -1
-        return adjust_vel
+        pass
 
-    def set_target(self, target_vel):
+    def set_target(self, movements):
         self.target_vel = target_vel
 
     def move_type(self):
@@ -130,7 +37,19 @@ class OpiManualMoveState(OpiPosState):
         self.data = opi_data
     
     def on_tick(self):
-        return self.manual
+        self.manual = 0
+        for i in range(3):
+            if abs(self.target_vel[i]) > self.manual:
+                self.manual = abs(self.target_vel[i])
+        adjust_vel = [0, 0, 0]
+        for i in range(3):
+            adjust_vel[i] = self.target_vel[i]/self.manual
+        for i in range(3):
+            if adjust_vel[i] > 1:
+                adjust_vel[i] = 1
+            if adjust_vel[i] < -1:
+                adjust_vel[i] = -1
+        return adjust_vel
 
     def set_target(self, manual):
         self.manual = manual
@@ -174,7 +93,7 @@ class OpiRotateState(ABC):
     def on_tick(): # returns thruster outputs for a single tick
         pass
 
-class OpiRotMoveState(OpiRotateState):
+class OpiRotManualState(OpiRotateState):
     pass
 
 class OpiAngleMoveState(OpiRotateState):
@@ -188,11 +107,11 @@ class OpiRotDriftState(OpiRotateState):
         pass
 
 class ThrusterController:
-    def __init__(self, delta_time=0.05):
+    def __init__(self, move_delta_time=0.05):
         self.data = None
         self.pos_state = OpiPosMoveState()
         self.rotate_state = OpiRotDriftState()
-        self.delta_time = delta_time
+        self.move_delta_time = move_delta_time
         self.mcu_interface = None
     
     # way to solve circular dependency
@@ -205,12 +124,45 @@ class ThrusterController:
     # moves ROV based on input data
     def move_loop(self):
         while True:
-            pos_thrust = self.pos_state.on_tick(self.delta_time)
-            rot_thrust = self.rotate_state.on_tick(self.delta_time)
+            pos_thrust = self.pos_state.on_tick(self.move_delta_time)
+            rot_thrust = self.rotate_state.on_tick(self.move_delta_time)
             # somehow integrate pos_thrust and rot_thrust
-            
-            time.sleep(self.delta_time)
-            
+            # transform forward, side, up, pitch, roll, yaw to thruster speeds
+            mov = move(0, 0, 0, 0, 0, 0) # simplified thrusters with f, s, u, p, r, y
+            for i in range(3):
+                mov[i] = pos_thrust[i]
+                mov[i+3] = rot_thrust[i]
+            total_thrust = [0, 0, 0, 0, 0, 0, 0, 0]
+            total_thrust[0] = mov.f - mov.s - mov.y
+            total_thrust[1] = mov.f + mov.s + mov.y
+            total_thrust[2] = mov.f - mov.s + mov.y
+            total_thrust[3] = mov.f + mov.s - mov.y
+
+            total_thrust[4] = mov.u + mov.p - mov.r
+            total_thrust[5] = mov.u + mov.p + mov.r
+            total_thrust[6] = mov.u - mov.p + mov.r
+            total_thrust[7] = mov.u - mov.p - mov.r
+
+            # get maximum thrust
+            max_thrust = 0
+            for i in range(8):
+                total_thrust[i] = pos_thrust[i] + rot_thrust[i]
+                if abs(total_thrust[i]) > max_thrust:
+                    max_thrust = abs(total_thrust[i])
+            # adjust all thrusts for maximum
+            if max_thrust > 1:
+                for i in range(8):
+                    total_thrust[i] = int(total_thrust[i] / max_thrust)
+                    # adjust for microseconds (-1 to 1) to (1000 to 2000)
+                    total_thrust[i] = 1500 + 500*total_thrust[i]
+                    # last adjustment in case total_thrust[i] was above 2000 or below 1000
+                    if total_thrust[i] < 1000:
+                        total_thrust[i] = 1000
+                    if total_thrust[i] > 2000:
+                        total_thrust[i] = 2000
+            # move with all thrusts
+            self.mcu_interface.set_thruster()
+            time.sleep(self.move_delta_time)
     #set target velocity
     def move_vel():
         pass
@@ -229,3 +181,16 @@ class ThrusterController:
     #no PID allowed here
     def set_drift():
         pass
+"""
+BBBB   III  GGGG
+B   B   I  G
+BBBB    I  G  GG
+B   B   I  G   G
+BBBB   III  GGGG
+
+ CCCC H   H U   U N   N  GGGG U   U  SSSS
+C     H   H U   U NN  N G     U   U S
+C     HHHHH U   U N N N G  GG U   U  SSS
+C     H   H U   U N  NN G   G U   U     S
+ CCCC H   H  UUU  N   N  GGGG  UUU  SSSS
+"""

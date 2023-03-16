@@ -1,6 +1,7 @@
 # interperates and stores IMU data. Also autoreports data to surface.
 from dataclasses import dataclass
 import threading, time
+from firmware.bno_lib.bno import *
 
 @dataclass
 class data:
