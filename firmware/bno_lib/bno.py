@@ -87,7 +87,7 @@ class BNOSensor:
 
     def reset(self) -> int:
         c = subprocess.run(["getbno055", "-a", hex(self.address), "-b", self.bus, "-r"], capture_output=True)
-        if c.returncode or "error" in c.stdout.lower():
+        if c.returncode or "error" in c.stdout.decode("utf-8").lower():
             raise RuntimeError(c.stdout)
         return c.returncode
 
@@ -95,7 +95,7 @@ class BNOSensor:
         # run the subprocess -t
         c = subprocess.run(["getbno055", "-a", hex(self.address), "-b", self.bus, "-t", data_type.value], capture_output=True)
 
-        if c.returncode or "error" in c.stdout.lower():
+        if c.returncode or "error" in c.stdout.decode("utf-8").lower():
             raise RuntimeError(c.stdout)
 
         # process it TODO: WIP
@@ -124,27 +124,27 @@ class BNOSensor:
 
     def dump(self):
         c = subprocess.run(["getbno055", "-a", hex(self.address), "-b", self.bus, "-d"], capture_output=True)
-        if c.returncode or "error" in c.stdout.lower():
+        if c.returncode or "error" in c.stdout.decode("utf-8").lower():
             raise RuntimeError(c.stdout)
         return
 
     def set_mode(self, mode: BNOOperationalMode) -> BNOOperationalMode:
         c = subprocess.run(["getbno055", "-a", hex(self.address), "-b", self.bus, "-m", mode.value], capture_output=True)
-        if c.returncode or "error" in c.stdout.lower():
+        if c.returncode or "error" in c.stdout.decode("utf-8").lower():
             raise RuntimeError(c.stdout)
         self.mode = mode
         return self.mode
 
     def set_power_mode(self, mode: BNOPowerMode) -> BNOPowerMode:
         c = subprocess.run(["getbno055", "-a", hex(self.address), "-b", self.bus, "-p", mode.value], capture_output=True)
-        if c.returncode or "error" in c.stdout.lower():
+        if c.returncode or "error" in c.stdout.decode("utf-8").lower():
             raise RuntimeError(c.stdout)
         self.power_mode = mode
         return self.power_mode
 
     def load_calibration(self, absolute_path: str) -> dict:
         c = subprocess.run(["getbno055", "-a", hex(self.address), "-b", self.bus, "-l", absolute_path], capture_output=True)
-        if c.returncode or "error" in c.stdout.lower():
+        if c.returncode or "error" in c.stdout.decode("utf-8").lower():
             raise RuntimeError(c.stdout)
 
         # return calibrations loaded
@@ -152,7 +152,7 @@ class BNOSensor:
 
     def write_calibration(self, absolute_path: str) -> str:
         c = subprocess.run(["getbno055", "-a", hex(self.address), "-b", self.bus, "-w", absolute_path], capture_output=True)
-        if c.returncode or "error" in c.stdout.lower():
+        if c.returncode or "error" in c.stdout.decode("utf-8").lower():
             raise RuntimeError(c.stdout)
         f = open(absolute_path, 'r')
         r = f.read()
@@ -161,7 +161,7 @@ class BNOSensor:
 
     def output_to_html(self, data_type: BNODataOutputType, absolute_path: str) -> str:
         c = subprocess.run(["getbno055", "-a", hex(self.address), "-b", self.bus, "-t", data_type.value, "-o", absolute_path], capture_output=True)
-        if c.returncode or "error" in c.stdout.lower():
+        if c.returncode or "error" in c.stdout.decode("utf-8").lower():
             raise RuntimeError(c.stdout)
         f = open(absolute_path, 'r')
         r = f.read()
