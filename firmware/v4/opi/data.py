@@ -83,6 +83,8 @@ class OpiDataProcess:
             bno_return = self.bno_sensor.read(bno_data)
             print(bno_return)
             if bno_return != None:
+                print(list(bno_return.keys())[0])
+                print(list(bno_return.values())[0])
                 self.data.set_value(list(bno_return.keys())[0], list(bno_return.values())[0])
         self.data.update_vel(self.bno_read_delay, self.data.accel)
 
@@ -108,7 +110,7 @@ if __name__ == "__main__":
     opi_data = OpiDataProcess(report_data=False)
     opi_data.start_bno_reading()
     while True:
-        time.sleep(0.01)
+        time.sleep(0.1)
         print(opi_data.data.accel)
         print(opi_data.data.eul)
         print(opi_data.data.lin)
