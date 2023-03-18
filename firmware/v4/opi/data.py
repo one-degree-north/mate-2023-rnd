@@ -33,7 +33,7 @@ class data:
         elif key == "qua":
             self.quaternion = value
         elif key == "gra":
-            self.gra = value # wtf does gra mean
+            self.gra = value
         elif key == "lin":
             self.lin = value
         elif key == "inf":

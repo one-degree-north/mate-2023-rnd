@@ -94,20 +94,20 @@ class BNOSensor:
     def read(self, data_type: BNODataOutputType) -> dict:
         # run the subprocess -t
         c = subprocess.run(["getbno055", "-a", hex(self.address), "-b", self.bus, "-t", data_type.value], capture_output=True)
-        print(c.stdout.decode("utf-8"))
-        if c.returncode or "error" in c.stdout.decode("utf-8").lower():
-            raise RuntimeError(c.stdout)
+        out_str = c.stdout.decode("utf-8")
+        if c.returncode or "error" in out_str.lower() and data_type.value != "inf":
+            raise RuntimeError(out_str)
 
         # process it TODO: WIP
         if data_type.value in ("acc", "gyr", "mag", "eul", "gra", "lin"):
-            split = c.stdout.split(" ")
+            split = out_str.split(" ")
             typ = str(split[0])
             x = float(split[1])
             y = float(split[2])
             z = float(split[3])
             return {data_type: (x, y, z)}
         elif data_type.value == "qua":
-            split = c.stdout.split(" ")
+            split = out_str.split(" ")
             typ = str(split[0])
             w = float(split[1])
             x = float(split[2])
