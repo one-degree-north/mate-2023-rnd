@@ -40,10 +40,12 @@ class data:
             self.accel = value
         elif key == "gyr":
             self.gyro = value
+        elif key == "eul":
+            self.eul = value
         elif key == "mag":
             self.mag = value
         elif key == "qua":
-            self.quaternion = value
+            self.quat = value
         elif key == "gra":
             self.gra = value
         elif key == "lin":
@@ -104,5 +106,5 @@ if __name__ == "__main__":
     while True:
         time.sleep(0.01)
         print(opi_data.data.accel)
-        print(opi_data.data.angles)
+        print(opi_data.data.eul)
         print(opi_data.data.lin)
