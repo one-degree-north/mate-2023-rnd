@@ -73,7 +73,7 @@ class BNODataOutputType(enum.Enum):
     CON = "con"
 
 class BNOSensor:
-    def __init__(self, bus='/dev/i2c-1', address=0x28):
+    def __init__(self, bus='/dev/i2c-3', address=0x28):
         self.bus = bus
         self.address = address
         self.mode = BNOOperationalMode.NDOF_FMC
@@ -81,6 +81,7 @@ class BNOSensor:
 
         # reset the sensor
         c = self.reset()
+        # set sensor mode
         c = self.set_mode(self.mode)
         # check info too, just to make sure it's not broken'
         c = self.read(BNODataOutputType.INF)
