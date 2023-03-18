@@ -80,7 +80,8 @@ class OpiDataProcess:
     def read_bno_data(self):
         for bno_data in BNODataOutputType:
             bno_return = self.bno_sensor.read(bno_data)
-            self.data.set_value(list(bno_return.keys())[0], list(bno_return.values())[0])
+            if bno_return != None:
+                self.data.set_value(list(bno_return.keys())[0], list(bno_return.values())[0])
         self.data.update_vel(self.bno_read_delay, self.data.accel)
 
     # using a thread to continuously get BNO data
