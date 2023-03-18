@@ -39,38 +39,38 @@ import enum
 
 
 class BNOPowerMode(enum.Enum):
-    NORMAL = "NORMAL"
-    LOW = "LOW"
-    SUSPEND = "SUSPEND"
+    NORMAL = "normal"
+    LOW = "low"
+    SUSPEND = "suspend"
 
 
 class BNOOperationalMode(enum.Enum):
-    CONFIG = "CONFIG"
-    ACCONLY = "ACCONLY"
-    MAGONLY = "MAGONLY"
-    GYRONLY = "GYRONLY"
-    ACCMAG = "ACCMAG"
-    ACCGYRO = "ACCGYRO"
-    MAGGYRO = "MAGGYRO"
-    AMG = "AMG"
-    IMU = "IMU"
-    COMPASS = "COMPASS"
-    M4G = "M4G"
-    NDOF = "NDOF"
-    NDOF_FMC = "NDOF_FMC"
+    CONFIG = "config"
+    ACCONLY = "acconly"
+    MAGONLY = "magonly"
+    GYRONLY = "gyronly"
+    ACCMAG = "accmag"
+    ACCGYRO = "accgyro"
+    MAGGYRO = "maggyro"
+    AMG = "amg"
+    IMU = "imu"
+    COMPASS = "compass"
+    M4G = "m4g"
+    NDOF = "ndof"
+    NDOF_FMC = "ndof_fmc"
 
 
 class BNODataOutputType(enum.Enum):
-    ACC = "ACC"
-    GYR = "GYR"
-    MAG = "MAG"
-    EUL = "EUL"
-    QUA = "QUA"
-    GRA = "GRA"
-    LIN = "LIN"
-    INF = "INF"
-    CAL = "CAL"
-    CON = "CON"
+    ACC = "acc"
+    GYR = "gyr"
+    MAG = "mag"
+    EUL = "eul"
+    QUA = "qua"
+    GRA = "gra"
+    LIN = "lin"
+    INF = "inf"
+    CAL = "cal"
+    CON = "con"
 
 class BNOSensor:
     def __init__(self, bus='/dev/i2c-1', address=0x28):
