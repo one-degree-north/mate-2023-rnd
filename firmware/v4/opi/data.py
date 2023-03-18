@@ -13,15 +13,27 @@ from bno_lib.bno import *
 class data:
     accel:list[float]
     gyro:list[float]
-    angles:list[float]
+    eul:list[float]
     vel:list[float]
-    quaternion:list[float]
+    quat:list[float]
     lin:list[float]
-    inf:list[float]
-    cal:list[float]
-    con:list[float]
+    inf:list[float] #information
+    cal:list[float] # calibration
+    con:list[float] # continuous data (?)
     mag:list[float]
-    gra: list[float]
+    gra: list[float]    # gravitaitonal vector
+    def __init__(self):
+        self.accel = [0, 0, 0]
+        self.gyro = [0, 0, 0]
+        self.eul = [0, 0, 0]
+        self.vel = [0, 0, 0]
+        self.quat = [0, 0, 0, 0]
+        self.lin = [0, 0, 0]
+        self.inf = [0, 0, 0]    # not sure how this should be represented
+        self.cal = [0, 0, 0]    # also not sure
+        self.con = [0, 0, 0]
+        self.mag = [0, 0, 0]
+        self.gra = [0, 0, 0]
     # I don't want to use a dict, ok?
     def set_value(self, key, value):
         if key == "acc":
