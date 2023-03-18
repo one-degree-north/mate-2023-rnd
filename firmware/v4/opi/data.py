@@ -93,6 +93,7 @@ class OpiDataProcess:
         while True:
             self.read_bno_data()
             time.sleep(self.bno_read_delay)
+            print(f"sleeping {self.bno_read_delay}")
 
     #only getting BNO data when needed
     def set_read_delay(self, read_delay):

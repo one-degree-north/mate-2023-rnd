@@ -117,11 +117,11 @@ class BNOSensor:
             return {data_type: (w, x, y, z)}
         # TODO: finish the parsing
         elif data_type.value == "inf":
-            return
+            return None
         elif data_type.value == "cal":
-            return
+            return None
         elif data_type.value == "con":
-            return
+            return None
 
     def dump(self):
         c = subprocess.run(["getbno055", "-a", hex(self.address), "-b", self.bus, "-d"], capture_output=True)
