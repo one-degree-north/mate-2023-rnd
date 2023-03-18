@@ -36,6 +36,8 @@ class data:
         self.gra = [0, 0, 0]
     # I don't want to use a dict, ok?
     def set_value(self, key, value):
+        print(key)
+        print(key == 'acc')
         if key == "acc":
             self.accel = value
         elif key == "gyr":
