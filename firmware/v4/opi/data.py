@@ -36,27 +36,25 @@ class data:
         self.gra = [0, 0, 0]
     # I don't want to use a dict, ok?
     def set_value(self, key, value):
-        print(key)
-        print(key == 'acc')
-        if key == "acc":
+        if key == BNODataOutputType.ACC:
             self.accel = value
-        elif key == "gyr":
+        elif key ==  BNODataOutputType.GYR:
             self.gyro = value
-        elif key == "eul":
+        elif key ==  BNODataOutputType.EUL:
             self.eul = value
-        elif key == "mag":
+        elif key ==  BNODataOutputType.MAG:
             self.mag = value
-        elif key == "qua":
+        elif key ==  BNODataOutputType.QUA:
             self.quat = value
-        elif key == "gra":
+        elif key ==  BNODataOutputType.GRA:
             self.gra = value
-        elif key == "lin":
+        elif key ==  BNODataOutputType.LIN:
             self.lin = value
-        elif key == "inf":
+        elif key ==  BNODataOutputType.INF:
             self.inf = value
-        elif key == "cal":
+        elif key ==  BNODataOutputType.CAL:
             self.cal = value
-        elif key == "con":
+        elif key ==  BNODataOutputType.CON:
             self.con = value
     
     # not sure if this is the best method, whatever though
