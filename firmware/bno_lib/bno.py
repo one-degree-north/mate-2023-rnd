@@ -76,12 +76,12 @@ class BNOSensor:
     def __init__(self, bus='/dev/i2c-1', address=0x28):
         self.bus = bus
         self.address = address
-        self.mode = BNOOperationalMode.CONFIG
+        self.mode = BNOOperationalMode.NDOF_FMC
         self.power_mode = BNOPowerMode.NORMAL
 
         # reset the sensor
         c = self.reset()
-
+        c = self.set_mode(self.mode)
         # check info too, just to make sure it's not broken'
         c = self.read(BNODataOutputType.INF)
 
@@ -94,7 +94,7 @@ class BNOSensor:
     def read(self, data_type: BNODataOutputType) -> dict:
         # run the subprocess -t
         c = subprocess.run(["getbno055", "-a", hex(self.address), "-b", self.bus, "-t", data_type.value], capture_output=True)
-
+        print(c.stdout.decode("utf-8"))
         if c.returncode or "error" in c.stdout.decode("utf-8").lower():
             raise RuntimeError(c.stdout)
 
@@ -173,7 +173,7 @@ class BNOSensor:
 
 
 if __name__ == "__main__":
-    bno = BNOSensor('/dev/i2c3', 0x28)
+    bno = BNOSensor('/dev/i2c-3', 0x28)
     bno.set_mode(BNOOperationalMode.NDOF_FMC)
     print(bno.read(BNODataOutputType.EUL))
     print(bno.dump())
