@@ -59,7 +59,8 @@ class data:
     
     # not sure if this is the best method, whatever though
     def update_vel(self, delta_time, accel):
-        self.vel += accel * delta_time  #delta time is in seconds
+        for i in range(3):
+            self.vel[i] += accel[i] * delta_time  #delta time is in seconds
 
 class OpiDataProcess:
     def __init__(self, report_data=True):
