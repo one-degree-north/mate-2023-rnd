@@ -118,7 +118,7 @@ class MCUInterface:
                     self.read_packet.clear()
     
     def _debug_parse(self, packet):
-        print(f"received packet {packet.to_bytes()}")
+        print(f"received packet cmd: {packet.cmd}, len: {packet.len}, bytes: {packet.to_bytes()}")
 
 if __name__ == "__main__":
     interface = MCUInterface("/dev/ttyS5")
