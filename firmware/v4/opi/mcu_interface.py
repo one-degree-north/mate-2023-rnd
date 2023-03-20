@@ -30,7 +30,8 @@ class Packet:
         elif self.curr_size == 3: # len
             self.len = byte
         elif self.curr_size > 3 and self.curr_size <= 3+self.len: # data
-            self.data[self.curr_size-4] = byte
+            self.data.append(byte)
+            # self.data[self.curr_size-4] = byte
         elif self.curr_size == 4+self.len:
             if byte == FOOTER: # we're done!
                 self.complete = True
