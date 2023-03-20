@@ -43,7 +43,7 @@ class Packet:
             print("somehow got out of curr_size")
             self.clear()
             return False
-        self.all_bytes += bytes(byte)
+        self.all_bytes += bytes([byte])
         self.curr_size += 1
         return True
     
