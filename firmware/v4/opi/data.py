@@ -80,13 +80,14 @@ class OpiDataProcess:
     def read_bno_data(self):
         print("-----")
         # maybe there is a way to replace this with continuous? Modifying the bno_lib to make the output easier to decipher would work
-        for bno_data in BNODataOutputType and bno_data != BNODataOutputType.CON:
-            bno_return = self.bno_sensor.read(bno_data)
-            print(bno_return)
-            if bno_return != None:
-                print(list(bno_return.keys())[0])
-                print(list(bno_return.values())[0])
-                self.data.set_value(list(bno_return.keys())[0], list(bno_return.values())[0])
+        for bno_data in BNODataOutputType:
+            if bno_data != BNODataOutputType.CON:
+                bno_return = self.bno_sensor.read(bno_data)
+                print(bno_return)
+                if bno_return != None:
+                    print(list(bno_return.keys())[0])
+                    print(list(bno_return.values())[0])
+                    self.data.set_value(list(bno_return.keys())[0], list(bno_return.values())[0])
         self.data.update_vel(self.bno_read_delay, self.data.accel)
 
     # using a thread to continuously get BNO data
