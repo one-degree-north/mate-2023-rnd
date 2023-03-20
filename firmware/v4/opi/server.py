@@ -76,6 +76,8 @@ class OPiServer:
             self.thruster_control.set_rot_drift()
         elif cmd == 0x07:
             self.thruster_control.set_rot_hold()
+        elif cmd == 0x10:
+            pass
     
     #data is little endian
     def send_data(self, data):
