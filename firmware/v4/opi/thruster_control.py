@@ -1,14 +1,35 @@
 # Controls thruster movement
 from abc import ABC, abstractmethod, abstractproperty
-import time, named
+import time
 from collections import namedtuple
 
 move = namedtuple("move", ['f', 's', 'u', 'p', 'r', 'y'])
 
+class PID:
+    def __init__(self, p_const=1, i_const=1, d_const=1):
+        self.p_const = p_const
+        self.i_const = i_const
+        self.d_const = d_const
+        self.i = 0
+        self.past_error = 0
+
+    # update PID and get new value
+    def on_tick(self, error, delta_time):
+        # update integral
+        self.i += error*delta_time
+        return_value = self.p_const * error + self.i + self.d_const * (self.past_error-error)/delta_time
+        self.past_error = error
+        return return_value
+
+    def change_const(self, p_const=1, i_const=1, d_const=1):
+        self.p_const = p_const
+        self.i_const = i_const
+        self.d_const = d_const
+
 class OpiPosState(ABC):
     @abstractmethod
-    def on_tick(): # returns thruster outputs for a single tick
-        pass
+    def on_tick(): # returns target forward, side, up movements (-1 to 1) for a single tick
+        return [0, 0, 0]
     @abstractproperty
     def move_type():
         return "def"
@@ -17,24 +38,10 @@ class OpiPosState(ABC):
         pass
 
 # move with thruster values (-1 to 1)
-class OpiMoveRawState(OpiPosState):
-    def __init__(self, movements, opi_data):
-        self.movements = movements
-        self.opi_data = opi_data
-
-    def on_tick(self):
-        pass
-
-    def set_target(self, movements):
-        self.target_vel = target_vel
-
-    def move_type(self):
-        return "move"
-
-class OpiManualMoveState(OpiPosState):
-    def __init__(self, manual, opi_data):
+class OpiPosManualState(OpiPosState):
+    def __init__(self, manual):
         self.manual = manual
-        self.data = opi_data
+        self.move_type = "manual"
     
     def on_tick(self):
         self.manual = 0
@@ -57,13 +64,21 @@ class OpiManualMoveState(OpiPosState):
     def move_type(self):
         return "manual"
 
-class OpiPosPidMoveState(OpiPosState):
-    def __init__(self, target_vel, opi_data):
+# move with target PID values
+class OpiPosPidState(OpiPosState):
+    def __init__(self, target_vel, opi_data, delta_time):
         self.target_vel = target_vel
         self.data = opi_data
+        self.pids = [PID(), PID(), PID()]
+        self.delta_time = delta_time
+        self.move_type = "pid"
 
+    # returns roll, pitch, yaw thrusts (-1 to 1)
     def on_tick(self):
-        pass
+        return_thrusts = [0, 0, 0]
+        for i in range(3):
+            return_thrusts[i] = self.pids[i].on_tick(self.target_vel-self.opi_data.vel[i], self.delta_time)
+        return return_thrusts
 
     def set_target(self, target_vel):
         self.target_vel = target_vel
@@ -71,17 +86,29 @@ class OpiPosPidMoveState(OpiPosState):
     def move_type(self):
         return "pid"
 
+# pid with all target velocities 0
 class OpiPosHoldState(OpiPosState):
-    def __init__(self, opi_data):
+    def __init__(self, opi_data, delta_time):
+        self.target_vel = [0, 0, 0]
         self.data = opi_data
+        self.pids = [PID(), PID(), PID()]
+        self.delta_time = delta_time
+        self.move_type = "hold"
 
-    def on_tick(self, target_vel, opi_data):
-        return [0, 0, 0]    # placeholder right now!
+    # returns roll, pitch, yaw thrusts (-1 to 1)
+    def on_tick(self):
+        return_thrusts = [0, 0, 0]
+        for i in range(3):
+            return_thrusts[i] = self.pids[i].on_tick(self.target_vel-self.opi_data.vel[i], self.delta_time)
+        return return_thrusts
 
     def move_type(self):
         return "hold"
 
+# no thruster movement
 class OpiPosDriftState(OpiPosState):
+    def __init__(self):
+        self.move_type = "drift"
     def on_tick(self, target_vel, opi_data):
         return [0, 0, 0]
     
@@ -93,27 +120,95 @@ class OpiRotateState(ABC):
     def on_tick(): # returns thruster outputs for a single tick
         pass
 
+# roll, pitch, yaw values from -1 to 1
 class OpiRotManualState(OpiRotateState):
     pass
 
-class OpiAngleMoveState(OpiRotateState):
-    pass
+# pid with target angle (eulers as of now)
+class OpiRotAngleState(OpiRotateState):
+    def __init__(self, target_eul, opi_data, delta_time):
+        self.target_eul = target_eul
+        self.opi_data = opi_data
+        self.delta_time = delta_time
+        self.pids = [PID(), PID(), PID()]
+        self.move_type = "angle"
+
+    def on_tick(self):
+        return_thrusts = [0, 0, 0]
+        for i in range(3):
+            # angle error!, TODO: CHECK IF THIS ACTUALLY WORKS
+            error = self.target_eul[i] - self.opi_data.eul[i]
+            error = (error + 180)%360-180
+            return_thrusts[i] = self.pids[i].on_tick(error, self.delta_time)
+    
+    def set_target(self, target_eul):
+        self.target_eul = target_eul
+
+    def move_type(self):
+        return "angle"
+
+# pid using gyroscope with target rotation (rad/s)
+class OpiRotVelState(OpiRotateState):
+    def __init__(self, target_vel, opi_data, delta_time):
+        self.target_vel = target_vel
+        self.opi_data = opi_data
+        self.delta_time = delta_time
+        self.pids = [PID(), PID(), PID()]
+        self.move_type = "gyro"
+
+    def on_tick(self):
+        return_thrusts = [0, 0, 0]
+        for i in range(3):
+            return_thrusts[i] = self.pids[i].on_tick(self.target_vel[i] - self.opi_data.gyro[i], self.delta_time)
+    
+    def set_target(self, target_vel):
+        self.target_vel = target_vel
+
+    def move_type(self):
+        return "gyro"
 
 class OpiRotHoldState(OpiRotateState):
-    pass
+    def __init__(self, opi_data, delta_time):
+        self.target_vel = [0, 0, 0]
+        self.opi_data = opi_data
+        self.delta_time = delta_time
+        self.pids = [PID(), PID(), PID()]
+        self.move_type = "hold"
 
-class OpiRotDriftState(OpiRotateState):
-    def on_tick():
+    def on_tick(self):
+        return_thrusts = [0, 0, 0]
+        for i in range(3):
+            return_thrusts[i] = self.pids[i].on_tick(self.target_vel[i] - self.opi_data.gyro[i], self.delta_time)
+    
+    def set_target(self, target_vel):
         pass
+
+    def move_type(self):
+        return "hold"
+
+# no thruster movements at  all (equivalent to manual state of all 0)
+class OpiRotDriftState(OpiRotateState):
+    def __init__(self):
+        self.move_type = "drift"
+
+    def on_tick(self):
+        return [0, 0, 0]
+    
+    def set_target(self, target_vel):
+        pass
+
+    def move_type(self):
+        return "drift"
 
 class ThrusterController:
     def __init__(self, move_delta_time=0.05):
         self.data = None
-        self.pos_state = OpiPosMoveState()
-        self.rotate_state = OpiRotDriftState()
+        self.pos_state = OpiPosDriftState()
+        self.rot_state = OpiRotDriftState()
         self.move_delta_time = move_delta_time
         self.mcu_interface = None
-    
+        self.max_thrust = 0.5   # maximum thruster value allowed (0 to 1)
+
     # way to solve circular dependency
     def set_interface(self, mcu_interface):
         self.mcu_interface = mcu_interface
@@ -125,13 +220,11 @@ class ThrusterController:
     def move_loop(self):
         while True:
             pos_thrust = self.pos_state.on_tick(self.move_delta_time)
-            rot_thrust = self.rotate_state.on_tick(self.move_delta_time)
+            rot_thrust = self.rot_state.on_tick(self.move_delta_time)
+            # TODO: Revise and check if this actually is an ok way to do this
             # somehow integrate pos_thrust and rot_thrust
             # transform forward, side, up, pitch, roll, yaw to thruster speeds
-            mov = move(0, 0, 0, 0, 0, 0) # simplified thrusters with f, s, u, p, r, y
-            for i in range(3):
-                mov[i] = pos_thrust[i]
-                mov[i+3] = rot_thrust[i]
+            mov = move(*pos_thrust, *rot_thrust) # simplified thrusters with f, s, u, p, r, y
             total_thrust = [0, 0, 0, 0, 0, 0, 0, 0]
             total_thrust[0] = mov.f - mov.s - mov.y
             total_thrust[1] = mov.f + mov.s + mov.y
@@ -143,44 +236,85 @@ class ThrusterController:
             total_thrust[6] = mov.u - mov.p + mov.r
             total_thrust[7] = mov.u - mov.p - mov.r
 
-            # get maximum thrust
+            # get maximum thrust present after adding
             max_thrust = 0
             for i in range(8):
                 total_thrust[i] = pos_thrust[i] + rot_thrust[i]
                 if abs(total_thrust[i]) > max_thrust:
                     max_thrust = abs(total_thrust[i])
-            # adjust all thrusts for maximum
-            if max_thrust > 1:
+            
+            # scale all thrust values down baesd on the maximum thrust
+            if max_thrust > self.max_thrust:
                 for i in range(8):
-                    total_thrust[i] = int(total_thrust[i] / max_thrust)
+                    # adjust for maximum thrust present
+                    total_thrust[i] = int(total_thrust[i] / max_thrust)*self.max_thrust
                     # adjust for microseconds (-1 to 1) to (1000 to 2000)
                     total_thrust[i] = 1500 + 500*total_thrust[i]
-                    # last adjustment in case total_thrust[i] was above 2000 or below 1000
-                    if total_thrust[i] < 1000:
-                        total_thrust[i] = 1000
-                    if total_thrust[i] > 2000:
-                        total_thrust[i] = 2000
+            
+            # last adjustment in case total_thrust[i] was above maximum thrust or minmum thrust
+            lowest = 1500 - self.max_thrust*500 
+            highest = self.max_thrust*500+1500
+            if total_thrust[i] < lowest:
+                total_thrust[i] = lowest
+            if total_thrust[i] > highest:
+                total_thrust[i] = highest
+            
             # move with all thrusts
-            self.mcu_interface.set_thruster()
+            self.mcu_interface.set_thruster(total_thrust)
             time.sleep(self.move_delta_time)
-    #set target velocity
-    def move_vel():
+
+    # set all manual microseconds (1000 to 2000)
+    def set_raw_thrust(self, thrusts):
         pass
 
-    # set target rotational velocity
-    def move_rot_vel():
-        pass
+    # set manual move (-1 to 1)
+    def set_pos_manual(self, moves):
+        if self.pos_state.move_type() == "manual":
+            self.pos_state.set_target(moves)
+        else:
+            self.pos_state = OpiPosManualState(moves)
+
+    #set target velocity
+    def set_pos_target_vel(self, vels):
+        if self.pos_state.move_type == "pid":
+            self.pos_state.set_target(vels)
+        else:
+            self.pos_state = OpiPosPidState(vels, self.data)
+
+    # hold (pid)
+    def set_pos_hold(self):
+        self.pos_state = OpiPosHoldState()
+
+    def set_pos_drift(self):
+        self.pos_state = OpiPosDriftState()
+
+
+    # set manual rotation (-1 to 1)
+    def set_rot_manual(self, thrusts):
+        if self.rot_state.move_type == "manual":
+            self.rot_state = OpiRotManualState(thrusts)
+        else:
+            self.rot_state.set_target(thrusts)
+
+    # set target angular velocity
+    def set_rot_vel(self, vels):
+        if self.rot_state.move_type == "gyro":
+            self.rot_state.set_target(vels)
+        else:
+            self.rot_state = OpiRotVelState(vels, self.data, self.move_delta_time)
     
     #set target rotational angle
-    def set_angle():
-        pass
+    def set_rot_angle(self, angles):
+        if self.rot_state.move_type == "angle":
+            self.rot_state.set_target(angles)
+        else:
+            self.rot_state = OpiRotAngleState(angles, self.data)
+
+    def set_rot_hold(self):
+        self.rot_state = OpiRotHoldState()
     
-    def set_hold():
-        pass
-    
-    #no PID allowed here
-    def set_drift():
-        pass
+    def set_rot_drift(self):
+        self.rot_state = OpiRotDriftState()
 """
 BBBB   III  GGGG
 B   B   I  G

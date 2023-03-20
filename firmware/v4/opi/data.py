@@ -19,7 +19,7 @@ class data:
     lin:list[float]
     inf:list[float] #information
     cal:list[float] # calibration
-    con:list[float] # continuous data (?)
+    con:list[float] # continuous data (?), CHANGE THIS!!
     mag:list[float]
     gra: list[float]    # gravitaitonal vector
     def __init__(self):
@@ -85,12 +85,12 @@ class OpiDataProcess:
         for bno_data in BNODataOutputType:
             if bno_data != BNODataOutputType.CON:
                 bno_return = self.bno_sensor.read(bno_data)
-                print(bno_return)
+                # print(bno_return)
                 if bno_return != None:
-                    print(list(bno_return.keys())[0])
-                    print(list(bno_return.values())[0])
+                    # print(list(bno_return.keys())[0])
+                    # print(list(bno_return.values())[0])
                     self.data.set_value(list(bno_return.keys())[0], list(bno_return.values())[0])
-                    time.sleep(self.bno_individual_delay)
+                time.sleep(self.bno_individual_delay)
         self.data.update_vel(self.bno_read_delay, self.data.accel)
 
     # using a thread to continuously get BNO data
