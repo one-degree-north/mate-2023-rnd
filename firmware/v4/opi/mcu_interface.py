@@ -128,8 +128,8 @@ if __name__ == "__main__":
         val = input("input type > ")
         if val == "st":
             while True:
-                thruster = input("thruster: ")
-                microseconds = input("microseconds: ")
+                thruster = int(input("thruster: "))
+                microseconds = int(input("microseconds: "))
                 thrusts = [0, 0, 0, 0, 0, 0, 0, 0]
                 thrusts[thruster] = microseconds
                 interface.set_thrusters(thrusts)
