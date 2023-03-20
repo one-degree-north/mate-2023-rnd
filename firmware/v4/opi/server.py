@@ -56,16 +56,26 @@ class OPiServer:
     #parse data from surface client
     def _parse_data(self, data):
         cmd = data[0]
-        if cmd == 0x00: # hold
-            pass
+        if cmd == 0x00:
+            thrusts = struct.unpack("!fff", data[1:])
+            self.thruster_control.set_pos_manual(list(thrusts))
         elif cmd == 0x01: # move velocity
-            pass
-        elif cmd == 0x02: # move rotational velocity
-            pass
-        elif cmd == 0x03: # goto rotational angle
-            pass
-        elif cmd == 0x04: # drift
-            pass
+            velocities = struct.unpack("!fff", data[1:])
+            self.thruster_control.set_pos_target_vel(list(velocities))
+        elif cmd == 0x02: # hold
+            self.thruster_control.set_pos_hold()
+        elif cmd == 0x03:
+            self.thruster_control.set_pos_drift()
+        elif cmd == 0x04: # move rotational velocity
+            velocities = struct.unpack("!fff", data[1:])
+            self.thruster_control.set_rot_vel(velocities)
+        elif cmd == 0x05: # goto rotational angle
+            angle = struct.unpack("!fff", data[1:])
+            self.thruster_control.set_rot_angle(angle)
+        elif cmd == 0x06: # drift
+            self.thruster_control.set_rot_drift()
+        elif cmd == 0x07:
+            self.thruster_control.set_rot_hold()
     
     #data is little endian
     def send_data(self, data):
