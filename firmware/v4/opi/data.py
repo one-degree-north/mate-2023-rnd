@@ -79,7 +79,8 @@ class OpiDataProcess:
     # read all bno data
     def read_bno_data(self):
         print("-----")
-        for bno_data in BNODataOutputType:
+        # maybe there is a way to replace this with continuous? Modifying the bno_lib to make the output easier to decipher would work
+        for bno_data in BNODataOutputType and bno_data != BNODataOutputType.CON:
             bno_return = self.bno_sensor.read(bno_data)
             print(bno_return)
             if bno_return != None:
