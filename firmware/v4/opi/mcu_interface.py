@@ -119,7 +119,7 @@ class MCUInterface:
         print(f"received packet {packet.to_bytes()}")
 
 if __name__ == "__main__":
-    interface = MCUInterface()
+    interface = MCUInterface("/dev/ttyS5")
     interface._debug_start()
     while True:
         val = input("input type > ")
