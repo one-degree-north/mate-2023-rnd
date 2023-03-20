@@ -34,6 +34,7 @@ class Packet:
             # self.data[self.curr_size-4] = byte
         elif self.curr_size == 4+self.len:
             if byte == FOOTER: # we're done!
+                self.all_bytes += bytes([byte])
                 self.complete = True
                 return True
             else:
