@@ -60,8 +60,9 @@ class Packet:
         return self.complete
 
 class MCUInterface:
-    def __init__(self):
-        self.ser = serial.Serial(None, 115200)
+    def __init__(self, serial_port):
+        self.serial_port = serial_port
+        self.ser = serial.Serial(serial_port, 115200)
         self.ser_enabled = False
         self.read_packet = Packet()
         self.server = None
