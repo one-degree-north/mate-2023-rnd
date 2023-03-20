@@ -83,3 +83,6 @@ class OPiServer:
     
     def send_sens_data(self, param, values):
         self.out_queue.put(struct.pack("!" + "B"*(3+len(values)), 0x33, param, len(values), *values))
+
+if __name__ == "__main__":
+    pass

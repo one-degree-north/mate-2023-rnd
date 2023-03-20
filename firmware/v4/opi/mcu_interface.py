@@ -1,6 +1,6 @@
 # mcu_interface communicates with the microcontroller
 from dataclasses import dataclass
-import serial, struct
+import serial, struct, threading
 
 HEADER = 0xa7
 FOOTER = 0x7a
@@ -65,6 +65,7 @@ class MCUInterface:
         self.ser_enabled = False
         self.read_packet = Packet()
         self.server = None
+        self.read_thread = threading.Thread(target=self._read_thread, daemon=True)
     
     def set_server(self, server):
         self.server = server
@@ -73,7 +74,6 @@ class MCUInterface:
         self.ser_enabled = True
         if not self.ser.is_open and self.server != None:
             self.ser.open()
-        self.write_thread.start()
         self.read_thread.start()
 
     def _write_packet(self, cmd:int, param:int, data): #WRITE IS BIG ENDIAN!!!!
@@ -98,3 +98,32 @@ class MCUInterface:
 
     def set_thrusters(self, thrusts):
         self._write_packet(0x18, 0x0F, struct.pack(">HHHHHHHH", *thrusts))
+
+    def _debug_start(self):
+        self.debug_thread = threading.Thread(target=self._debug_read_thread, daemon=True)
+        self.debug_thread.start()
+
+    def _debug_read_thread(self):
+        while True:
+            new_bytes = self.ser.read_all()
+            for byte in new_bytes:
+                self.read_packet.add_byte(byte)
+                if self.read_packet.is_complete():
+                    self._debug_parse(self.read_packet)  # read is LITTLE ENDIAN!!!!
+                    self.read_packet.clear()
+    
+    def _debug_parse(self, packet):
+        print(f"received packet {packet.to_bytes()}")
+
+if __name__ == "__main__":
+    interface = MCUInterface()
+    interface._debug_start()
+    val = input("> ")
+    if val == "st":
+        while True:
+            thruster = input("thruster: ")
+            microseconds = input("microseconds: ")
+            thrusts = [0, 0, 0, 0, 0, 0, 0, 0]
+            thrusts[thruster] = microseconds
+            interface.set_thrusters(thrusts)
+            
