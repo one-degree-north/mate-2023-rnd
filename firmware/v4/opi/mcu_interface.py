@@ -101,7 +101,7 @@ class MCUInterface:
         self._write_packet(0x18, 0x0F, struct.pack(">HHHHHHHH", *thrusts))
 
     def test_connection(self):
-        self._write_packet(0x00, 0x00,0x00, bytes([]))
+        self._write_packet(0x00, 0x00, bytes([]))
 
     def _debug_start(self):
         self.debug_thread = threading.Thread(target=self._debug_read_thread, daemon=True)
