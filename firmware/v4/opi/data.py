@@ -67,6 +67,7 @@ class OpiDataProcess:
         self.server = None
         self.bno_sensor = BNOSensor()
         self.bno_read_delay = 0.01    # in seconds
+        self.bno_individual_delay = self.bno_read_delay / 9
         self.data = data()
         self.bno_thread = threading.Thread(target=self.bno_loop, daemon=True)
         self.report_data = report_data   # report data to surface
@@ -89,14 +90,15 @@ class OpiDataProcess:
                     print(list(bno_return.keys())[0])
                     print(list(bno_return.values())[0])
                     self.data.set_value(list(bno_return.keys())[0], list(bno_return.values())[0])
+                    time.sleep(self.bno_individual_delay)
         self.data.update_vel(self.bno_read_delay, self.data.accel)
 
     # using a thread to continuously get BNO data
     def bno_loop(self):
         while True:
             self.read_bno_data()
-            time.sleep(self.bno_read_delay)
-            print(f"sleeping {self.bno_read_delay}")
+            # time.sleep(self.bno_read_delay)
+            # print(f"sleeping {self.bno_read_delay}")
 
     #only getting BNO data when needed
     def set_read_delay(self, read_delay):
@@ -118,3 +120,4 @@ if __name__ == "__main__":
         print(opi_data.data.accel)
         print(opi_data.data.eul)
         print(opi_data.data.lin)
+        print(opi_data.data.vel)

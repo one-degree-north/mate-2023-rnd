@@ -28,7 +28,7 @@ class PIClient:
                 r, w, x = select.select([self.sock], [self.sock], [self.sock])
                 for sock in r:  #ready to read!
                     print("received data")
-                    self.process_data(sock.recv(2048))   #THERE SHOULDN'T BE DATA BEING RECEVIED AS OF NOW!
+                    self.process_data(sock.recv(2048))
                 
                 for sock in w:  #ready to write!
                     if not self.out_queue.empty():
