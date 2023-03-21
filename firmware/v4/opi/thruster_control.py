@@ -225,11 +225,11 @@ class ThrusterController:
         self.data = opi_data
 
     def start_loop(self):
-        move_thread = threading.Thread(target=self.move_loop, daemon=True)
+        move_thread = threading.Thread(target=self.move_loop)
         move_thread.start()
     
     def start_debug_loop(self):
-        move_thread = threading.Thread(target=self.debug_loop, daemon=True)
+        move_thread = threading.Thread(target=self.debug_loop)
         move_thread.start()
 
     def debug_loop(self):

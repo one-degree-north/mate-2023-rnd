@@ -22,6 +22,7 @@ class OPiServer:
         self.thruster_control = None
         self.interface = None
         self.client_addr = ()
+        self.server_thread = threading.Thread(target=self._server_loop)
     
     def set_thruster_control(self, thruster_control):
         self.thruster_control = thruster_control
@@ -31,7 +32,6 @@ class OPiServer:
 
     # starts the server for surface client to communicate with
     def start_server(self):
-        self.server_thread = threading.Thread(target=self._server_loop, daemon=True)
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.bind(self.server_address)
         self.self_addr = self.server_address

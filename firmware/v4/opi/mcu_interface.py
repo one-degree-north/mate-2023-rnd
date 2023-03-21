@@ -68,12 +68,12 @@ class MCUInterface:
         self.ser_enabled = False
         self.read_packet = Packet()
         self.server = None
+        self.read_thread = threading.Thread(target=self._read_thread)
     
     def set_server(self, server):
         self.server = server
 
     def start(self):
-        self.read_thread = threading.Thread(target=self._read_thread, daemon=True)
         self.ser_enabled = True
         if not self.ser.is_open and self.server != None:
             self.ser.open()
