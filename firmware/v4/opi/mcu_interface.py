@@ -105,6 +105,9 @@ class MCUInterface:
     def test_connection(self):
         self._write_packet(0x00, 0x00, bytes([]))
 
+    def get_thrusters(self):
+        self._write_packet(0x1A, 0x0F, bytes([]))
+
     def _debug_start(self):
         self.debug_thread = threading.Thread(target=self._debug_read_thread, daemon=True)
         self.debug_thread.start()
@@ -127,14 +130,15 @@ if __name__ == "__main__":
     while True:
         val = input("input type > ")
         if val == "st":
-            while True:
-                thruster = int(input("thruster: "))
-                microseconds = int(input("microseconds: "))
-                thrusts = [0, 0, 0, 0, 0, 0, 0, 0]
-                thrusts[thruster] = microseconds
-                interface.set_thrusters(thrusts)
+            thruster = int(input("thruster: "))
+            microseconds = int(input("microseconds: "))
+            thrusts = [0, 0, 0, 0, 0, 0, 0, 0]
+            thrusts[thruster] = microseconds
+            interface.set_thrusters(thrusts)
         if val == "bruh":
             interface.test_connection()
+        if val == "thrust":
+            interface.get_thrusters()
 
     
             
