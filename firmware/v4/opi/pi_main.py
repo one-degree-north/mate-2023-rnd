@@ -5,10 +5,14 @@ from data import OpiDataProcess
 
 if __name__ == "__main__":
     # there is a circular dependency with: thrust_controller requiring data and interface, server requiring thrust_controller, and data requiring server
+    # addr = input("server address> ")
+    # serial_port = input("serial port > ")
+    addr = "192.168.13.103"
+    serial_port = "/dev/ttyS5"
     thrust_controller = ThrusterController()
-    server = OPiServer((input("server address> "), 7772))
+    server = OPiServer((addr, 7772))
     opi_data = OpiDataProcess(server)
-    interface = MCUInterface(input("serial port > "))
+    interface = MCUInterface(serial_port)
     # resolve dependencies
     thrust_controller.set_interface(interface)
     thrust_controller.set_data(opi_data)
