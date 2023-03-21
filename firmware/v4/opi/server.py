@@ -20,11 +20,15 @@ class OPiServer:
         self.connected = False
         self.server_address = server_address
         self.thruster_control = None
+        self.interface = None
         self.client_addr = ()
         self.server_thread = threading.Thread(target=self._server_loop, daemon=True)
     
     def set_thruster_control(self, thruster_control):
         self.thruster_control = thruster_control
+
+    def set_interface(self, interface):
+        self.interface = interface
 
     # starts the server for surface client to communicate with
     def start_server(self, server_address: tuple):
@@ -76,7 +80,13 @@ class OPiServer:
             self.thruster_control.set_rot_drift()
         elif cmd == 0x07:
             self.thruster_control.set_rot_hold()
-        elif cmd == 0x10:
+        elif cmd == 0x10:   # test conneciton
+            self.interface.test_connection()
+        elif cmd == 0x11:   # get thruster positions
+            self.interface.get_thrusters()
+        elif cmd == 0x20:   # move claw
+            pass
+        elif cmd == 0x30:   # turn flashlight on / off
             pass
     
     #data is little endian
