@@ -231,8 +231,8 @@ class ThrusterController:
 
     def debug_loop(self):
         while True:
-            pos_thrust = self.pos_state.on_tick(self.move_delta_time)
-            rot_thrust = self.rot_state.on_tick(self.move_delta_time)
+            pos_thrust = self.pos_state.on_tick()
+            rot_thrust = self.rot_state.on_tick()
             # TODO: Revise and check if this actually is an ok way to do this
             # somehow integrate pos_thrust and rot_thrust
             # transform forward, side, up, pitch, roll, yaw to thruster speeds
