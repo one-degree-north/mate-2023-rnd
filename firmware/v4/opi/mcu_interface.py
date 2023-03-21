@@ -124,7 +124,7 @@ class MCUInterface:
     def _debug_parse(self, packet):
         print(f"received packet cmd: {packet.cmd}, len: {packet.len}, bytes: {packet.to_bytes()}")
         if packet.cmd == 0x1A:
-            curr_thrusters = struct.pack(">HHHHHHHH", *packet.to_bytes())
+            curr_thrusters = struct.pack(">HHHHHHHH", *packet.data())
             print(f"thrusts: {curr_thrusters}")
 
 if __name__ == "__main__":
