@@ -126,32 +126,42 @@ class PIClient:
         assert isinstance(claw_deg, int), "claw_deg must be an int specifying the degree to write to the selected claw"
         # assert claw_deg <= 2000 and claw_deg >= 1000, "claw deg must be between 1000 and 2000"
         assert claw_num >= 0 and claw_num <= 1, "claw_num must be 0 or 1" 
-        self.out_queue.put(struct.pack("!ccH", bytes([0x02, claw_num]), claw_deg))
+        self.out_queue.put(struct.pack("!ccH", bytes([0x20, claw_num]), claw_deg))
 
     def turn_flashlight_off(self):
-        self.out_queue.put(struct.pack("!cc", bytes([0x03, 0x00])))
+        self.out_queue.put(struct.pack("!cc", bytes([0x30, 0x00])))
 
     def turn_flashlight_on(self):
-        self.out_queue.put(struct.pack("!cc", bytes([0x03, 0x01])))
+        self.out_queue.put(struct.pack("!cc", bytes([0x30, 0x01])))
     
     def set_pid_thrust(self, thrusts):
         pass
 
-    def set_manual_thrust(self, thrusts):
-        assert isinstance(thrusts, list), "thrusts must be an array of floats"
-        assert len(thrusts) == 8, "thrusts must be 8 long"
+    def set_manual_thrust(self, moves):
+        assert isinstance(moves, list), "thrusts must be an array of floats"
+        assert len(moves) == 8, "thrusts must be 8 long"
         # print(thrusts[1])
-        for thrust in thrusts:
-            assert isinstance(thrust, float), "thrust must be floats"
-            assert thrust <= 1 or thrust >= -1, "thrust values must be between -1 and 1"
-        thrusts_int = []
-        for thrust in thrusts:
-            thrusts_int.append(int(1500+500*thrust))
         # self.out_queue.put(struct.pack("!cHHHHHHHH"), thrusts_int[0], thrusts_int[1], thrusts_int[2])
-        self.out_queue.put(struct.pack("!cHHHHHHHH", bytes([0x01]), *thrusts_int))
+        self.out_queue.put(struct.pack("!cfff", bytes([0x00]), *(moves[0:3])))
+        self.out_queue.put(struct.pack("!cfff", bytes([0x04]), *(moves[3:])))
+
+    def set_pos_manual(self, moves):
+        self.out_queue.put(struct.pack("!cfff", bytes([0x00]), *moves))
+    
+    def set_rot_manual(self, moves):
+        self.out_queue.put(struct.pack("!cfff", bytes([0x04]), *moves))
+
+    def set_pos_pid(self, target_vel):
+        self.out_queue.put(struct.pack("!cfff", bytes([0x01]), *target_vel))
+    
+    def set_rot_angle(self, target_eul):
+        self.out_queue.put(struct.pack("!cfff", bytes([0x05]), *target_eul))
+    
+    def set_rot_vel(self, target_vel):
+        self.out_queue.put(struct.pack("!cfff", bytes([0x06]), *target_vel))
 
     def test_connection(self):
-        self.out_queue.put(struct.pack("!c", bytes([0x00])))
+        self.out_queue.put(struct.pack("!c", bytes([0x10])))
 
 if __name__ == "__main__":
     addr = str(input("enter server address> "))
