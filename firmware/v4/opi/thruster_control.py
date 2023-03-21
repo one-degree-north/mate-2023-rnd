@@ -248,6 +248,7 @@ class ThrusterController:
             total_thrust[6] = mov.u - mov.p + mov.r
             total_thrust[7] = mov.u - mov.p - mov.r
 
+            print(f"total thrust before processing: {total_thrust}")
             # get maximum thrust present after adding
             max_thrust = 0
             for i in range(8):
