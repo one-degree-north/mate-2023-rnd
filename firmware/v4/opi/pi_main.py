@@ -26,4 +26,4 @@ if __name__ == "__main__":
     print("starting interface")
     interface.start()
     print("starting BNO")
-    opi_data.start_bno_reading()
+    # opi_data.start_bno_reading()
