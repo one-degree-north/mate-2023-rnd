@@ -364,7 +364,7 @@ class ThrusterController:
         if self.pos_state.move_type == "pid":
             self.pos_state.set_target(vels)
         else:
-            self.pos_state = OpiPosPidState(vels, self.data.data)
+            self.pos_state = OpiPosPidState(vels, self.data.data, self.move_delta_time)
 
     # hold (pid)
     def set_pos_hold(self):
@@ -393,7 +393,7 @@ class ThrusterController:
         if self.rot_state.move_type == "angle":
             self.rot_state.set_target(angles)
         else:
-            self.rot_state = OpiRotAngleState(angles, self.data.data)
+            self.rot_state = OpiRotAngleState(angles, self.data.data, self.move_delta_time)
 
     def set_rot_hold(self):
         self.rot_state = OpiRotHoldState()
