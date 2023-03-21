@@ -100,7 +100,7 @@ class MCUInterface:
 
         # forward to network
         pkt_len = len(packet.to_bytes())
-        self.server.send_data(struct.pack("!" + "B"*pkt_len, *struct.unpack("<" + "B"*pkt_len, bytes(packet.to_bytes_network()))))    # transform little endian into network endianess
+        self.server.send_data(struct.pack("!" + "B"*(pkt_len-2), *struct.unpack("<" + "B"*pkt_len, bytes(packet.to_bytes_network()))))    # transform little endian into network endianess
 
     def set_thrusters(self, thrusts):
         self._write_packet(0x18, 0x0F, struct.pack(">HHHHHHHH", *thrusts))
