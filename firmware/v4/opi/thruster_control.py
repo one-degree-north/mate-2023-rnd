@@ -343,11 +343,11 @@ class ThrusterController:
                     # adjust for maximum thrust present
                     total_thrust[i] = int(total_thrust[i])*self.max_thrust
                     # adjust for microseconds (-1 to 1) to (1000 to 2000)
-                    total_thrust[i] = 1500 + 500*total_thrust[i]
+                    total_thrust[i] = int(1500 + 500*total_thrust[i])
 
                     # last adjustment in case total_thrust[i] was above maximum thrust or minmum thrust
-                    lowest = 1500 - self.max_thrust*500 
-                    highest = self.max_thrust*500+1500
+                    lowest = int(1500 - self.max_thrust*500)
+                    highest = int(self.max_thrust*500+1500)
                     if total_thrust[i] < lowest:
                         total_thrust[i] = lowest
                     if total_thrust[i] > highest:
