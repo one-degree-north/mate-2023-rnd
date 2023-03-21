@@ -354,7 +354,7 @@ class ThrusterController:
                         total_thrust[i] = highest
             
             # move with all thrusts
-            self.mcu_interface.set_thruster(total_thrust)
+            self.mcu_interface.set_thrusters(total_thrust)
             time.sleep(self.move_delta_time)
 
     # set all manual microseconds (1000 to 2000)
