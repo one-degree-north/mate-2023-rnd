@@ -242,7 +242,7 @@ class ThrusterController:
             mov = move(*pos_thrust, *rot_thrust) # simplified thrusters with f, s, u, p, r, y
             print(f"velocity: {self.data.data.vel}")
             print(f"angle: {self.data.data.eul}")
-            print(f"gyro: {self.data.data.gyr}")
+            print(f"gyro: {self.data.data.gyro}")
             print(f"mov: {mov}")
             total_thrust = [0, 0, 0, 0, 0, 0, 0, 0]
             total_thrust[0] = mov.f - mov.s - mov.y
