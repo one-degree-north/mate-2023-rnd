@@ -31,11 +31,11 @@ class OPiServer:
         self.interface = interface
 
     # starts the server for surface client to communicate with
-    def start_server(self, server_address: tuple):
+    def start_server(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.sock.bind(server_address)
-        self.self_addr = server_address
-        print(f"server set up at {server_address}")
+        self.sock.bind(self.server_address)
+        self.self_addr = self.server_address
+        print(f"server set up at {self.server_address}")
         self.server_thread.start()
 
     # read and write data to and from surface client
