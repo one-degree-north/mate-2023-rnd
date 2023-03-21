@@ -22,7 +22,7 @@ class PIClient:
         while True:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             # self.sock.connect(address)
-            self.sock.sendto(0x00.to_bytes(length=1, byteorder='big', signed=False), server_address) #try to connect
+            self.sock.sendto(0x10.to_bytes(length=1, byteorder='big', signed=False), server_address) #try to connect
             print("client sent attempt to connect")
             while True:
                 r, w, x = select.select([self.sock], [self.sock], [self.sock])
