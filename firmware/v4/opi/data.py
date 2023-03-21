@@ -91,7 +91,7 @@ class OpiDataProcess:
                     # print(list(bno_return.values())[0])
                     self.data.set_value(list(bno_return.keys())[0], list(bno_return.values())[0])
                 time.sleep(self.bno_individual_delay)
-        self.data.update_vel(self.bno_read_delay, self.data.accel)
+        self.data.update_vel(self.bno_read_delay, self.data.lin)
 
     # using a thread to continuously get BNO data
     def bno_loop(self):
