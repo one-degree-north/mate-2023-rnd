@@ -139,7 +139,7 @@ class PIClient:
 
     def set_manual_thrust(self, moves):
         assert isinstance(moves, list), "thrusts must be an array of floats"
-        assert len(moves) == 8, "thrusts must be 8 long"
+        assert len(moves) == 6, "thrusts must be 6 long"
         # print(thrusts[1])
         # self.out_queue.put(struct.pack("!cHHHHHHHH"), thrusts_int[0], thrusts_int[1], thrusts_int[2])
         self.out_queue.put(struct.pack("!cfff", bytes([0x00]), *(moves[0:3])))
@@ -172,9 +172,9 @@ if __name__ == "__main__":
             case "bruh":
                 comms.test_connection()
             case 'tt':
-                comms.set_manual_thrust([0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2])
+                comms.set_manual_thrust([1, 0, 0, 0, 0, 0])
             case 'stop':
-                comms.set_manual_thrust([0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,])
+                comms.set_manual_thrust([0, 0, 0, 0, 0, 0])
             case 'tf':
                 comms.set_manual_thrust([0.2, 0, 0, 0, 0, 0])
             case 'ts':

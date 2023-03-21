@@ -28,4 +28,6 @@ if __name__ == "__main__":
     interface.start()
     print("starting BNO")
     opi_data.start_bno_reading()
+    print("starting thruster controller")
+    thrust_controller.start_loop()
     server.server_thread.join()
