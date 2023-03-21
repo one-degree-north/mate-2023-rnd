@@ -1,7 +1,8 @@
 # Controls thruster movement
 from abc import ABC, abstractmethod, abstractproperty
-import time
+import time, threading
 from collections import namedtuple
+from data import *
 
 move = namedtuple("move", ['f', 's', 'u', 'p', 'r', 'y'])
 
@@ -44,20 +45,7 @@ class OpiPosManualState(OpiPosState):
         self.move_type = "manual"
     
     def on_tick(self):
-        self.manual = 0
-        for i in range(3):
-            if abs(self.target_vel[i]) > self.manual:
-                self.manual = abs(self.target_vel[i])
-        adjust_vel = [0, 0, 0]
-        for i in range(3):
-            adjust_vel[i] = self.target_vel[i]/self.manual
-        for i in range(3):
-            if adjust_vel[i] > 1:
-                adjust_vel[i] = 1
-            if adjust_vel[i] < -1:
-                adjust_vel[i] = -1
-        return adjust_vel
-
+        return self.manual
     def set_target(self, manual):
         self.manual = manual
 
@@ -102,6 +90,9 @@ class OpiPosHoldState(OpiPosState):
             return_thrusts[i] = self.pids[i].on_tick(self.target_vel-self.opi_data.vel[i], self.delta_time)
         return return_thrusts
 
+    def set_target(self):
+        pass
+
     def move_type(self):
         return "hold"
 
@@ -112,6 +103,9 @@ class OpiPosDriftState(OpiPosState):
     def on_tick(self, target_vel, opi_data):
         return [0, 0, 0]
     
+    def set_target(self):
+        pass
+
     def move_type(self):
         return "drift"
 
@@ -122,7 +116,18 @@ class OpiRotateState(ABC):
 
 # roll, pitch, yaw values from -1 to 1
 class OpiRotManualState(OpiRotateState):
-    pass
+    def __init__(self, manual):
+        self.manual = manual
+        self.move_type = "manual"
+    
+    def on_tick(self):
+        return self.manual
+
+    def set_target(self, manual):
+        self.manual = manual
+
+    def move_type(self):
+        return "manual"
 
 # pid with target angle (eulers as of now)
 class OpiRotAngleState(OpiRotateState):
@@ -216,6 +221,61 @@ class ThrusterController:
     def set_data(self, opi_data):
         self.data = opi_data
 
+    def start_loop(self):
+        move_thread = threading.Thread(target=self.move_loop, daemon=True)
+        move_thread.start()
+    
+    def start_debug_loop(self):
+        move_thread = threading.Thread(target=self.debug_loop, daemon=True)
+        move_thread.start()
+
+    def debug_loop(self):
+        while True:
+            pos_thrust = self.pos_state.on_tick(self.move_delta_time)
+            rot_thrust = self.rot_state.on_tick(self.move_delta_time)
+            # TODO: Revise and check if this actually is an ok way to do this
+            # somehow integrate pos_thrust and rot_thrust
+            # transform forward, side, up, pitch, roll, yaw to thruster speeds
+            mov = move(*pos_thrust, *rot_thrust) # simplified thrusters with f, s, u, p, r, y
+            total_thrust = [0, 0, 0, 0, 0, 0, 0, 0]
+            total_thrust[0] = mov.f - mov.s - mov.y
+            total_thrust[1] = mov.f + mov.s + mov.y
+            total_thrust[2] = mov.f - mov.s + mov.y
+            total_thrust[3] = mov.f + mov.s - mov.y
+
+            total_thrust[4] = mov.u + mov.p - mov.r
+            total_thrust[5] = mov.u + mov.p + mov.r
+            total_thrust[6] = mov.u - mov.p + mov.r
+            total_thrust[7] = mov.u - mov.p - mov.r
+
+            # get maximum thrust present after adding
+            max_thrust = 0
+            for i in range(8):
+                total_thrust[i] = pos_thrust[i] + rot_thrust[i]
+                if abs(total_thrust[i]) > max_thrust:
+                    max_thrust = abs(total_thrust[i])
+            
+            # scale all thrust values down baesd on the maximum thrust
+            if max_thrust > self.max_thrust:
+                for i in range(8):
+                    # adjust for maximum thrust present
+                    total_thrust[i] = int(total_thrust[i] / max_thrust)*self.max_thrust
+                    # adjust for microseconds (-1 to 1) to (1000 to 2000)
+                    total_thrust[i] = 1500 + 500*total_thrust[i]
+            
+            # last adjustment in case total_thrust[i] was above maximum thrust or minmum thrust
+            lowest = 1500 - self.max_thrust*500 
+            highest = self.max_thrust*500+1500
+            if total_thrust[i] < lowest:
+                total_thrust[i] = lowest
+            if total_thrust[i] > highest:
+                total_thrust[i] = highest
+            
+            # move with all thrusts
+            print(f"writing thrust: {total_thrust}")
+            # self.mcu_interface.set_thruster(total_thrust)
+            time.sleep(self.move_delta_time)
+
     # moves ROV based on input data
     def move_loop(self):
         while True:
@@ -279,7 +339,7 @@ class ThrusterController:
         if self.pos_state.move_type == "pid":
             self.pos_state.set_target(vels)
         else:
-            self.pos_state = OpiPosPidState(vels, self.data)
+            self.pos_state = OpiPosPidState(vels, self.data.data)
 
     # hold (pid)
     def set_pos_hold(self):
@@ -301,14 +361,14 @@ class ThrusterController:
         if self.rot_state.move_type == "gyro":
             self.rot_state.set_target(vels)
         else:
-            self.rot_state = OpiRotVelState(vels, self.data, self.move_delta_time)
+            self.rot_state = OpiRotVelState(vels, self.data.data, self.move_delta_time)
     
     #set target rotational angle
     def set_rot_angle(self, angles):
         if self.rot_state.move_type == "angle":
             self.rot_state.set_target(angles)
         else:
-            self.rot_state = OpiRotAngleState(angles, self.data)
+            self.rot_state = OpiRotAngleState(angles, self.data.data)
 
     def set_rot_hold(self):
         self.rot_state = OpiRotHoldState()
@@ -328,3 +388,26 @@ C     HHHHH U   U N N N G  GG U   U  SSS
 C     H   H U   U N  NN G   G U   U     S
  CCCC H   H  UUU  N   N  GGGG  UUU  SSSS
 """
+if __name__ == "__main__":
+    thruster_controller = ThrusterController()
+    data = OpiDataProcess()
+    thruster_controller.set_data(data)
+    data.start_bno_reading()
+    thruster_controller.start_debug_loop()
+    while True:
+        val = input("pos / rot> ")
+        type = input("type > ")
+        target = input("thrusts> ").split()
+        thrusts = []
+        for tar in target:
+            thrusts.append(float(tar))
+        if val == "pos" and type == "manual":
+            thruster_controller.set_pos_manual(thrusts)
+        if val == "pos" and type == "pid":
+            thruster_controller.set_pos_target_vel(thrusts)
+        if val == "rot" and type == "manual":
+            thruster_controller.set_rot_manual(thrusts)
+        if val == "rot" and type == "angle":
+            thruster_controller.set_rot_angle(thrusts)
+        if val == "rot" and type == "gyro":
+            thruster_controller.set_rot_vel(thrusts)
