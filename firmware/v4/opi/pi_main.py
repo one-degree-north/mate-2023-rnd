@@ -13,6 +13,7 @@ if __name__ == "__main__":
     thrust_controller.set_interface(interface)
     thrust_controller.set_data(opi_data)
     server.set_thruster_control(thrust_controller)
+    server.set_interface(interface)
     opi_data.set_server(server)
     interface.set_server(server)
     #start stuff!
