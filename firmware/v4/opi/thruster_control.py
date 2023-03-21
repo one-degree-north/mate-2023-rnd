@@ -100,7 +100,7 @@ class OpiPosHoldState(OpiPosState):
 class OpiPosDriftState(OpiPosState):
     def __init__(self):
         self.move_type = "drift"
-    def on_tick(self, target_vel, opi_data):
+    def on_tick(self):
         return [0, 0, 0]
     
     def set_target(self):
@@ -279,8 +279,8 @@ class ThrusterController:
     # moves ROV based on input data
     def move_loop(self):
         while True:
-            pos_thrust = self.pos_state.on_tick(self.move_delta_time)
-            rot_thrust = self.rot_state.on_tick(self.move_delta_time)
+            pos_thrust = self.pos_state.on_tick()
+            rot_thrust = self.rot_state.on_tick()
             # TODO: Revise and check if this actually is an ok way to do this
             # somehow integrate pos_thrust and rot_thrust
             # transform forward, side, up, pitch, roll, yaw to thruster speeds
