@@ -145,6 +145,7 @@ class OpiRotAngleState(OpiRotateState):
             error = self.target_eul[i] - self.opi_data.eul[i]
             error = (error + 180)%360-180
             return_thrusts[i] = self.pids[i].on_tick(error, self.delta_time)
+        return return_thrusts
     
     def set_target(self, target_eul):
         self.target_eul = target_eul
@@ -165,6 +166,7 @@ class OpiRotVelState(OpiRotateState):
         return_thrusts = [0, 0, 0]
         for i in range(3):
             return_thrusts[i] = self.pids[i].on_tick(self.target_vel[i] - self.opi_data.gyro[i], self.delta_time)
+        return return_thrusts
     
     def set_target(self, target_vel):
         self.target_vel = target_vel
@@ -184,6 +186,7 @@ class OpiRotHoldState(OpiRotateState):
         return_thrusts = [0, 0, 0]
         for i in range(3):
             return_thrusts[i] = self.pids[i].on_tick(self.target_vel[i] - self.opi_data.gyro[i], self.delta_time)
+        return return_thrusts
     
     def set_target(self, target_vel):
         pass
@@ -238,6 +241,8 @@ class ThrusterController:
             # transform forward, side, up, pitch, roll, yaw to thruster speeds
             mov = move(*pos_thrust, *rot_thrust) # simplified thrusters with f, s, u, p, r, y
             print(f"velocity: {self.data.data.vel}")
+            print(f"angle: {self.data.data.eul}")
+            print(f"gyro: {self.data.data.gyr}")
             print(f"mov: {mov}")
             total_thrust = [0, 0, 0, 0, 0, 0, 0, 0]
             total_thrust[0] = mov.f - mov.s - mov.y
