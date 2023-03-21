@@ -6,9 +6,9 @@ from data import OpiDataProcess
 if __name__ == "__main__":
     # there is a circular dependency with: thrust_controller requiring data and interface, server requiring thrust_controller, and data requiring server
     thrust_controller = ThrusterController()
-    server = OPiServer((input("server address> ")), thrust_controller)
+    server = OPiServer((input("server address> ")))
     opi_data = OpiDataProcess(server)
-    interface = MCUInterface(input("serial port > "), server)
+    interface = MCUInterface(input("serial port > "))
     # resolve dependencies
     thrust_controller.set_interface(interface)
     thrust_controller.set_data(opi_data)
