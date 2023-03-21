@@ -251,9 +251,7 @@ class ThrusterController:
             # get maximum thrust present after adding
             max_thrust = 0
             for i in range(8):
-                total_thrust[i] = pos_thrust[i] + rot_thrust[i]
-                if abs(total_thrust[i]) > max_thrust:
-                    max_thrust = abs(total_thrust[i])
+                max_thrust = abs(total_thrust[i])
             
             # scale all thrust values down baesd on the maximum thrust
             if max_thrust > self.max_thrust:
