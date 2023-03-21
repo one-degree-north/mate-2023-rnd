@@ -56,7 +56,7 @@ class OpiPosManualState(OpiPosState):
 class OpiPosPidState(OpiPosState):
     def __init__(self, target_vel, opi_data, delta_time):
         self.target_vel = target_vel
-        self.data = opi_data
+        self.opi_data = opi_data
         self.pids = [PID(), PID(), PID()]
         self.delta_time = delta_time
         self.move_type = "pid"
