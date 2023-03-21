@@ -135,7 +135,7 @@ if __name__ == "__main__":
         if val == "st":
             thruster = int(input("thruster: "))
             microseconds = int(input("microseconds: "))
-            thrusts = [0, 0, 0, 0, 0, 0, 0, 0]
+            thrusts = [1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500]
             thrusts[thruster] = microseconds
             interface.set_thrusters(thrusts)
         if val == "bruh":
