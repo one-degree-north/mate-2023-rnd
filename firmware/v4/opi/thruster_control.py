@@ -87,7 +87,7 @@ class OpiPosHoldState(OpiPosState):
     def on_tick(self):
         return_thrusts = [0, 0, 0]
         for i in range(3):
-            return_thrusts[i] = self.pids[i].on_tick(self.target_vel[i]-self.opi_data.vel[i], self.delta_time)
+            return_thrusts[i] = self.pids[i].on_tick(self.target_vel[i]-self.opi_data.lin[i], self.delta_time)
         return return_thrusts
 
     def set_target(self):
