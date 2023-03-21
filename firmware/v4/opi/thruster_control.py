@@ -237,6 +237,7 @@ class ThrusterController:
             # somehow integrate pos_thrust and rot_thrust
             # transform forward, side, up, pitch, roll, yaw to thruster speeds
             mov = move(*pos_thrust, *rot_thrust) # simplified thrusters with f, s, u, p, r, y
+            print(f"mov: {mov}")
             total_thrust = [0, 0, 0, 0, 0, 0, 0, 0]
             total_thrust[0] = mov.f - mov.s - mov.y
             total_thrust[1] = mov.f + mov.s + mov.y
@@ -252,7 +253,8 @@ class ThrusterController:
             # get maximum thrust present after adding
             max_thrust = 0
             for i in range(8):
-                max_thrust = abs(total_thrust[i])
+                if abs(total_thrust[i]) > max_thrust:
+                    max_thrust = abs(total_thrust[i])
             
             # scale all thrust values down baesd on the maximum thrust
             if max_thrust > self.max_thrust:
@@ -264,7 +266,7 @@ class ThrusterController:
             
                     # last adjustment in case total_thrust[i] was above maximum thrust or minmum thrust
                     lowest = 1500 - self.max_thrust*500 
-                    highest = self.max_thrust*500+1500
+                    highest = 1500+self.max_thrust*500
                     if total_thrust[i] < lowest:
                         total_thrust[i] = lowest
                     if total_thrust[i] > highest:
@@ -312,7 +314,8 @@ class ThrusterController:
             # get maximum thrust present after adding
             max_thrust = 0
             for i in range(8):
-                max_thrust = abs(total_thrust[i])
+                if abs(total_thrust[i]) > max_thrust:
+                    max_thrust = abs(total_thrust[i])
             
             # scale all thrust values down baesd on the maximum thrust
             if max_thrust > self.max_thrust:
