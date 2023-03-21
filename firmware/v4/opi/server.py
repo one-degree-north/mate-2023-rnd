@@ -23,6 +23,7 @@ class OPiServer:
         self.interface = None
         self.client_addr = ()
         self.server_thread = threading.Thread(target=self._server_loop)
+        self.out_queue = queue.Queue()
     
     def set_thruster_control(self, thruster_control):
         self.thruster_control = thruster_control

@@ -2,6 +2,7 @@ from mcu_interface import MCUInterface
 from server import OPiServer
 from thruster_control import ThrusterController
 from data import OpiDataProcess
+import threading
 
 if __name__ == "__main__":
     # there is a circular dependency with: thrust_controller requiring data and interface, server requiring thrust_controller, and data requiring server
@@ -27,3 +28,4 @@ if __name__ == "__main__":
     interface.start()
     print("starting BNO")
     opi_data.start_bno_reading()
+    server.server_thread.join()
