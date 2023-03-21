@@ -65,7 +65,7 @@ class OpiPosPidState(OpiPosState):
     def on_tick(self):
         return_thrusts = [0, 0, 0]
         for i in range(3):
-            return_thrusts[i] = self.pids[i].on_tick(self.target_vel-self.opi_data.vel[i], self.delta_time)
+            return_thrusts[i] = self.pids[i].on_tick(self.target_vel[i]-self.opi_data.vel[i], self.delta_time)
         return return_thrusts
 
     def set_target(self, target_vel):
@@ -78,7 +78,7 @@ class OpiPosPidState(OpiPosState):
 class OpiPosHoldState(OpiPosState):
     def __init__(self, opi_data, delta_time):
         self.target_vel = [0, 0, 0]
-        self.data = opi_data
+        self.opi_data = opi_data
         self.pids = [PID(), PID(), PID()]
         self.delta_time = delta_time
         self.move_type = "hold"
@@ -87,7 +87,7 @@ class OpiPosHoldState(OpiPosState):
     def on_tick(self):
         return_thrusts = [0, 0, 0]
         for i in range(3):
-            return_thrusts[i] = self.pids[i].on_tick(self.target_vel-self.opi_data.vel[i], self.delta_time)
+            return_thrusts[i] = self.pids[i].on_tick(self.target_vel[i]-self.opi_data.vel[i], self.delta_time)
         return return_thrusts
 
     def set_target(self):
