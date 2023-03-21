@@ -86,6 +86,9 @@ class OpiDataProcess:
             if bno_data != BNODataOutputType.CON:
                 bno_return = self.bno_sensor.read(bno_data)
                 # print(bno_return)
+                if bno_data == BNODataOutputType.EUL:
+                    print("YEYEYEYEYE")
+                    print(bno_return)
                 if bno_return != None:
                     # print(list(bno_return.keys())[0])
                     # print(list(bno_return.values())[0])
