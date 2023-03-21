@@ -17,6 +17,9 @@ if __name__ == "__main__":
     opi_data.set_server(server)
     interface.set_server(server)
     #start stuff!
+    print("starting server")
     server.start_server()
+    print("starting interface")
     interface.start()
+    print("starting BNO")
     opi_data.start_bno_reading()
