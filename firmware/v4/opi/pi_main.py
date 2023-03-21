@@ -11,7 +11,7 @@ if __name__ == "__main__":
     serial_port = "/dev/ttyS5"
     thrust_controller = ThrusterController()
     server = OPiServer((addr, 7772))
-    opi_data = OpiDataProcess(server)
+    opi_data = OpiDataProcess()
     interface = MCUInterface(serial_port)
     # resolve dependencies
     thrust_controller.set_interface(interface)
