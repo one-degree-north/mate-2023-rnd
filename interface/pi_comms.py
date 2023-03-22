@@ -189,3 +189,6 @@ if __name__ == "__main__":
                 comms.turn_flashlight_on()
             case 'off':
                 comms.turn_flashlight_off()
+            case "lel":
+                thrust = input(">")
+                comms.set_manual_thrust([float(thrust), 0, 0, 0, 0, 0])

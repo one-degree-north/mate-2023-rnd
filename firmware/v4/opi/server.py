@@ -63,6 +63,7 @@ class OPiServer:
         cmd = data[0]
         if cmd == 0x00: # manual move
             thrusts = struct.unpack("!fff", data[1:])
+            print(f"manually moving with {thrusts}")
             self.thruster_control.set_pos_manual(list(thrusts))
         elif cmd == 0x01: # move velocity
             velocities = struct.unpack("!fff", data[1:])
