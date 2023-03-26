@@ -215,7 +215,7 @@ class ThrusterController:
         self.rot_state = OpiRotDriftState()
         self.move_delta_time = move_delta_time
         self.mcu_interface = None
-        self.max_thrust = 0.5   # maximum thruster value allowed (0 to 1)
+        self.max_thrust = 0.4   # maximum thruster value allowed (0 to 1)
 
     # way to solve circular dependency
     def set_interface(self, mcu_interface):

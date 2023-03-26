@@ -103,6 +103,7 @@ class MCUInterface:
         self.server.send_data(struct.pack("!" + "B"*(pkt_len-2), *struct.unpack("<" + "B"*(pkt_len-2), bytes(packet.to_bytes_network()))))    # transform little endian into network endianess
 
     def set_thrusters(self, thrusts):
+        print(f"setting thrusts {thrusts}")
         self._write_packet(0x18, 0x0F, struct.pack(">HHHHHHHH", *thrusts))
 
     def test_connection(self):
