@@ -67,7 +67,7 @@ class OpiDataProcess:
         self.server = None
         self.bno_sensor = BNOSensor()
         self.bno_read_delay = 0.01    # in seconds
-        self.bno_individual_delay = self.bno_read_delay / 9
+        self.bno_individual_delay = float(self.bno_read_delay / 9)
         self.data = data()
         self.bno_thread = threading.Thread(target=self.bno_loop, daemon=True)
         self.report_data = report_data   # report data to surface
