@@ -66,6 +66,7 @@ class AppSettings(QWidget):
     def __init__(self):
         super().__init__()
 
+        # I REMOVED CAMERA SETTINGS SINCE IT USES WINDOWS EXCLUSIVE SHIT THAT I CAN'T TEST WITH
         self.camera_header = Header("Camera Ports")
 
         self.front_camera_setting = Setting("Front camera", CameraSelection())

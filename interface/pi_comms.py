@@ -6,8 +6,9 @@ import sys
 from pathlib import Path
 path = Path(sys.path[0])
 sys.path.insert(1, str((path.parent.parent.parent).absolute()))
+sys.path.insert(1, str(path.absolute()))
 
-from interface_utils import *
+from interface.interface_utils import *
 
 class PIClient:
     #code to communicate to opi
@@ -38,6 +39,7 @@ class PIClient:
                 for sock in x:  #exception 8^(. Create new socket and try to connect again.
                     print("exception in networking")
 
+    #TODO: update shit here (idk man)
     def process_data(self, pkt):
         print(pkt)
         # turn into packet
