@@ -10,6 +10,11 @@ class Color:
     light_salmon = "#FFAB84"
     coral = "#FF925F"
     tinted_white = "#FBFAFC"
+    federal_blue = "#03045E"
+    honolulu_blue = "#0077B6"
+    pacific_cyan = "#00B4D8"
+    non_photo_blue = "#90E0EF"
+    light_cyan = "#CAF0F8"
 
 
 class IconButton(QPushButton): # tooltip style

@@ -114,7 +114,7 @@ class Tabs(QTabWidget):
 
 
 
-class MainWindow(QMainWindow):
+class ROVMainWindow(QMainWindow):
     def __init__(self, rov_comms, cam_port_1, cam_port_2):
         super().__init__()
         self.rov_comms = rov_comms
@@ -340,43 +340,3 @@ class MainWindow(QMainWindow):
                 print(temp_thrust)
                 print(f"up thrust adjustments {self.up_thrust_adjustments}")
                 self.rov_comms.set_manual_thrust(temp_thrust, self.up_thrust_adjustments)
-
-
-
-if __name__ == "__main__":
-    try:
-        os.mkdir("gui/captures")
-        print("gui/captures has been created")
-    except FileExistsError:
-        print("gui/captures exists")
-
-    try:
-        os.mkdir("gui/captures/images")
-        print("gui/captures/images has been created")
-    except FileExistsError:
-        print("gui/captures/images exists")
-
-    try:
-        os.mkdir("gui/captures/videos")
-        print("gui/captures/videos has been created")
-    except FileExistsError:
-        print("gui/captures/videos exists")
-
-    try:
-        with open("gui/logs.log", "x") as f:
-            print("gui/logs.log has been created")
-    except FileExistsError:
-        print("gui/logs.log exists")
-    
-    app = QApplication(sys.argv)
-
-    QFontDatabase.addApplicationFont(f"{os.path.dirname(__file__)}/assets/fonts/Montserrat/static/Montserrat-Bold.ttf")
-    QFontDatabase.addApplicationFont(f"{os.path.dirname(__file__)}/assets/fonts/Inter/Inter-Regular.ttf")
-
-    window = MainWindow(" ok", 0, 0)
-    window.show()
-
-    logging.info("One Degree North R&D GUI has launched successfully")
-    print("\033[92mOne Degree North R&D GUI has launched successfully\033[0m")
-
-    app.exec()
