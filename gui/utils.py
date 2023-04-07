@@ -18,13 +18,13 @@ class Color:
 
 
 class IconButton(QPushButton): # tooltip style
-    def __init__(self, icon: QIcon, tooltip, size=40):
+    def __init__(self, icon: QIcon, tooltip, size=40, radius=5):
         super().__init__()
 
         self.setStyleSheet("""
             QPushButton {
                 background: %s;
-                border-radius: 5px;
+                border-radius: %s;
             }
 
             QPushButton:hover {
@@ -34,7 +34,7 @@ class IconButton(QPushButton): # tooltip style
             QPushButton:disabled {
                 background: #5C468A;
             }
-        """ % Color.grape)
+        """ % (Color.grape, radius))
 
         self.setIcon(icon)
         self.setToolTip(tooltip)

@@ -1,9 +1,12 @@
-from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel
-from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel
+from PyQt6.QtGui import QIcon
+from PyQt6.QtCore import Qt, QSize
 
-from gui.utils import Color
+from gui.utils import Color, IconButton
 from gui.widgets.console import Console
 from gui.frame.menu import Information
+
+import logging
 
 class Panel(QWidget):
     def __init__(self):
@@ -51,6 +54,10 @@ class Panel(QWidget):
             }
         """ % (Color.cyber_grape, Color.tinted_white))
 
+        # field
+
+        self.lower_button = IconButton(QIcon("gui/assets/icons/down.png"), "Lower", 100, 20)
+
         # console
         self.console_label = QLabel("Console")
 
@@ -96,6 +103,7 @@ class Panel(QWidget):
         self.layout.addWidget(self.title)
         self.layout.addStretch(1)
         self.layout.addWidget(self.control_label)
+        self.layout.addWidget(self.lower_button)
         self.layout.addWidget(self.console_label)
         self.layout.addWidget(self.console)
 
@@ -124,6 +132,7 @@ class FloatMainWindow(QMainWindow):
         """ % (Color.pacific_cyan, Color.light_cyan))
 
         self.panel = Panel()
+        self.panel.lower_button.clicked.connect(self.lower_event)
 
         self.information = Information()
 
@@ -152,3 +161,6 @@ class FloatMainWindow(QMainWindow):
         self.parent = QWidget()
         self.parent.setLayout(self.layout)
         self.setCentralWidget(self.parent)
+
+    def lower_event(self):
+        logging.debug("no")
