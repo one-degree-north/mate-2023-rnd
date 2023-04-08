@@ -1,20 +1,15 @@
-from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QCheckBox
-from PyQt6.QtGui import QIcon
-from PyQt6.QtCore import Qt, QSize
+from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel
+from PyQt6.QtCore import Qt
 
-from gui.utils import Color, IconButton
-from gui.widgets.console import Console
+from gui.utils import Color
+from gui.sidebar.console import Console
+from gui.sidebar.controls import Controls
+from gui.sidebar.chart import Chart
 from gui.frame.menu import Information
 
 import logging
-import matplotlib
-from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
-from matplotlib.figure import Figure
-from functools import partial
 
 from random import randint
-
-matplotlib.use("QtAgg")
 
 class Panel(QWidget):
     def __init__(self):
@@ -47,62 +42,31 @@ class Panel(QWidget):
 
         # graph
         self.chart_label = HeaderLabel("Chart")
-
         self.chart = Chart()
 
 
         # control
         self.control_label = HeaderLabel("Control")
-
-        # field
-        self.lower_button = IconButton(QIcon("gui/assets/icons/down.png"), "Lower", 80, 10)
-
-        self.controls = QWidget()
-
-        self.controls.layout = QHBoxLayout()
-
-        self.controls.layout.addWidget(self.lower_button)
-        self.controls.layout.addWidget(IconButton(QIcon("gui/assets/icons/settings.png"), "eee"))
-        self.controls.layout.addStretch()
-
-
-        self.controls.layout.setSpacing(20)
-        self.controls.setLayout(self.controls.layout)
+        self.controls = Controls()
 
 
         # console
         self.console_label = HeaderLabel("Console")
-
         self.console = Console()
-
-        self.console.setStyleSheet("""
-            QPlainTextEdit, QLineEdit {
-                font-family: Inter;
-                font-size: 14px;
-                color: %s;
-            }
-        """ % Color.tinted_white)
-
-        self.console.command_line.setStyleSheet("""
-            QLineEdit {
-                background: %s;
-
-                padding: 10px;
-                margin: 5px;
-                
-                border-radius: 8px;
-            }
-        """ % Color.cyber_grape)
 
         # layout
         self.layout = QVBoxLayout()
         
         self.layout.addWidget(self.title)
+
         self.layout.addStretch(1)
+
         self.layout.addWidget(self.chart_label)
         self.layout.addWidget(self.chart)
+
         self.layout.addWidget(self.control_label)
         self.layout.addWidget(self.controls)
+
         self.layout.addWidget(self.console_label)
         self.layout.addWidget(self.console)
 
@@ -129,93 +93,6 @@ class HeaderLabel(QLabel):
             }
         """ % (Color.cyber_grape, Color.tinted_white))
 
-class Chart(QWidget):
-    def __init__(self):
-        super().__init__()
-
-        self.canvas = Canvas()
-        self.checkboxes = CheckBoxes(self)
-
-        self.layout = QVBoxLayout()
-
-        self.layout.addWidget(self.canvas)
-        self.layout.addWidget(self.checkboxes)
-
-        self.setLayout(self.layout)
-
-    def draw_selected(self):
-        self.canvas.draw_selected(self.checkboxes.selected)
-
-
-class CheckBoxes(QWidget):
-    def __init__(self, parent):
-        super().__init__()
-
-        self.parent = parent
-
-        self.velo_check = CheckBox("Velocity")
-        self.velo_check.stateChanged.connect(partial(self.checked, 0))
-
-        self.ang_velo_check = CheckBox("Angular Velocity")
-        self.ang_velo_check.stateChanged.connect(partial(self.checked, 1))
-
-        self.acc_check = CheckBox("Accel")
-        self.acc_check.stateChanged.connect(partial(self.checked, 2))
-
-        self.ang_acc_check = CheckBox("Angular Accel")
-        self.ang_acc_check.stateChanged.connect(partial(self.checked, 3))
-
-        self.layout = QHBoxLayout()
-
-        self.layout.addWidget(self.velo_check)
-        self.layout.addWidget(self.ang_velo_check)
-        self.layout.addWidget(self.acc_check)
-        self.layout.addWidget(self.ang_acc_check)
-
-        self.setLayout(self.layout)
-
-        self.selected = [False] * 4
-
-    def checked(self, i):
-        self.selected[i] = not self.selected[i]
-        self.parent.draw_selected()
-
-class CheckBox(QCheckBox):
-    def __init__(self, text):
-        super().__init__(text)
-
-        self.setStyleSheet("""
-            QCheckBox {
-                font-family: Montserrat;
-                font-size: 12px;
-                font-weight: 700;
-                color: %s;
-            }
-        """ % Color.tinted_white)
-
-class Canvas(FigureCanvasQTAgg):
-    def __init__(self):
-        fig = Figure(figsize=(3, 3), dpi=100)
-        self.axes = fig.add_subplot(111)
-        super().__init__(fig)
-
-        self.all_lines = ("V (m/s)", "AV (rad/s)", "A (m/s\u00b2)", "AA (rad/s\u00b2)")
-
-        self.data = [[]] * 4 # velo, ang velo, acc, ang acc
-
-
-    def draw_selected(self, selected):
-        self.axes.cla()
-        lines = []
-        
-        for i, v in enumerate(selected):
-            if v:
-                self.axes.plot(list(range(len(self.data[i]))), self.data[i])
-                lines.append(self.all_lines[i])
-        self.axes.legend([])
-        self.axes.legend(lines)
-        self.draw()
-
 class FloatMainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -235,7 +112,7 @@ class FloatMainWindow(QMainWindow):
         """ % (Color.pacific_cyan, Color.light_cyan))
 
         self.panel = Panel()
-        self.panel.lower_button.clicked.connect(self.lower_event)
+        self.panel.controls.lower_button.clicked.connect(self.lower_event)
 
         self.information = Information()
 
