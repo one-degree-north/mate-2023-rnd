@@ -177,80 +177,81 @@ class ROVMainWindow(QMainWindow):
         #     logging.debug(f"{e.text()} ({e.key()})")
 
         if self.rov_comms and not e.isAutoRepeat():
-            if e.key() == Qt.Key.Key_1:
-                self.speed = 0
-            if e.key() == Qt.Key.Key_2:
-                self.speed = 10
-            if e.key() == Qt.Key.Key_3:
-                self.speed = 30
-            if e.key() == Qt.Key.Key_4:
-                self.speed = 50
-            if e.key() == Qt.Key.Key_5:
-                self.speed -= 5
-            if e.key() == Qt.Key.Key_6:
-                self.speed += 5
-            if e.key() == Qt.Key.Key_W:
-                self.target_thrust[0] = 1
-            if e.key() == Qt.Key.Key_D:
-                self.target_thrust[1] = 1
-            if e.key() == Qt.Key.Key_A:
-                self.target_thrust[1] = -1
-            if e.key() == Qt.Key.Key_S:
-                self.target_thrust[0] = -1
-            if e.key() == Qt.Key.Key_I:
-                self.target_thrust[2] = 1
-            if e.key() == Qt.Key.Key_K:
-                self.target_thrust[2] = -1
-            if e.key() == Qt.Key.Key_O:
-                if self.pid:
-                    self.target_thrust[3] += 5
-                else:
-                    self.target_thrust[3] = 1
-            if e.key() == Qt.Key.Key_U:
-                if self.pid:
-                    self.target_thrust[3] -= 5
-                else:
-                    self.target_thrust[3] = -1
-            if e.key() == Qt.Key.Key_Q:
-                if self.pid:
-                    self.target_thrust[4] -= 5
-                else:
-                    self.target_thrust[4] = -1
-            if e.key() == Qt.Key.Key_E:
-                if self.pid:
-                    self.target_thrust[4] += 5
-                else:
-                    self.target_thrust[4] = 1
-            if e.key() == Qt.Key.Key_J:
-                if self.pid:
-                    self.target_thrust[5] -= 5
-                else:
-                    self.target_thrust[5] = -1
-            if e.key() == Qt.Key.Key_L:
-                if self.pid:
-                    self.target_thrust[5] += 5
-                else:
-                    self.target_thrust[5] = 1
-            if e.key() == Qt.Key.Key_BracketRight:
-                self.pid = True
-                self.target_thrust = [0, 0, 0, 0, 0, 0]
-            if e.key() == Qt.Key.Key_BracketLeft:
-                self.pid = False
-                self.target_thrust = [0, 0, 0, 0, 0, 0]
-            if e.key() == Qt.Key.Key_T:
-                self.rov_comms.turn_flashlight_on()
-            if e.key() == Qt.Key.Key_Y:
-                self.rov_comms.turn_flashlight_off()
-            if e.key() == Qt.Key.Key_R:
-                
-                if self.claw_open:
-                    print("closing claw")
-                    self.rov_comms.move_claw(0, 2000)
-                    self.claw_open = False
-                else:
-                    print("opening claws")
-                    self.rov_comms.move_claw(0, 1000)
-                    self.claw_open = True
+            match e.key():
+                case Qt.Key.Key_1:
+                    self.speed = 0
+                case Qt.Key.Key_2:
+                    self.speed = 10
+                case Qt.Key.Key_3:
+                    self.speed = 30
+                case Qt.Key.Key_4:
+                    self.speed = 50
+                case Qt.Key.Key_5:
+                    self.speed -= 5
+                case Qt.Key.Key_6:
+                    self.speed += 5
+                case Qt.Key.Key_W:
+                    self.target_thrust[0] = 1
+                case Qt.Key.Key_D:
+                    self.target_thrust[1] = 1
+                case Qt.Key.Key_A:
+                    self.target_thrust[1] = -1
+                case Qt.Key.Key_S:
+                    self.target_thrust[0] = -1
+                case Qt.Key.Key_I:
+                    self.target_thrust[2] = 1
+                case Qt.Key.Key_K:
+                    self.target_thrust[2] = -1
+                case Qt.Key.Key_O:
+                    if self.pid:
+                        self.target_thrust[3] += 5
+                    else:
+                        self.target_thrust[3] = 1
+                case Qt.Key.Key_U:
+                    if self.pid:
+                        self.target_thrust[3] -= 5
+                    else:
+                        self.target_thrust[3] = -1
+                case Qt.Key.Key_Q:
+                    if self.pid:
+                        self.target_thrust[4] -= 5
+                    else:
+                        self.target_thrust[4] = -1
+                case Qt.Key.Key_E:
+                    if self.pid:
+                        self.target_thrust[4] += 5
+                    else:
+                        self.target_thrust[4] = 1
+                case Qt.Key.Key_J:
+                    if self.pid:
+                        self.target_thrust[5] -= 5
+                    else:
+                        self.target_thrust[5] = -1
+                case Qt.Key.Key_L:
+                    if self.pid:
+                        self.target_thrust[5] += 5
+                    else:
+                        self.target_thrust[5] = 1
+                case Qt.Key.Key_BracketRight:
+                    self.pid = True
+                    self.target_thrust = [0, 0, 0, 0, 0, 0]
+                case Qt.Key.Key_BracketLeft:
+                    self.pid = False
+                    self.target_thrust = [0, 0, 0, 0, 0, 0]
+                case Qt.Key.Key_T:
+                    self.rov_comms.turn_flashlight_on()
+                case Qt.Key.Key_Y:
+                    self.rov_comms.turn_flashlight_off()
+                case Qt.Key.Key_R:
+                    
+                    if self.claw_open:
+                        print("closing claw")
+                        self.rov_comms.move_claw(0, 2000)
+                        self.claw_open = False
+                    else:
+                        print("opening claws")
+                        self.rov_comms.move_claw(0, 1000)
+                        self.claw_open = True
             if self.pid:
                 # turn values into target orientations
                 temp_thrust = [0, 0, 0, 0, 0, 0]
@@ -282,36 +283,37 @@ class ROVMainWindow(QMainWindow):
 
     def keyReleaseEvent(self, e):
         if self.rov_comms and not e.isAutoRepeat():
-            if e.key() == Qt.Key.Key_W:
-                self.target_thrust[0] = 0
-            if e.key() == Qt.Key.Key_D:
-                self.target_thrust[1] = 0
-            if e.key() == Qt.Key.Key_A:
-                self.target_thrust[1] = 0
-            if e.key() == Qt.Key.Key_S:
-                self.target_thrust[0] = 0
-            if e.key() == Qt.Key.Key_I:
-                self.target_thrust[2] = 0
-            if e.key() == Qt.Key.Key_K:
-                self.target_thrust[2] = 0
-            if e.key() == Qt.Key.Key_O:
-                if not self.pid:
-                    self.target_thrust[3] = 0
-            if e.key() == Qt.Key.Key_U:
-                if not self.pid:
-                    self.target_thrust[3] = 0
-            if e.key() == Qt.Key.Key_Q:
-                if not self.pid:
-                    self.target_thrust[4] = 0
-            if e.key() == Qt.Key.Key_E:
-                if not self.pid:
-                    self.target_thrust[4] = 0
-            if e.key() == Qt.Key.Key_J:
-                if not self.pid:
-                    self.target_thrust[5] = 0
-            if e.key() == Qt.Key.Key_L:
-                if not self.pid:
-                    self.target_thrust[5] = 0
+            match e.key():
+                case Qt.Key.Key_W:
+                    self.target_thrust[0] = 0
+                case Qt.Key.Key_D:
+                    self.target_thrust[1] = 0
+                case Qt.Key.Key_A:
+                    self.target_thrust[1] = 0
+                case Qt.Key.Key_S:
+                    self.target_thrust[0] = 0
+                case Qt.Key.Key_I:
+                    self.target_thrust[2] = 0
+                case Qt.Key.Key_K:
+                    self.target_thrust[2] = 0
+                case Qt.Key.Key_O:
+                    if not self.pid:
+                        self.target_thrust[3] = 0
+                case Qt.Key.Key_U:
+                    if not self.pid:
+                        self.target_thrust[3] = 0
+                case Qt.Key.Key_Q:
+                    if not self.pid:
+                        self.target_thrust[4] = 0
+                case Qt.Key.Key_E:
+                    if not self.pid:
+                        self.target_thrust[4] = 0
+                case Qt.Key.Key_J:
+                    if not self.pid:
+                        self.target_thrust[5] = 0
+                case Qt.Key.Key_L:
+                    if not self.pid:
+                        self.target_thrust[5] = 0
             # if e.key() == Qt.Key.Key_BracketRight:
             #     self.pid = True
             #     self.target_thrust = [0, 0, 0, 0, 0, 0]
