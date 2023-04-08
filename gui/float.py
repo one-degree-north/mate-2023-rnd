@@ -44,17 +44,31 @@ class Panel(QWidget):
             }
         """ % Color.tinted_white)
 
-        # control
-        self.control_label = HeaderLabel("Control")
 
         # graph
         self.chart_label = HeaderLabel("Chart")
 
         self.chart = Chart()
 
-        # field
 
-        self.lower_button = IconButton(QIcon("gui/assets/icons/down.png"), "Lower", 100, 20)
+        # control
+        self.control_label = HeaderLabel("Control")
+
+        # field
+        self.lower_button = IconButton(QIcon("gui/assets/icons/down.png"), "Lower", 80, 10)
+
+        self.controls = QWidget()
+
+        self.controls.layout = QHBoxLayout()
+
+        self.controls.layout.addWidget(self.lower_button)
+        self.controls.layout.addWidget(IconButton(QIcon("gui/assets/icons/settings.png"), "eee"))
+        self.controls.layout.addStretch()
+
+
+        self.controls.layout.setSpacing(20)
+        self.controls.setLayout(self.controls.layout)
+
 
         # console
         self.console_label = HeaderLabel("Console")
@@ -88,7 +102,7 @@ class Panel(QWidget):
         self.layout.addWidget(self.chart_label)
         self.layout.addWidget(self.chart)
         self.layout.addWidget(self.control_label)
-        self.layout.addWidget(self.lower_button)
+        self.layout.addWidget(self.controls)
         self.layout.addWidget(self.console_label)
         self.layout.addWidget(self.console)
 
@@ -142,13 +156,13 @@ class CheckBoxes(QWidget):
         self.velo_check = CheckBox("Velocity")
         self.velo_check.stateChanged.connect(partial(self.checked, 0))
 
-        self.ang_velo_check = CheckBox("Ang Velocity")
+        self.ang_velo_check = CheckBox("Angular Velocity")
         self.ang_velo_check.stateChanged.connect(partial(self.checked, 1))
 
         self.acc_check = CheckBox("Accel")
         self.acc_check.stateChanged.connect(partial(self.checked, 2))
 
-        self.ang_acc_check = CheckBox("Ang Accel")
+        self.ang_acc_check = CheckBox("Angular Accel")
         self.ang_acc_check.stateChanged.connect(partial(self.checked, 3))
 
         self.layout = QHBoxLayout()
@@ -185,12 +199,9 @@ class Canvas(FigureCanvasQTAgg):
         self.axes = fig.add_subplot(111)
         super().__init__(fig)
 
-        self.all_lines = ("Velo", "Ang Velo", "Acc", "Ang Acc")
+        self.all_lines = ("V (m/s)", "AV (rad/s)", "A (m/s\u00b2)", "AA (rad/s\u00b2)")
 
         self.data = [[]] * 4 # velo, ang velo, acc, ang acc
-
-        for i in range(4):
-            self.data[i] = [randint(1, 100) for _ in range(10)]
 
 
     def draw_selected(self, selected):
@@ -208,6 +219,8 @@ class Canvas(FigureCanvasQTAgg):
 class FloatMainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+
+        self.lower_debouce = False
 
         self.setStyleSheet("""
             QMainWindow {
@@ -254,6 +267,20 @@ class FloatMainWindow(QMainWindow):
 
     def update_graph(self, data): # data should be 2d list in order: velocity, angular velocity, accel, angular accel
         self.panel.chart.canvas.data = data
+        self.panel.chart.draw_selected()
 
     def lower_event(self):
-        logging.debug("no")
+        self.lower_debouce = True
+
+        logging.info("Vertical profiling float in progress...")
+        # something probably with threading
+        logging.info("Vertical profiling float complete!")
+        # data show
+
+        data = []
+        for i in range(4):
+            data.append([randint(1, 100) for _ in range(10)])
+
+        self.update_graph(data)
+        
+        self.lower_debouce = False
