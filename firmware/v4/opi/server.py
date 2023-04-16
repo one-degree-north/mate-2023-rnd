@@ -98,6 +98,18 @@ class OPiServer:
     def send_data(self, data):
         self.out_queue.put(data)
     
+    def send_confirmation(self):
+        self.out_queue.put(struct.pack("Q"))
+
+    def send_thruster_positions(self):
+        pass
+
+    def send_servo_positions(self):
+        pass
+
+    def send_flashlight(self):
+        pass
+
     def send_sens_data(self, param, values):
         self.out_queue.put(struct.pack("!" + "B"*(3+len(values)), 0x33, param, len(values), *values))
 

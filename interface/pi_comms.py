@@ -1,6 +1,7 @@
 # import RPi.GPIO as GPIO
 import socket, select, queue, threading, struct
 from collections import namedtuple
+from dataclasses import dataclass
 
 import sys
 from pathlib import Path
@@ -8,7 +9,88 @@ path = Path(sys.path[0])
 sys.path.insert(1, str((path.parent.parent.parent).absolute()))
 sys.path.insert(1, str(path.absolute()))
 
-from interface.interface_utils import *
+# from firmware.bno_lib.bno import BNOPowerMode, BNODataOutputType, BNOOperationalMode
+# from enum import *
+import enum
+
+class BNOPowerMode(enum.Enum):
+    NORMAL = "normal"
+    LOW = "low"
+    SUSPEND = "suspend"
+
+
+class BNOOperationalMode(enum.Enum):
+    CONFIG = "config"
+    ACCONLY = "acconly"
+    MAGONLY = "magonly"
+    GYRONLY = "gyronly"
+    ACCMAG = "accmag"
+    ACCGYRO = "accgyro"
+    MAGGYRO = "maggyro"
+    AMG = "amg"
+    IMU = "imu"
+    COMPASS = "compass"
+    M4G = "m4g"
+    NDOF = "ndof"
+    NDOF_FMC = "ndof_fmc"
+
+
+class BNODataOutputType(enum.Enum):
+    ACC = "acc"
+    GYR = "gyr"
+    MAG = "mag"
+    EUL = "eul"
+    QUA = "qua"
+    GRA = "gra"
+    LIN = "lin"
+    INF = "inf"
+    CAL = "cal"
+    CON = "con"
+
+@dataclass
+class data:
+    accel:list[float]
+    gyro:list[float]
+    eul:list[float]
+    vel:list[float]
+    quat:list[float]
+    lin:list[float]
+    inf:list[float] #information
+    cal:list[float] # calibration
+    con:list[float] # continuous data (?), CHANGE THIS!!
+    mag:list[float]
+    gra: list[float]    # gravitaitonal vector
+    def __init__(self):
+        self.accel = [0, 0, 0]
+        self.gyro = [0, 0, 0]
+        self.eul = [0, 0, 0]
+        self.vel = [0, 0, 0]
+        self.quat = [0, 0, 0, 0]
+        self.lin = [0, 0, 0]
+        self.inf = [0, 0, 0]    # not sure how this should be represented
+        self.cal = [0, 0, 0]    # also not sure
+        self.mag = [0, 0, 0]
+        self.gra = [0, 0, 0]
+    # I don't want to use a dict, ok?
+    def set_value(self, key, value):
+        if key == BNODataOutputType.ACC:
+            self.accel = value
+        elif key ==  BNODataOutputType.GYR:
+            self.gyro = value
+        elif key ==  BNODataOutputType.EUL:
+            self.eul = value
+        elif key ==  BNODataOutputType.MAG:
+            self.mag = value
+        elif key ==  BNODataOutputType.QUA:
+            self.quat = value
+        elif key ==  BNODataOutputType.GRA:
+            self.gra = value
+        elif key ==  BNODataOutputType.LIN:
+            self.lin = value
+        elif key ==  BNODataOutputType.INF:
+            self.inf = value
+        elif key ==  BNODataOutputType.CAL:
+            self.cal = value
 
 class PIClient:
     #code to communicate to opi
@@ -17,7 +99,7 @@ class PIClient:
         self.out_queue = queue.Queue()
         self.client_thread = threading.Thread(target=self.client_loop, args=[server_address], daemon=True)
         self.client_thread.start()
-        self.sens_data = SensorData()
+        self.bno_data = data()
     
     def client_loop(self, server_address):
         while True:
@@ -39,89 +121,60 @@ class PIClient:
                 for sock in x:  #exception 8^(. Create new socket and try to connect again.
                     print("exception in networking")
 
-    #TODO: update shit here (idk man)
+
     def process_data(self, pkt):
-        print(pkt)
         # turn into packet
         cmd = pkt[0]
         param = pkt[1]
-        len = pkt[2]
-        temp = []
-        for i in range(len):
-            temp.append(pkt[i+3])
-        data = temp
-        # your wish for match has been fulfilled
+        data = pkt[2:]
+        length = len(data)
         match(cmd):
             case 0x00:
                 # echo or hello
-                self.sens_data.other = bytes(data).decode('latin')
-                print(self.sens_data.other)
-            case 0x0A:
-                # get system attribute
-                if not data:
-                    return
-                self.sens_data.system.sys_enable = data[0]
-            case 0x0F:
-                # success
-                if not data:
-                    self.sens_data.system.failed = 1
-                    return
-                self.sens_data.system.failed = data[0]
+                print(f"opi confirm: {data}")
             case 0x1A:
                 # thruster positions
-                if len == 2 and THRUSTER_ONE <= param <= THRUSTER_SIX:
-                    self.sens_data.outputs.update(param, struct.unpack('!H', data)[0])
-                if len == 12 and param == THRUSTER_ALL:
-                    self.sens_data.outputs.update_all_thrusters(struct.unpack('!HHHHHH', data))
+                pass
             case 0x2A:
                 # servo positions
-                if len == 2 and SERVO_LEFT <= param <= SERVO_RIGHT:
-                    self.sens_data.outputs.update(param, struct.unpack('!H', data)[0])
-                if len == 4 and param == SERVO_ALL:
-                    self.sens_data.outputs.update_all_servos(struct.unpack('!HH', data))
+                pass
             case 0x33:
-                # some type of sensor data
-                new_data = None
-                if len == 2:
-                    new_data = struct.unpack('!H', data)[0]
-                elif len == 4:
-                    new_data = struct.unpack('!f', data)[0]
-                elif len == 12:
-                    new_data = Vector3.from_arr(struct.unpack('!fff', data))
-                elif len == 16:
-                    new_data = Quaternion.from_arr(struct.unpack('!ffff', data))
-
-                # make sure type is correct
-                if param in SENSOR_TYPES:
-                    assert type(new_data) == SENSOR_TYPES[param], f"wrong type for packet type {param}, expected {SENSOR_TYPES[param]}, got {type(new_data)}"
-                else:
-                    print("?????????")
-
-                # every possible ..
-                if param == SENSOR_ACCEL:
-                    self.sens_data.accel = new_data
-                elif param == SENSOR_MAG:
-                    self.sens_data.mag = new_data
-                elif param == SENSOR_GYRO:
-                    self.sens_data.gyro = new_data
-                elif param == SENSOR_EULER:
-                    self.sens_data.orientation = new_data
-                elif param == SENSOR_QUATERNION:
-                    self.sens_data.quaternion = new_data
-                elif param == SENSOR_LINACCEL:
-                    self.sens_data.linaccel = new_data
-                elif param == SENSOR_GRAVITY:
-                    self.sens_data.gravity = new_data
-                elif param == SENSOR_CALIBRATION:
-                    self.sens_data.status.calib_sys = new_data & 0b11000000
-                    self.sens_data.status.calib_gyr = new_data & 0b00110000
-                    self.sens_data.status.calib_acc = new_data & 0b00001100
-                    self.sens_data.status.calib_mag = new_data & 0b00000011
-                elif param == SENSOR_SYSTEM:
-                    self.sens_data.status.sys_status = new_data & 0xFF00
-                    self.sens_data.status.sys_err    = new_data & 0x00FF
-                elif param == SENSOR_TEMP:
-                    self.sens_data.temperature = new_data
+                # sensor data
+                #TODO: make this shorter (but whatever), add calibration, add BNO mode
+                match(param):
+                    case 0x00:  # accel
+                        if length == 12:
+                            acc = struct.unpack("!fff", data)
+                            self.bno_data.set_value(BNODataOutputType.ACC, acc)
+                    case 0x01:  # euler
+                        if length == 12:
+                            eul = struct.unpack("!fff", data)
+                            self.bno_data.set_value(BNODataOutputType.EUL, eul)
+                    case 0x02:  # mag
+                        if length == 12:
+                            mag = struct.unpack("!fff", data)
+                            self.bno_data.set_value(BNODataOutputType.MAG)
+                    case 0x03:  # quaternion
+                        if length == 16:
+                            quat = struct.unpack("!ffff", data)
+                            self.bno_data.set_value(BNODataOutputType.QUA, quat)
+                    case 0x04:  # gra
+                        if length == 12:
+                            gra = struct.unpack("!fff", data)
+                            self.bno_data.set_value(BNODataOutputType.GRA, gra)
+                    case 0x05:  # linear accel
+                        if length == 12:
+                            lin = struct.unpack("!fff", data)
+                            self.bno_data.set_value(BNODataOutputType.LIN, lin)
+                    case 0x06:  # inf
+                        if length == 12:
+                            inf = struct.unpack("!fff", data)
+                            self.bno_data.set_value(BNODataOutputType.INF, inf)
+                    case 0x07:  # calibration
+                        # self.bno_data.set_value(BNODataOutputType.CAL)
+                        pass
+                    case 0x08:  # mode
+                        pass
 
     def move_claw(self, claw_num, claw_deg):
         assert isinstance(claw_num, int), "claw_num must be an int specifying the selected claw"

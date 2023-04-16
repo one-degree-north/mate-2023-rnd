@@ -40,7 +40,7 @@ void cmd_return_int(u8 param, u16 data);
 #define UART_QUEUE_SIZE 40  // max 256
 #define UART_HEADER 0xa7
 #define UART_FOOTER 0x7a
-#define UART_PIN_RX 1
+#define UART_PIN_RX 29
 #define UART_PIN_TX 28      // A2 on the rp2040 feather
 #define UART_MAX_PACKET_LENGTH 48
 
@@ -55,7 +55,7 @@ void uart_write(u8* data, u8 length);
 /*** THRUSTERS ***/
 #define MAX_DELTA_POS 2000 // delta us per second, TODO: replace with optimal solution on thrust curve
 #define NUM_THRUSTERS 8
-const u8 thruster_pins[] = {12, 11, 10, 9, 24, 25, 18, 19};
+const u8 thruster_pins[] = {12, 11, 10, 9, 24, 20, 18, 19};
 u16 thruster_pos[NUM_THRUSTERS];
 u16 thruster_target_pos[NUM_THRUSTERS];
 u64 thruster_prev_loop_us;
