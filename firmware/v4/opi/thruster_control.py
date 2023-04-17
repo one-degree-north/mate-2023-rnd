@@ -209,13 +209,14 @@ class OpiRotDriftState(OpiRotateState):
         return "drift"
 
 class ThrusterController:
-    def __init__(self, move_delta_time=0.05):
+    def __init__(self, move_delta_time=0.05, stop_event=None):
         self.data = None
         self.pos_state = OpiPosDriftState()
         self.rot_state = OpiRotDriftState()
         self.move_delta_time = move_delta_time
         self.mcu_interface = None
         self.max_thrust = 0.3   # maximum thruster value allowed (0 to 1)
+        self.stop_event=stop_event
 
     # way to solve circular dependency
     def set_interface(self, mcu_interface):
@@ -299,7 +300,7 @@ class ThrusterController:
 
     # moves ROV based on input data
     def move_loop(self):
-        while True:
+        while True and not self.stop_event.is_set():
             pos_thrust = self.pos_state.on_tick()
             rot_thrust = self.rot_state.on_tick()
             # TODO: Revise and check if this actually is an ok way to do this

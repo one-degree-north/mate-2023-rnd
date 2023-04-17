@@ -63,14 +63,15 @@ class data:
             self.vel[i] += accel[i] * delta_time  #delta time is in seconds
 
 class OpiDataProcess:
-    def __init__(self, report_data=True):
+    def __init__(self, report_data=True, stop_event=None):
         self.server = None
         self.bno_sensor = BNOSensor()
-        self.bno_read_delay = 0.01    # in seconds
+        self.bno_read_delay = 0.05    # in seconds
         self.bno_individual_delay = self.bno_read_delay / 9
         self.data = data()
         self.bno_thread = threading.Thread(target=self.bno_loop, daemon=True)
         self.report_data = report_data   # report data to surface
+        self.stop_event=stop_event
 
     def set_server(self, server):
         self.server = server
@@ -80,7 +81,6 @@ class OpiDataProcess:
 
     # read all bno data
     def read_bno_data(self):
-        print("-----")
         # maybe there is a way to replace this with continuous? Modifying the bno_lib to make the output easier to decipher would work
         for bno_data in BNODataOutputType:
             if bno_data != BNODataOutputType.CON:
@@ -95,7 +95,7 @@ class OpiDataProcess:
 
     # using a thread to continuously get BNO data
     def bno_loop(self):
-        while True:
+        while True and not self.stop_event.is_set():
             self.read_bno_data()
             # time.sleep(self.bno_read_delay)
             # print(f"sleeping {self.bno_read_delay}")

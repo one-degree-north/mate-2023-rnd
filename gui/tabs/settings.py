@@ -5,7 +5,7 @@ from PyQt6.QtCore import Qt
 from functools import partial
 from gui.utils import Color, IconButton
 
-from pygrabber.dshow_graph import FilterGraph
+# from pygrabber.dshow_graph import FilterGraph
 
 class SettingsTab(QWidget):
     def __init__(self):
@@ -211,10 +211,10 @@ class CameraSelection(QComboBox):
     def __init__(self):
         super().__init__()
 
-        devices = FilterGraph().get_input_devices()
+        # devices = FilterGraph().get_input_devices()
 
-        for port, name in enumerate(devices):
-            self.addItem(f"{port}: {name}")
+        # for port, name in enumerate(devices):
+        #     self.addItem(f"{port}: {name}")
 
         
         
