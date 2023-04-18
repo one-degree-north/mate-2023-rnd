@@ -18,8 +18,8 @@ def main(stop_event):
     addr = config['ip_addr']
     serial_port = config['serial_port']
     thrust_controller = ThrusterController(config['thruster_move_delta'], stop_event, not not config['debug'])
-    server = OPiServer((addr, config['udp_port']))
-    interface = MCUInterface(serial_port)
+    server = OPiServer((addr, config['udp_port']), stop_event)
+    interface = MCUInterface(serial_port, stop_event)
 
     # resolve dependencies between components
     thrust_controller.set_interface(interface)
@@ -29,7 +29,7 @@ def main(stop_event):
 
     # config if we are using bno data
     if config['use_bno']:
-        opi_data = OpiDataProcess()
+        opi_data = OpiDataProcess(True, stop_event)
         thrust_controller.set_data(opi_data)
         opi_data.set_server(server)
 
@@ -50,7 +50,7 @@ if __name__ == "__main__":
     yappi.start()
     stop_event = threading.Event()
     thrust_controller, server, opi_data, interface = main(stop_event)
-    time.sleep(30)
+    time.sleep(1)
     stop_event.set()
     server.server_thread.join()
     yappi.stop()
