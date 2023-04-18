@@ -154,8 +154,9 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.parent)
 
         # keyboard input stuff
-        self.speed = 10
+        self.speed = 0.2
         self.pid = False
+        self.pid_angle = False  # angle or gyro for pid
         self.target_thrust = [0, 0, 0, 0, 0, 0]
         self.target_orientation = [0, 0, 0]
         self.claw_open = False
@@ -180,15 +181,15 @@ class MainWindow(QMainWindow):
             if e.key() == Qt.Key.Key_1:
                 self.speed = 0
             if e.key() == Qt.Key.Key_2:
-                self.speed = 10
+                self.speed = 0.2
             if e.key() == Qt.Key.Key_3:
-                self.speed = 30
+                self.speed = 0.4
             if e.key() == Qt.Key.Key_4:
-                self.speed = 50
+                self.speed = 0.6
             if e.key() == Qt.Key.Key_5:
-                self.speed -= 5
+                self.speed += 0.1
             if e.key() == Qt.Key.Key_6:
-                self.speed += 5
+                self.speed -= 0.1
             if e.key() == Qt.Key.Key_W:
                 self.target_thrust[0] = 1
             if e.key() == Qt.Key.Key_D:
@@ -202,47 +203,54 @@ class MainWindow(QMainWindow):
             if e.key() == Qt.Key.Key_K:
                 self.target_thrust[2] = -1
             if e.key() == Qt.Key.Key_O:
-                if self.pid:
+                if self.pid and self.pid_angle:
                     self.target_thrust[3] += 5
                 else:
                     self.target_thrust[3] = 1
             if e.key() == Qt.Key.Key_U:
-                if self.pid:
+                if self.pid and self.pid_angle:
                     self.target_thrust[3] -= 5
                 else:
                     self.target_thrust[3] = -1
             if e.key() == Qt.Key.Key_Q:
-                if self.pid:
+                if self.pi and self.pid_angle:
                     self.target_thrust[4] -= 5
                 else:
                     self.target_thrust[4] = -1
             if e.key() == Qt.Key.Key_E:
-                if self.pid:
+                if self.pid and self.pid_angle:
                     self.target_thrust[4] += 5
                 else:
                     self.target_thrust[4] = 1
             if e.key() == Qt.Key.Key_J:
-                if self.pid:
+                if self.pid and self.pid_angle:
                     self.target_thrust[5] -= 5
                 else:
                     self.target_thrust[5] = -1
             if e.key() == Qt.Key.Key_L:
-                if self.pid:
+                if self.pid and self.pid_angle:
                     self.target_thrust[5] += 5
                 else:
                     self.target_thrust[5] = 1
-            if e.key() == Qt.Key.Key_BracketRight:
+            if e.key() == Qt.Key.Key_BracketRight:  # turn pid on
                 self.pid = True
                 self.target_thrust = [0, 0, 0, 0, 0, 0]
-            if e.key() == Qt.Key.Key_BracketLeft:
+                print(f"pid on")
+            if e.key() == Qt.Key.Key_BracketLeft:   # turn pid off
                 self.pid = False
                 self.target_thrust = [0, 0, 0, 0, 0, 0]
+                print(f"pid off")
+            if e.key() == Qt.Key.Key_QuoteLeft: # set gyro pid
+                self.pid_angle = False
+                print(f"gyro pid on")
+            if e.key() == Qt.Key.Key_Semicolon: # set angle pid
+                self.pid_angle = True
+                print(f"angle pid on")
             if e.key() == Qt.Key.Key_T:
                 self.rov_comms.turn_flashlight_on()
             if e.key() == Qt.Key.Key_Y:
                 self.rov_comms.turn_flashlight_off()
             if e.key() == Qt.Key.Key_R:
-                
                 if self.claw_open:
                     print("closing claw")
                     self.rov_comms.move_claw(0, 2000)
@@ -254,22 +262,31 @@ class MainWindow(QMainWindow):
             if self.pid:
                 # turn values into target orientations
                 temp_thrust = [0, 0, 0, 0, 0, 0]
+                # translation stuff
                 for i in range(3):
                     temp_thrust[i] = self.target_thrust[i] * self.speed / 500
-                for i in range(3):
-                    temp_thrust[i+3] = self.target_thrust[i+3] % 360
-                    if temp_thrust[i+3] > 180:
-                        temp_thrust[i+3] = temp_thrust[i+3] - 360
-                    elif temp_thrust[i+3] < -180:
-                        temp_thrust[i+3] = 360 + temp_thrust[i+3]
+                # rotation stuff
+                if self.pid_angle:
+                    for i in range(3):
+                        temp_thrust[i+3] = self.target_thrust[i+3] % 360
+                        if temp_thrust[i+3] > 180:
+                            temp_thrust[i+3] = temp_thrust[i+3] - 360
+                        elif temp_thrust[i+3] < -180:
+                            temp_thrust[i+3] = 360 + temp_thrust[i+3]
+                else:
+                    for i in range(3):
+                        temp_thrust[i] = self.target_thrust[i] * self.speed / 500
                 print("self thrust: ")
                 print(self.target_thrust)
                 print("pid thrust: ")
                 print(temp_thrust)
                 print("orientation: ")
                 print(self.rov_comms.orientation)
-                print("error: ")
-                print(self.rov_comms.pidErrors)
+                self.rov_comms.set_pos_pid(temp_thrust[0:3])
+                if self.pid_angle:
+                    self.rov_comms.set_rot_angle(temp_thrust[3:6])
+                else:
+                    self.rov_comms.set_rot_vel(temp_thrust[3:6])
                 # self.rov_comms.set_accelerations_thrust(temp_thrust)
             else:
                 temp_thrust = [0, 0, 0, 0, 0, 0]
@@ -321,19 +338,34 @@ class MainWindow(QMainWindow):
             if self.pid:
                 # turn values into target orientations
                 temp_thrust = [0, 0, 0, 0, 0, 0]
+                # translation stuff
                 for i in range(3):
                     temp_thrust[i] = self.target_thrust[i] * self.speed / 500
-                for i in range(3):
-                    temp_thrust[i+2] = self.target_thrust[i+2] % 360
-                    if temp_thrust[i+2] > 180:
-                        temp_thrust[i+2] = temp_thrust[i+2] - 360
-                    elif temp_thrust[i+2] < -180:
-                        temp_thrust[i+2] = 360 + temp_thrust[i+2]
+                # rotation stuff
+                if self.pid_angle:
+                    for i in range(3):
+                        temp_thrust[i+3] = self.target_thrust[i+3] % 360
+                        if temp_thrust[i+3] > 180:
+                            temp_thrust[i+3] = temp_thrust[i+3] - 360
+                        elif temp_thrust[i+3] < -180:
+                            temp_thrust[i+3] = 360 + temp_thrust[i+3]
+                else:
+                    for i in range(3):
+                        temp_thrust[i] = self.target_thrust[i] * self.speed / 500
+                print("self thrust: ")
+                print(self.target_thrust)
                 print("pid thrust: ")
                 print(temp_thrust)
-                self.rov_comms.set_accelerations_thrust(temp_thrust)
+                print("orientation: ")
+                print(self.rov_comms.orientation)
+                self.rov_comms.set_pos_pid(temp_thrust[0:3])
+                if self.pid_angle:
+                    self.rov_comms.set_rot_angle(temp_thrust[3:6])
+                else:
+                    self.rov_comms.set_rot_vel(temp_thrust[3:6])
+                # self.rov_comms.set_accelerations_thrust(temp_thrust)
             else:
-                temp_thrust = [0.0, 0, 0, 0, 0, 0]
+                temp_thrust = [0, 0, 0, 0, 0, 0]
                 for i in range(6):
                     temp_thrust[i] = self.target_thrust[i]* self.speed
                 print("manual thurst: ")

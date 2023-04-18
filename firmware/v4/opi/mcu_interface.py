@@ -65,13 +65,14 @@ class Packet:
         return self.complete
 
 class MCUInterface:
-    def __init__(self, serial_port):
+    def __init__(self, serial_port, stop_event):
         self.serial_port = serial_port
         self.ser = serial.Serial(serial_port, 115200)
         self.ser_enabled = False
         self.read_packet = Packet()
         self.server = None
         self.read_thread = threading.Thread(target=self._read_thread)
+        self.stop_event = stop_event
     
     def set_server(self, server):
         self.server = server
@@ -86,7 +87,7 @@ class MCUInterface:
         self.ser.write(struct.pack(">BBBB", HEADER, cmd, param, len(data)) + data + struct.pack(">B", FOOTER))
 
     def _read_thread(self): #READ IS LITTLE ENDIAN!!!!!
-        while True:
+        while True and not self.stop_event.is_set():
             new_bytes = self.ser.read_all()
             for byte in new_bytes:
                 self.read_packet.add_byte(byte)
@@ -103,6 +104,7 @@ class MCUInterface:
         self.server.send_data(struct.pack("!" + "B"*(pkt_len-2), *struct.unpack("<" + "B"*(pkt_len-2), bytes(packet.to_bytes_network()))))    # transform little endian into network endianess
 
     def set_thrusters(self, thrusts):
+        print(f"setting thrusts {thrusts}")
         self._write_packet(0x18, 0x0F, struct.pack(">HHHHHHHH", *thrusts))
 
     def test_connection(self):

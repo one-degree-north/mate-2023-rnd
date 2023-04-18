@@ -461,6 +461,8 @@ void setup_outputs() {
 void loop_outputs() {
     u64 now = to_us_since_boot(get_absolute_time());
     u64 elapsed_us = thruster_prev_loop_us - now;
+    // u16 max_delta = MIN(MAX_DELTA_POS * elapsed_us / 1000000000, 0xFFFF);
+    // old max_delta calculation
     u16 max_delta = MIN(MAX_DELTA_POS * elapsed_us / 1000000, 0xFFFF);
 
     // set each output to current value

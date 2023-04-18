@@ -209,13 +209,14 @@ class OpiRotDriftState(OpiRotateState):
         return "drift"
 
 class ThrusterController:
-    def __init__(self, move_delta_time=0.05, debug=False):
+    def __init__(self, move_delta_time=0.05, stop_event=None, debug=False):
         self.data = None
         self.pos_state = OpiPosDriftState()
         self.rot_state = OpiRotDriftState()
         self.move_delta_time = move_delta_time
         self.mcu_interface = None
-        self.max_thrust = 0.5   # maximum thruster value allowed (0 to 1)
+        self.max_thrust = 0.3   # maximum thruster value allowed (0 to 1)
+        self.stop_event=stop_event
         self.debug = debug
 
     # way to solve circular dependency
@@ -233,7 +234,7 @@ class ThrusterController:
     def move_loop(self):
         if self.debug:
             t = time.time()
-        while True:
+        while True and not self.stop_event.is_set():
             pos_thrust = self.pos_state.on_tick()
             rot_thrust = self.rot_state.on_tick()
             # TODO: Revise and check if this actually is an ok way to do this
@@ -268,7 +269,7 @@ class ThrusterController:
             if max_thrust > self.max_thrust:
                 for i in range(8):
                     # adjust for maximum thrust present
-                    total_thrust[i] = int(total_thrust[i] / max_thrust)*self.max_thrust
+                    total_thrust[i] = total_thrust[i] / max_thrust*self.max_thrust
                     # adjust for microseconds (-1 to 1) to (1000 to 2000)
                     total_thrust[i] = int(1500 + 500*total_thrust[i])
             
@@ -282,7 +283,7 @@ class ThrusterController:
             else:
                 for i in range(8):
                     # adjust for maximum thrust present
-                    total_thrust[i] = int(total_thrust[i])*self.max_thrust
+                    total_thrust[i] = total_thrust[i]*self.max_thrust
                     # adjust for microseconds (-1 to 1) to (1000 to 2000)
                     total_thrust[i] = int(1500 + 500*total_thrust[i])
 

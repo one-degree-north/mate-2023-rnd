@@ -16,7 +16,7 @@ C     H   H U   U N  NN G   G U   U     S
 """
 
 class OPiServer:
-    def __init__(self, server_address: tuple):
+    def __init__(self, server_address: tuple, stop_event=None):
         self.connected = False
         self.server_address = server_address
         self.thruster_control = None
@@ -24,6 +24,7 @@ class OPiServer:
         self.client_addr = ()
         self.server_thread = threading.Thread(target=self._server_loop)
         self.out_queue = queue.Queue()
+        self.stop_event = stop_event
     
     def set_thruster_control(self, thruster_control):
         self.thruster_control = thruster_control
@@ -41,7 +42,7 @@ class OPiServer:
 
     # read and write data to and from surface client
     def _server_loop(self):
-        while True:
+        while True and not self.stop_event.is_set():
             r, w, x = select.select([self.sock], [self.sock], [self.sock])
             for sock in r:  #ready to read!
                 print("attempting to read network data")
@@ -63,6 +64,7 @@ class OPiServer:
         cmd = data[0]
         if cmd == 0x00: # manual move
             thrusts = struct.unpack("!fff", data[1:])
+            print(f"manually moving with {thrusts}")
             self.thruster_control.set_pos_manual(list(thrusts))
         elif cmd == 0x01: # move velocity
             velocities = struct.unpack("!fff", data[1:])
@@ -97,6 +99,18 @@ class OPiServer:
     def send_data(self, data):
         self.out_queue.put(data)
     
+    def send_confirmation(self):
+        self.out_queue.put(struct.pack("Q"))
+
+    def send_thruster_positions(self):
+        pass
+
+    def send_servo_positions(self):
+        pass
+
+    def send_flashlight(self):
+        pass
+
     def send_sens_data(self, param, values):
         self.out_queue.put(struct.pack("!" + "B"*(3+len(values)), 0x33, param, len(values), *values))
 

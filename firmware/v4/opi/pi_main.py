@@ -3,9 +3,12 @@ from server import OPiServer
 from thruster_control import ThrusterController
 from data import OpiDataProcess
 import threading
+import yappi
+import time
 import json
 
-if __name__ == "__main__":
+
+def main(stop_event):
     # setup configuration file contents
     config_file = open('config.json', 'r')
     config = json.loads(config_file.read())
@@ -14,7 +17,7 @@ if __name__ == "__main__":
     # create components
     addr = config['ip_addr']
     serial_port = config['serial_port']
-    thrust_controller = ThrusterController(config['thruster_move_delta'], not not config['debug'])
+    thrust_controller = ThrusterController(config['thruster_move_delta'], stop_event, not not config['debug'])
     server = OPiServer((addr, config['udp_port']))
     interface = MCUInterface(serial_port)
 
@@ -40,4 +43,22 @@ if __name__ == "__main__":
         opi_data.start_bno_reading()
     print("starting thruster controller")
     thrust_controller.start_loop()
+    
+    return thrust_controller, server, opi_data, interface
+
+if __name__ == "__main__":
+    yappi.start()
+    stop_event = threading.Event()
+    thrust_controller, server, opi_data, interface = main(stop_event)
+    time.sleep(30)
+    stop_event.set()
     server.server_thread.join()
+    yappi.stop()
+
+    # retrieve thread stats by their thread id (given by yappi)
+    threads = yappi.get_thread_stats()
+    for thread in threads:
+        print(
+            "Function stats for (%s) (%d)" % (thread.name, thread.id)
+        )  # it is the Thread.__class__.__name__
+        yappi.get_func_stats(ctx_id=thread.id).print_all()

@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtGui import QFontDatabase
 
-from firmware import pi_comms
+from interface import pi_comms
 from gui.rov import MainWindow
 
 import logging
@@ -43,7 +43,6 @@ if __name__ == "__main__":
     if input("Connect comms (y/n)? ") == "y":
         print("Searching for serial...")
         comms = pi_comms.PIClient((input("enter ip: "), 27777))
-        print("Serial found")
 
     window = MainWindow(comms, 1, 2)
     window.show()
