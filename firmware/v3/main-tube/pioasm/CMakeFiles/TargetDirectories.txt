@@ -1,0 +1,3 @@
+/home/alan/Documents/robotics/mate-2023-rnd/firmware/v3/main-tube/pioasm/CMakeFiles/pioasm.dir
+/home/alan/Documents/robotics/mate-2023-rnd/firmware/v3/main-tube/pioasm/CMakeFiles/edit_cache.dir
+/home/alan/Documents/robotics/mate-2023-rnd/firmware/v3/main-tube/pioasm/CMakeFiles/rebuild_cache.dir

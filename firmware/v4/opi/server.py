@@ -16,7 +16,7 @@ C     H   H U   U N  NN G   G U   U     S
 """
 
 class OPiServer:
-    def __init__(self, server_address: tuple, stop_event=None):
+    def __init__(self, server_address: tuple, stop_event=None, use_stop_event=False, debug=False):
         self.connected = False
         self.server_address = server_address
         self.thruster_control = None
@@ -24,6 +24,9 @@ class OPiServer:
         self.client_addr = ()
         self.server_thread = threading.Thread(target=self._server_loop)
         self.out_queue = queue.Queue()
+
+        self.use_stop_event=use_stop_event
+        self.debug=debug
         self.stop_event = stop_event
     
     def set_thruster_control(self, thruster_control):
@@ -42,7 +45,10 @@ class OPiServer:
 
     # read and write data to and from surface client
     def _server_loop(self):
-        while True and not self.stop_event.is_set():
+        while True:
+            if self.use_stop_event:
+                if self.stop_event.is_set():
+                    break
             r, w, x = select.select([self.sock], [self.sock], [self.sock])
             for sock in r:  #ready to read!
                 print("attempting to read network data")

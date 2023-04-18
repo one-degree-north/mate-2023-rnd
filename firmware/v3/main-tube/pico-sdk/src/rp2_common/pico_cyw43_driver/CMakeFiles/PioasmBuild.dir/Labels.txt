@@ -1,0 +1,13 @@
+# Target labels
+ PioasmBuild
+# Source files and their labels
+/home/alan/Documents/robotics/mate-2023-rnd/firmware/v3/main-tube/pico-sdk/src/rp2_common/pico_cyw43_driver/CMakeFiles/PioasmBuild
+/home/alan/Documents/robotics/mate-2023-rnd/firmware/v3/main-tube/pico-sdk/src/rp2_common/pico_cyw43_driver/CMakeFiles/PioasmBuild.rule
+/home/alan/Documents/robotics/mate-2023-rnd/firmware/v3/main-tube/pico-sdk/src/rp2_common/pico_cyw43_driver/CMakeFiles/PioasmBuild-complete.rule
+/home/alan/Documents/robotics/mate-2023-rnd/firmware/v3/main-tube/pico-sdk/src/rp2_common/pico_cyw43_driver/pioasm/src/PioasmBuild-stamp/PioasmBuild-build.rule
+/home/alan/Documents/robotics/mate-2023-rnd/firmware/v3/main-tube/pico-sdk/src/rp2_common/pico_cyw43_driver/pioasm/src/PioasmBuild-stamp/PioasmBuild-configure.rule
+/home/alan/Documents/robotics/mate-2023-rnd/firmware/v3/main-tube/pico-sdk/src/rp2_common/pico_cyw43_driver/pioasm/src/PioasmBuild-stamp/PioasmBuild-download.rule
+/home/alan/Documents/robotics/mate-2023-rnd/firmware/v3/main-tube/pico-sdk/src/rp2_common/pico_cyw43_driver/pioasm/src/PioasmBuild-stamp/PioasmBuild-install.rule
+/home/alan/Documents/robotics/mate-2023-rnd/firmware/v3/main-tube/pico-sdk/src/rp2_common/pico_cyw43_driver/pioasm/src/PioasmBuild-stamp/PioasmBuild-mkdir.rule
+/home/alan/Documents/robotics/mate-2023-rnd/firmware/v3/main-tube/pico-sdk/src/rp2_common/pico_cyw43_driver/pioasm/src/PioasmBuild-stamp/PioasmBuild-patch.rule
+/home/alan/Documents/robotics/mate-2023-rnd/firmware/v3/main-tube/pico-sdk/src/rp2_common/pico_cyw43_driver/pioasm/src/PioasmBuild-stamp/PioasmBuild-update.rule

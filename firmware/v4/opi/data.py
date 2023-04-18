@@ -69,7 +69,7 @@ class OpiDataBlock:
 
 
 class OpiDataProcess:
-    def __init__(self, report_data=True, stop_event=None):
+    def __init__(self, report_data=True, use_stop_event=False, stop_event=None, debug=False):
         self.server = None
         self.bno_sensor = BNOSensor()
 
@@ -83,7 +83,9 @@ class OpiDataProcess:
         self.bno_read_thread = Thread(target=self.bno_read_loop, args=(self.bno_queue,))
         self.bno_fetch_thread = Thread(target=self.bno_fetch_loop, args=(self.bno_queue,))
         self.report_data = report_data   # report data to surface
+        
         self.stop_event=stop_event
+        self.use_stop_event=use_stop_event
 
     def set_server(self, server):
         self.server = server
@@ -107,10 +109,13 @@ class OpiDataProcess:
             time.sleep(self.bno_individual_delay)
 
     # using a thread to continuously get BNO data
-    def bno_read_loop(self, q):
-        while not self.stop_event.is_set():
-            self.read_bno_data(q)
-            time.sleep(self.bno_read_delay)
+    def bno_loop(self):
+        while True:
+            if self.use_stop_event:
+                if self.stop_event.is_set():
+                    break
+            self.read_bno_data()
+            # time.sleep(self.bno_read_delay)
             # print(f"sleeping {self.bno_read_delay}")
 
     def bno_fetch_loop(self, q):

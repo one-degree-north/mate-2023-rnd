@@ -1,6 +1,6 @@
 # mcu_interface communicates with the microcontroller
 from dataclasses import dataclass
-import serial, struct, threading
+import serial, struct, threading, time
 
 HEADER = 0xa7
 FOOTER = 0x7a
@@ -65,14 +65,18 @@ class Packet:
         return self.complete
 
 class MCUInterface:
-    def __init__(self, serial_port, stop_event):
+    def __init__(self, serial_port="/dev/ttyS1", stop_event=None, use_stop_event=False, debug=False, write_delay=0.05):
         self.serial_port = serial_port
         self.ser = serial.Serial(serial_port, 115200)
         self.ser_enabled = False
         self.read_packet = Packet()
         self.server = None
         self.read_thread = threading.Thread(target=self._read_thread)
+        self.write_delay=write_delay
+
         self.stop_event = stop_event
+        self.debug=debug
+        self.use_stop_event=use_stop_event
     
     def set_server(self, server):
         self.server = server
@@ -87,13 +91,18 @@ class MCUInterface:
         self.ser.write(struct.pack(">BBBB", HEADER, cmd, param, len(data)) + data + struct.pack(">B", FOOTER))
 
     def _read_thread(self): #READ IS LITTLE ENDIAN!!!!!
-        while True and not self.stop_event.is_set():
+        while True:
+            if self.use_stop_event:
+                if self.stop_event.is_set():
+                    break
+            # I'm not sure if read_all blocks (it should as timeout=None on ser)
             new_bytes = self.ser.read_all()
             for byte in new_bytes:
                 self.read_packet.add_byte(byte)
                 if self.read_packet.is_complete():
                     self._parse(self.read_packet)  # read is LITTLE ENDIAN!!!!
                     self.read_packet.clear()
+            time.sleep(self.write_delay)
 
     # parse data, stores data needed on opi and sends data to surface
     def _parse(self, packet):
@@ -104,7 +113,8 @@ class MCUInterface:
         self.server.send_data(struct.pack("!" + "B"*(pkt_len-2), *struct.unpack("<" + "B"*(pkt_len-2), bytes(packet.to_bytes_network()))))    # transform little endian into network endianess
 
     def set_thrusters(self, thrusts):
-        print(f"setting thrusts {thrusts}")
+        if self.debug:
+            print(f"setting thrusts {thrusts}")
         self._write_packet(0x18, 0x0F, struct.pack(">HHHHHHHH", *thrusts))
 
     def test_connection(self):
@@ -133,10 +143,14 @@ class MCUInterface:
             print(f"thrusts: {curr_thrusters}")
 
 if __name__ == "__main__":
-    interface = MCUInterface("/dev/ttyS5")
+    interface = MCUInterface("/dev/ttyS1")
     interface._debug_start()
     while True:
         val = input("input type > ")
+        if val == "all":
+            t = int(input("microseconds: "))
+            thrusts = [t, t, t, t, t, t, t, t]
+            interface.set_thrusters(thrusts)
         if val == "st":
             thruster = int(input("thruster: "))
             microseconds = int(input("microseconds: "))
