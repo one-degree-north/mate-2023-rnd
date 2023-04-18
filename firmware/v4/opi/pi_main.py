@@ -5,32 +5,42 @@ from data import OpiDataProcess
 import threading
 import yappi
 import time
+import json
 
 
 def main(stop_event):
-    # there is a circular dependency with: thrust_controller requiring data and interface, server requiring thrust_controller, and data requiring server
-    # addr = input("server address> ")
-    # serial_port = input("serial port > ")
-    addr = "192.168.13.101"
-    serial_port = "/dev/ttyS1"
-    thrust_controller = ThrusterController(stop_event=stop_event)
-    server = OPiServer((addr, 7772),stop_event=stop_event)
-    opi_data = OpiDataProcess(stop_event=stop_event)
-    interface = MCUInterface(serial_port, stop_event)
-    # resolve dependencies
+    # setup configuration file contents
+    config_file = open('config.json', 'r')
+    config = json.loads(config_file.read())
+    config_file.close()
+
+    # create components
+    addr = config['ip_addr']
+    serial_port = config['serial_port']
+    thrust_controller = ThrusterController(config['thruster_move_delta'], stop_event, not not config['debug'])
+    server = OPiServer((addr, config['udp_port']))
+    interface = MCUInterface(serial_port)
+
+    # resolve dependencies between components
     thrust_controller.set_interface(interface)
-    thrust_controller.set_data(opi_data)
     server.set_thruster_control(thrust_controller)
     server.set_interface(interface)
-    opi_data.set_server(server)
     interface.set_server(server)
-    #start stuff!
+
+    # config if we are using bno data
+    if config['use_bno']:
+        opi_data = OpiDataProcess()
+        thrust_controller.set_data(opi_data)
+        opi_data.set_server(server)
+
+    # start the system
     print("starting server")
     server.start_server()
     print("starting interface")
     interface.start()
-    print("starting BNO")
-    opi_data.start_bno_reading()
+    if config['use_bno']:
+        print("starting BNO")
+        opi_data.start_bno_reading()
     print("starting thruster controller")
     thrust_controller.start_loop()
     

@@ -209,7 +209,7 @@ class OpiRotDriftState(OpiRotateState):
         return "drift"
 
 class ThrusterController:
-    def __init__(self, move_delta_time=0.05, stop_event=None):
+    def __init__(self, move_delta_time=0.05, stop_event=None, debug=False):
         self.data = None
         self.pos_state = OpiPosDriftState()
         self.rot_state = OpiRotDriftState()
@@ -217,6 +217,7 @@ class ThrusterController:
         self.mcu_interface = None
         self.max_thrust = 0.3   # maximum thruster value allowed (0 to 1)
         self.stop_event=stop_event
+        self.debug = debug
 
     # way to solve circular dependency
     def set_interface(self, mcu_interface):
@@ -228,78 +229,11 @@ class ThrusterController:
     def start_loop(self):
         move_thread = threading.Thread(target=self.move_loop)
         move_thread.start()
-    
-    def start_debug_loop(self):
-        move_thread = threading.Thread(target=self.debug_loop)
-        move_thread.start()
-
-    def debug_loop(self):
-        while True:
-            pos_thrust = self.pos_state.on_tick()
-            rot_thrust = self.rot_state.on_tick()
-            # TODO: Revise and check if this actually is an ok way to do this
-            # somehow integrate pos_thrust and rot_thrust
-            # transform forward, side, up, pitch, roll, yaw to thruster speeds
-            mov = move(*pos_thrust, *rot_thrust) # simplified thrusters with f, s, u, p, r, y
-            print(f"velocity: {self.data.data.vel}")
-            print(f"angle: {self.data.data.eul}")
-            print(f"gyro: {self.data.data.gyro}")
-            print(f"mov: {mov}")
-            total_thrust = [0, 0, 0, 0, 0, 0, 0, 0]
-            total_thrust[0] = mov.f - mov.s - mov.y
-            total_thrust[1] = mov.f + mov.s + mov.y
-            total_thrust[2] = mov.f - mov.s + mov.y
-            total_thrust[3] = mov.f + mov.s - mov.y
-
-            total_thrust[4] = mov.u + mov.p - mov.r
-            total_thrust[5] = mov.u + mov.p + mov.r
-            total_thrust[6] = mov.u - mov.p + mov.r
-            total_thrust[7] = mov.u - mov.p - mov.r
-
-            print(f"total thrust before processing: {total_thrust}")
-            # get maximum thrust present after adding
-            max_thrust = 0
-            for i in range(8):
-                if abs(total_thrust[i]) > max_thrust:
-                    max_thrust = abs(total_thrust[i])
-            
-            # scale all thrust values down baesd on the maximum thrust
-            if max_thrust > self.max_thrust:
-                for i in range(8):
-                    # adjust for maximum thrust present
-                    total_thrust[i] = int(total_thrust[i] / max_thrust)*self.max_thrust
-                    # adjust for microseconds (-1 to 1) to (1000 to 2000)
-                    total_thrust[i] = 1500 + 500*total_thrust[i]
-            
-                    # last adjustment in case total_thrust[i] was above maximum thrust or minmum thrust
-                    lowest = 1500 - self.max_thrust*500 
-                    highest = 1500+self.max_thrust*500
-                    if total_thrust[i] < lowest:
-                        total_thrust[i] = lowest
-                    if total_thrust[i] > highest:
-                        total_thrust[i] = highest
-            else:
-                for i in range(8):
-                    # adjust for maximum thrust present
-                    total_thrust[i] = int(total_thrust[i])*self.max_thrust
-                    # adjust for microseconds (-1 to 1) to (1000 to 2000)
-                    total_thrust[i] = 1500 + 500*total_thrust[i]
-
-                    # last adjustment in case total_thrust[i] was above maximum thrust or minmum thrust
-                    lowest = 1500 - self.max_thrust*500 
-                    highest = self.max_thrust*500+1500
-                    if total_thrust[i] < lowest:
-                        total_thrust[i] = lowest
-                    if total_thrust[i] > highest:
-                        total_thrust[i] = highest
-
-            # move with all thrusts
-            print(f"writing thrust: {total_thrust}")
-            # self.mcu_interface.set_thruster(total_thrust)
-            time.sleep(self.move_delta_time)
 
     # moves ROV based on input data
     def move_loop(self):
+        if self.debug:
+            t = time.time()
         while True and not self.stop_event.is_set():
             pos_thrust = self.pos_state.on_tick()
             rot_thrust = self.rot_state.on_tick()
@@ -307,6 +241,13 @@ class ThrusterController:
             # somehow integrate pos_thrust and rot_thrust
             # transform forward, side, up, pitch, roll, yaw to thruster speeds
             mov = move(*pos_thrust, *rot_thrust) # simplified thrusters with f, s, u, p, r, y
+
+            if self.debug and self.data and self.data.data:
+                print(f"velocity: {self.data.data.vel}")
+                print(f"angle: {self.data.data.eul}")
+                print(f"gyro: {self.data.data.gyro}")
+                print(f"mov: {mov}")
+
             total_thrust = [0, 0, 0, 0, 0, 0, 0, 0]
             total_thrust[0] = mov.f - mov.s - mov.y
             total_thrust[1] = mov.f + mov.s + mov.y
@@ -355,6 +296,11 @@ class ThrusterController:
                         total_thrust[i] = highest
             
             # move with all thrusts
+            if self.debug:
+                print(f"writing thrust: {total_thrust}")
+                print(f"elapsed: {(time.time() - t)*1000.0:.4f}ms")
+                t = time.time()
+
             self.mcu_interface.set_thrusters(total_thrust)
             time.sleep(self.move_delta_time)
 

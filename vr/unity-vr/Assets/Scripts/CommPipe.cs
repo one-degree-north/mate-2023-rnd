@@ -20,9 +20,13 @@ public class CommPipe : MonoBehaviour{
     // private Task readTask;
     // private Task writeTask;
     private ConcurrentQueue<InputData> writeQueue;
-    private Stream stream;
     private ConcurrentQueue<InputData> readQueue;
+    // private Queue<InputData> writeQueue;
+    // private Queue<InputData> readQueue;
+    private Stream stream;
     public RectTransform canvas;
+    private Thread readThread;
+    private Thread writeThread;
     void Start(){
         // System.IO.Pipes.Pipe
         toPythonPipe = new NamedPipeClientStream(".", "fromUnityPipe", PipeDirection.InOut);
@@ -36,13 +40,22 @@ public class CommPipe : MonoBehaviour{
         toPythonPipe.Connect();
         fromPythonPipe.ReadMode = PipeTransmissionMode.Message;
         // namedPipe.ReadMode = PipeTransmissionMode.Message;
+        
         writeQueue = new ConcurrentQueue<InputData>();
         readQueue = new ConcurrentQueue<InputData>();
+        // writeQueue = new Queue<InputData>();
+        // readQueue = new Queue<InputData>();
+
+        readThread = new Thread(new ThreadStart(readLoop));
+        readThread.Start();
+        writeThread = new Thread(new ThreadStart(writeLoop));
+        writeThread.Start();
         // stream = new Stream(namedPipe);
         // readTask = new Task(readLoop);
         // readTask.Start();
-        Task.Run(writeLoop);
-        Task.Run(readLoop);
+        // Task.Run(writeLoop);
+        // Task.Run(readLoop);
+        // StartCoroutine(readPipe());
     }
     void readLoop(){
         while (true){
@@ -127,6 +140,20 @@ public class CommPipe : MonoBehaviour{
             }
         }
     }
+    IEnumerator readPipe(){
+        while (true){
+            Debug.Log("attempting to read...");
+            byte[] buffer = new byte[2048];
+            // processReadData(new InputData(buffer, readNum));
+            // Debug.Log("finish");
+            // readQueue.Enqueue(new InputData(buffer, readNum));
+            int readNum = fromPythonPipe.Read(buffer, 0, 2048);
+            Debug.Log("readed!");
+            Debug.Log(readNum);
+            processReadData(new InputData(buffer, readNum));
+            yield return null;
+        }
+    }
     void Update(){
         InputData inputData;
         bool dataPresent = readQueue.TryDequeue(out inputData);
@@ -162,6 +189,12 @@ public class CommPipe : MonoBehaviour{
         //             Debug.Log(e.ToString());
         //         }
         //     }
+    }
+    void OnApplicationQuit(){
+        // remove read thread
+        Debug.Log("exiting");
+        readThread.Abort();
+        writeThread.Abort();
     }
 }
 public class InputData{

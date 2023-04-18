@@ -270,6 +270,8 @@ class UnityCommsPipe:
         self.toUnityPipe = win32pipe.CreateNamedPipe(r'\\.\pipe\toUnityPipe', win32pipe.PIPE_ACCESS_DUPLEX,
         win32pipe.PIPE_TYPE_MESSAGE | win32pipe.PIPE_WAIT
         , 1, 65536, 65536, 300, None)
+    
+    def start(self):
         win32pipe.ConnectNamedPipe(self.toUnityPipe)
         win32pipe.ConnectNamedPipe(self.fromUnityPipe)
         print("connected pipe")
@@ -303,13 +305,14 @@ class UnityCommsPipe:
         packet_found = False
         expected_len = 0
         command = 0
+        last = time.time()*1000
         while True:
             # print("AAA")
             buffer = []
             result, input_data = (win32file.ReadFile(self.fromUnityPipe, 2048))
             # print(result)
             # print(input_data[0])
-            # print(len(input_data))
+            print(len(input_data))
             match input_data[0]:
                 case 0x0A:
                     if len(input_data) == 153:
@@ -322,7 +325,9 @@ class UnityCommsPipe:
                 case 0x0B:
                     if len(input_data) == 9:
                         unity_time = struct.unpack("=q", input_data[1:])[0]
-                        print(f"delay: {time.time() *1000 - unity_time}")
+                        print(f"between: {time.time()*1000 -  last}")
+                        last = time.time()*1000
+                        # print(f"delay: {time.time() *1000 - unity_time}")
 
 if __name__ == "__main__":  # simple vr-interface for test driving
     # comms = UnityComms()
@@ -330,7 +335,10 @@ if __name__ == "__main__":  # simple vr-interface for test driving
     #     sleep(1)
     # rov_comms = RovComms.RovComms()
     comm_pipe = UnityCommsPipe()
+    comm_pipe.start()
     while True:
+        inp = input("> ")
+        comm_pipe.test_write()
         sleep(0.01)
         # movements = comm_pipe.movements
         # movements[2] = comm_pipe.hset_position[1] / 5
