@@ -17,7 +17,7 @@ def main(stop_event, use_stop_event=False, debug=False):
     # create components
     addr = config['ip_addr']
     serial_port = config['serial_port']
-    thrust_controller = ThrusterController(config['thruster_move_delta'], stop_event, not not config['debug'])
+    thrust_controller = ThrusterController(move_delta_time=config['thruster_move_delta'], stop_event=stop_event, use_stop_event=use_stop_event, debug=not not config['debug'], passthrough=True)
     server = OPiServer(server_address=(addr, config['udp_port']), stop_event=stop_event, use_stop_event=use_stop_event)
     interface = MCUInterface(serial_port=serial_port, stop_event=stop_event, use_stop_event=use_stop_event)
 
