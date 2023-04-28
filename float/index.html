@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>mateSUb UI</title>
+    <meta encoding=utf-8>
+</head>
+<body>
+    <h1>mate FLOAT UI</h1>
+    <form method="post" action="/getTime">
+        <label for="ftime">Enter Time:</label><br>
+        <input type="time" id="ftime" name="ftime" step="1"><br>
+        <button>Submit</button>
+    </form>
+    <br>
+    <form method="post" action="/step">
+        <label for="fstep">Enter Steps:</label><br>
+        <input type="number" id="fstep" name="fstep"><br>
+        <label for="fdelay">Enter Delay:</label><br>
+        <input type="number" id="fdelay" name="fdelay"><br>
+        <button>Submit</button>
+    </form>
+    <br> 
+    <hr>
+    <br>
+    <iframe src="/getInfoBrowser"></iframe>
+</body>
+</html>
