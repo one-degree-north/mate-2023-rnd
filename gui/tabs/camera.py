@@ -4,6 +4,7 @@ from PyQt6.QtCore import Qt, QDateTime, QThread, QTimer, pyqtSignal, pyqtSlot
 
 import cv2
 from numpy import ndarray
+from functools import partial
 
 import logging
 
@@ -17,7 +18,7 @@ class CameraTab(QWidget):
         self.cam_height = 480
 
         self.cam_1 = CameraFrame(self, "front", 2)
-        self.cam_2 = CameraFrame(self, "down", 1)
+        self.cam_2 = CameraFrame(self, "claw", 1, "down", 0)
 
         self.layout = QHBoxLayout()
 
@@ -34,11 +35,17 @@ class CameraTab(QWidget):
 
 
 class CameraFrame(QWidget):
-    def __init__(self, parent, name, port):
+    def __init__(self, parent, main_name, main_port, other_name=None, other_port=None):
         super().__init__()
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
 
-        self.name = name
+        self.parent = parent
+
+        self.name = main_name
+        self.port = main_port
+
+        swap = True if other_name else False
+
         self.seconds = 0
 
         self.setStyleSheet("""
@@ -54,9 +61,9 @@ class CameraFrame(QWidget):
             }
         """ % (Color.cyber_grape, Color.tinted_white))
 
-        self.label = QLabel(f"{name.title()} camera - Port {port}")
-        self.cam = Camera(parent, port)
-        self.control_bar = ControlBar()
+        self.label = QLabel(f"{self.name.title()} camera - Port {self.port}")
+        self.cam = Camera(self.parent, self.port)
+        self.control_bar = ControlBar(swap)
 
         self.layout = QVBoxLayout()
 
@@ -69,11 +76,26 @@ class CameraFrame(QWidget):
         self.control_bar.capture_button.clicked.connect(self.capture_event)
         self.control_bar.record_button.clicked.connect(self.record_event)
 
+        if swap:
+            self.control_bar.swap_button.clicked.connect(partial(self.swap_camera, main_name, main_port, other_name, other_port))
+
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_record_timer)
         self.timer.start(1000)
 
+    def swap_camera(self, main_name, main_port, other_name, other_port):
+        if self.name == main_name:
+            self.name = other_name
+            self.port = other_port
+        else:
+            self.name = main_name
+            self.port = main_port
 
+        self.label.setText(f"{self.name.title()} camera - Port {self.port}")
+        self.cam = Camera(self.parent, self.port)
+
+        self.layout.removeWidget(self.findChildren(Camera)[0])
+        self.layout.insertWidget(1, self.cam)
 
     def capture_event(self):
         try:
@@ -120,7 +142,7 @@ class CameraFrame(QWidget):
             
 
 class ControlBar(QWidget):
-    def __init__(self):
+    def __init__(self, swap):
         super().__init__()
 
         self.setStyleSheet("""
@@ -135,6 +157,10 @@ class ControlBar(QWidget):
         self.record_button = IconButton(QIcon("gui/assets/icons/record.png"), "Record")
 
         self.layout = QHBoxLayout()
+
+        if swap:
+            self.swap_button = IconButton(QIcon("gui/assets/icons/swap-cam.png"), "Swap")
+            self.layout.addWidget(self.swap_button)
         
         self.layout.addWidget(self.capture_button)
         self.layout.addStretch()
@@ -148,6 +174,8 @@ class ControlBar(QWidget):
 class Camera(QLabel):
     def __init__(self, parent, port):
         super().__init__("Connecting...")
+
+        print("cam init")
 
         self.parent = parent
 

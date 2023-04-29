@@ -1,5 +1,6 @@
 from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel
-from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QPainter, QColor
+from PyQt6.QtCore import Qt, QRect
 
 from gui.utils import Color
 from gui.sidebar.console import Console
@@ -161,3 +162,12 @@ class FloatMainWindow(QMainWindow):
         self.update_graph(data)
         
         self.lower_debouce = False
+
+    def paintEvent(self, e):
+        painter = QPainter()
+        painter.begin(self)
+
+        WIDTH = painter.device().width()
+        HEIGHT = painter.device().height()
+
+        painter.fillRect(0, 300, WIDTH, HEIGHT - 300, QColor(Color.honolulu_blue))
