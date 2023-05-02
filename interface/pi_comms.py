@@ -177,7 +177,7 @@ class PIClient:
                         pass
 
     def move_servo(self, pulse1, pulse2):
-        self.out_queue.put(struct.pack("!ccH", bytes([0x20]), int(pulse1//2), int(pulse2//2)))
+        self.out_queue.put(struct.pack("!cHH", bytes([0x20]), int(pulse1//2), int(pulse2//2)))
 
     def turn_flashlight_off(self):
         self.out_queue.put(struct.pack("!cc", bytes([0x30, 0x00])))
