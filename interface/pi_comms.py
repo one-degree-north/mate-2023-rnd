@@ -177,8 +177,6 @@ class PIClient:
                         pass
 
     def move_servo(self, pulse1, pulse2):
-        assert isinstance(claw_num, int), "claw_num must be an int specifying the selected claw"
-        assert isinstance(claw_deg, int), "claw_deg must be an int specifying the degree to write to the selected claw"
         self.out_queue.put(struct.pack("!ccH", bytes([0x20]), int(pulse1//2), int(pulse2//2)))
 
     def turn_flashlight_off(self):
