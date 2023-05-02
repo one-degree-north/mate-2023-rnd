@@ -50,7 +50,7 @@ if __name__ == "__main__":
     yappi.start()
     stop_event = threading.Event()
     thrust_controller, server, opi_data, interface = main(stop_event)
-    time.sleep(30)
+    time.sleep(86400) # kill after 1 day (why would it even run that long?)
     stop_event.set()
     server.server_thread.join()
     yappi.stop()

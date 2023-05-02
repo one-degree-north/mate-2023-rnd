@@ -107,11 +107,18 @@ class MCUInterface:
         print(f"setting thrusts {thrusts}")
         self._write_packet(0x18, 0x0F, struct.pack(">HHHHHHHH", *thrusts))
 
+    def set_servos(self, vals):
+        print(f"setting thrusts {thrusts}")
+        self._write_packet(0x28, 0x2F, struct.pack(">HH", *vals))
+
     def test_connection(self):
         self._write_packet(0x00, 0x00, bytes([]))
 
     def get_thrusters(self):
         self._write_packet(0x1A, 0x0F, bytes([]))
+
+    def get_servos(self):
+        self._write_packet(0x2A, 0x2F, bytes([]))
 
     def _debug_start(self):
         self.debug_thread = threading.Thread(target=self._debug_read_thread, daemon=True)
@@ -131,9 +138,12 @@ class MCUInterface:
         if packet.cmd == 0x1A:
             curr_thrusters = struct.unpack("<HHHHHHHH", bytes(packet.data))
             print(f"thrusts: {curr_thrusters}")
+        if packet.cmd == 0x2A:
+            curr_servos = struct.unpack("<HH", bytes(packet.data))
+            print(f"servos: {curr_servos}")
 
 if __name__ == "__main__":
-    interface = MCUInterface("/dev/ttyS5")
+    interface = MCUInterface("/dev/ttyS1")
     interface._debug_start()
     while True:
         val = input("input type > ")
@@ -143,10 +153,17 @@ if __name__ == "__main__":
             thrusts = [1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500]
             thrusts[thruster] = microseconds
             interface.set_thrusters(thrusts)
+        if val == "sv":
+            servo1 = int(input("servo 1: "))
+            servo2 = int(input("servo 2: "))
+            vals = [servo1, servo2]
+            interface.set_servos(vals)
         if val == "bruh":
             interface.test_connection()
         if val == "thrust":
             interface.get_thrusters()
+        if val == "servos":
+            interface.get_servos()
 
     
             

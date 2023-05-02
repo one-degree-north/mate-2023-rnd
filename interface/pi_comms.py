@@ -176,12 +176,10 @@ class PIClient:
                     case 0x08:  # mode
                         pass
 
-    def move_claw(self, claw_num, claw_deg):
+    def move_servo(self, pulse1, pulse2):
         assert isinstance(claw_num, int), "claw_num must be an int specifying the selected claw"
         assert isinstance(claw_deg, int), "claw_deg must be an int specifying the degree to write to the selected claw"
-        # assert claw_deg <= 2000 and claw_deg >= 1000, "claw deg must be between 1000 and 2000"
-        assert claw_num >= 0 and claw_num <= 1, "claw_num must be 0 or 1" 
-        self.out_queue.put(struct.pack("!ccH", bytes([0x20, claw_num]), claw_deg))
+        self.out_queue.put(struct.pack("!ccH", bytes([0x20]), int(pulse1//2), int(pulse2//2)))
 
     def turn_flashlight_off(self):
         self.out_queue.put(struct.pack("!cc", bytes([0x30, 0x00])))
@@ -236,10 +234,8 @@ if __name__ == "__main__":
                 comms.set_manual_thrust([0, 0.2, 0, 0, 0, 0])
             case 'tu':
                 comms.set_manual_thrust([0, 0, 0.2, 0, 0, 0])
-            case 's1':
-                comms.move_claw(0, int(input()))
-            case 's0':
-                comms.move_claw(1, int(input()))
+            case 'sv':
+                comms.move_servo(int(input("1: ")), int(input("2: ")))
             case 'on':
                 comms.turn_flashlight_on()
             case 'off':

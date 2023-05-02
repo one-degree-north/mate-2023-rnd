@@ -90,8 +90,8 @@ class OPiServer:
             self.interface.test_connection()
         elif cmd == 0x11:   # get thruster positions
             self.interface.get_thrusters()
-        elif cmd == 0x20:   # move claw
-            pass
+        elif cmd == 0x20:   # move servos
+            self.interface.set_servos(struct.unpack("!HH", data[1:]))
         elif cmd == 0x30:   # turn flashlight on / off
             pass
     
