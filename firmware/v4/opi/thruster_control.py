@@ -209,15 +209,31 @@ class OpiRotDriftState(OpiRotateState):
         return "drift"
 
 class ThrusterController:
-    def __init__(self, move_delta_time=0.05, stop_event=None, debug=False):
+    def __init__(self, move_delta_time=0.05, stop_event=None, use_stop_event=False, debug=False, passthrough=False):
         self.data = None
         self.pos_state = OpiPosDriftState()
         self.rot_state = OpiRotDriftState()
         self.move_delta_time = move_delta_time
         self.mcu_interface = None
         self.max_thrust = 0.3   # maximum thruster value allowed (0 to 1)
+        self.passthrough=passthrough    # just write once (NOT COMPATABLE WITH PID!)
+
         self.stop_event=stop_event
+        self.use_stop_event=use_stop_event
         self.debug = debug
+
+        self.ta = [4,2,0,6, 7,3,1,5]    # thruster pins that match with configuration
+        self.reversed = [True, False, False, False, True, False, False, False]  # reversed thrusters
+        """Thruster pin configuration
+        0: right forward, 7, backward at 1200
+        1: left forward, 2, forward at 1200
+        2: left down, 0, backward at 1200
+        3: right down, 6, backward at 1200
+        upward facing
+        4: right forward, 5, down at 1200
+        5: left forward, 3, up at 1200
+        6: left down, 1, up at 1200
+        7: right down, 4, down at 1200"""
 
     # way to solve circular dependency
     def set_interface(self, mcu_interface):
@@ -232,69 +248,15 @@ class ThrusterController:
 
     # moves ROV based on input data
     def move_loop(self):
-        if self.debug:
-            t = time.time()
-        while True and not self.stop_event.is_set():
+        while True:
+            if self.use_stop_event:
+                if self.stop_event.is_set():
+                    break
+            if self.passthrough:
+                break   # ONLY MANUAL ALLOWED WITH PASSTHROUGH!
             pos_thrust = self.pos_state.on_tick()
             rot_thrust = self.rot_state.on_tick()
-            # TODO: Revise and check if this actually is an ok way to do this
-            # somehow integrate pos_thrust and rot_thrust
-            # transform forward, side, up, pitch, roll, yaw to thruster speeds
-            mov = move(*pos_thrust, *rot_thrust) # simplified thrusters with f, s, u, p, r, y
-
-            if self.debug and self.data and self.data.data:
-                print(f"velocity: {self.data.data.vel}")
-                print(f"angle: {self.data.data.eul}")
-                print(f"gyro: {self.data.data.gyro}")
-                print(f"mov: {mov}")
-
-            total_thrust = [0, 0, 0, 0, 0, 0, 0, 0]
-            total_thrust[0] = mov.f - mov.s - mov.y
-            total_thrust[1] = mov.f + mov.s + mov.y
-            total_thrust[2] = mov.f - mov.s + mov.y
-            total_thrust[3] = mov.f + mov.s - mov.y
-
-            total_thrust[4] = mov.u + mov.p - mov.r
-            total_thrust[5] = mov.u + mov.p + mov.r
-            total_thrust[6] = mov.u - mov.p + mov.r
-            total_thrust[7] = mov.u - mov.p - mov.r
-
-            # get maximum thrust present after adding
-            max_thrust = 0
-            for i in range(8):
-                if abs(total_thrust[i]) > max_thrust:
-                    max_thrust = abs(total_thrust[i])
-            
-            # scale all thrust values down baesd on the maximum thrust
-            if max_thrust > self.max_thrust:
-                for i in range(8):
-                    # adjust for maximum thrust present
-                    total_thrust[i] = total_thrust[i] / max_thrust*self.max_thrust
-                    # adjust for microseconds (-1 to 1) to (1000 to 2000)
-                    total_thrust[i] = int(1500 + 500*total_thrust[i])
-            
-                    # last adjustment in case total_thrust[i] was above maximum thrust or minmum thrust
-                    lowest = 1500 - self.max_thrust*500 
-                    highest = self.max_thrust*500+1500
-                    if total_thrust[i] < lowest:
-                        total_thrust[i] = lowest
-                    if total_thrust[i] > highest:
-                        total_thrust[i] = highest
-            else:
-                for i in range(8):
-                    # adjust for maximum thrust present
-                    total_thrust[i] = total_thrust[i]*self.max_thrust
-                    # adjust for microseconds (-1 to 1) to (1000 to 2000)
-                    total_thrust[i] = int(1500 + 500*total_thrust[i])
-
-                    # last adjustment in case total_thrust[i] was above maximum thrust or minmum thrust
-                    lowest = int(1500 - self.max_thrust*500)
-                    highest = int(self.max_thrust*500+1500)
-                    if total_thrust[i] < lowest:
-                        total_thrust[i] = lowest
-                    if total_thrust[i] > highest:
-                        total_thrust[i] = highest
-            
+            total_thrust = self.calc_move(pos_thrust, rot_thrust)
             # move with all thrusts
             if self.debug:
                 print(f"writing thrust: {total_thrust}")
@@ -303,6 +265,49 @@ class ThrusterController:
 
             self.mcu_interface.set_thrusters(total_thrust)
             time.sleep(self.move_delta_time)
+
+    # translates moves (-1 to 1) to microseconds
+    def calc_move(self, pos_thrust, rot_thrust):
+        # TODO: Revise and check if this actually is an ok way to do this
+        # somehow integrate pos_thrust and rot_thrust
+        # transform forward, side, up, pitch, roll, yaw to thruster speeds
+        mov = move(*pos_thrust, *rot_thrust) # simplified thrusters with f, s, u, p, r, y
+        total_thrust = [0, 0, 0, 0, 0, 0, 0, 0]
+        total_thrust[self.ta[0]] = mov.f - mov.s - mov.y
+        total_thrust[self.ta[1]] = mov.f + mov.s + mov.y
+        total_thrust[self.ta[2]] = mov.f - mov.s + mov.y
+        total_thrust[self.ta[3]] = mov.f + mov.s - mov.y
+
+        total_thrust[self.ta[4]] = mov.u + mov.p - mov.r
+        total_thrust[self.ta[5]] = mov.u + mov.p + mov.r
+        total_thrust[self.ta[6]] = mov.u - mov.p + mov.r
+        total_thrust[self.ta[7]] = mov.u - mov.p - mov.r
+
+        # get maximum thrust present after adding
+        max_thrust = 0
+        for i in range(8):
+            if abs(total_thrust[i]) > max_thrust:
+                max_thrust = abs(total_thrust[i])
+        
+        # scale all thrust values down baesd on the maximum thrust
+        if max_thrust > self.max_thrust:
+            for i in range(8):
+                # adjust for maximum thrust present
+                total_thrust[i] = total_thrust[i] / max_thrust*self.max_thrust
+                # adjust for microseconds (-1 to 1) to (1000 to 2000)
+        for i in range(8):
+            if self.reversed[i]:
+                total_thrust[i] = int(1500 - 500*total_thrust[i])
+            else:
+                total_thrust[i] = int(1500 + 500*total_thrust[i])
+            # last adjustment in case total_thrust[i] was above maximum thrust or minmum thrust
+            lowest = 1500 - self.max_thrust*500 
+            highest = self.max_thrust*500+1500
+            if total_thrust[i] < lowest:
+                total_thrust[i] = lowest
+            if total_thrust[i] > highest:
+                total_thrust[i] = highest
+        return total_thrust
 
     # set all manual microseconds (1000 to 2000)
     def set_raw_thrust(self, thrusts):
@@ -314,8 +319,14 @@ class ThrusterController:
             self.pos_state.set_target(moves)
         else:
             self.pos_state = OpiPosManualState(moves)
+        if self.passthrough:
+            pos_thrust = self.pos_state.on_tick()
+            rot_thrust = self.rot_state.on_tick()
+            total_thrust = self.calc_move(pos_thrust, rot_thrust)
+            # move with all thrusts
+            self.mcu_interface.set_thrusters(total_thrust)
 
-    #set target velocity
+    #set target velocity (pid)
     def set_pos_target_vel(self, vels):
         if self.pos_state.move_type == "pid":
             self.pos_state.set_target(vels)
@@ -336,15 +347,21 @@ class ThrusterController:
             self.rot_state = OpiRotManualState(thrusts)
         else:
             self.rot_state.set_target(thrusts)
+        if self.passthrough:
+            pos_thrust = self.pos_state.on_tick()
+            rot_thrust = self.rot_state.on_tick()
+            total_thrust = self.calc_move(pos_thrust, rot_thrust)
+            # move with all thrusts
+            self.mcu_interface.set_thrusters(total_thrust)
 
-    # set target angular velocity
+    # set target angular velocity (pid)
     def set_rot_vel(self, vels):
         if self.rot_state.move_type == "gyro":
             self.rot_state.set_target(vels)
         else:
             self.rot_state = OpiRotVelState(vels, self.data.data, self.move_delta_time)
     
-    #set target rotational angle
+    #set target rotational angle (pid)
     def set_rot_angle(self, angles):
         if self.rot_state.move_type == "angle":
             self.rot_state.set_target(angles)

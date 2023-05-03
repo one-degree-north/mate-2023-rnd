@@ -289,11 +289,6 @@ class UnityCommsPipe:
             print("writing")
             win32file.WriteFile(self.toUnityPipe, data)
 
-    def move_camera(self, position):
-        # position is 3 floats describing rotation
-        if type(position[0]) == float and type(position[1]) == float and type(position[2]) == float:
-            self.write_queue.put(struct.pack("=fff"), position[0], position[1], position[2])
-
     def test_write(self):
         self.write_queue.put(struct.pack("=cc", 0x01.to_bytes(1, byteorder="big", signed=False), 0x69.to_bytes(1, byteorder="big", signed=False)))
     

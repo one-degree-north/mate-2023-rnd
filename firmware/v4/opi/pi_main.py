@@ -8,7 +8,7 @@ import time
 import json
 
 
-def main(stop_event):
+def main(stop_event, use_stop_event=False, debug=False):
     # setup configuration file contents
     config_file = open('config.json', 'r')
     config = json.loads(config_file.read())
@@ -17,9 +17,9 @@ def main(stop_event):
     # create components
     addr = config['ip_addr']
     serial_port = config['serial_port']
-    thrust_controller = ThrusterController(config['thruster_move_delta'], stop_event, not not config['debug'])
-    server = OPiServer((addr, config['udp_port']))
-    interface = MCUInterface(serial_port)
+    thrust_controller = ThrusterController(move_delta_time=config['thruster_move_delta'], stop_event=stop_event, use_stop_event=use_stop_event, debug=not not config['debug'], passthrough=True)
+    server = OPiServer(server_address=(addr, config['udp_port']), stop_event=stop_event, use_stop_event=use_stop_event)
+    interface = MCUInterface(serial_port=serial_port, stop_event=stop_event, use_stop_event=use_stop_event)
 
     # resolve dependencies between components
     thrust_controller.set_interface(interface)
@@ -27,9 +27,10 @@ def main(stop_event):
     server.set_interface(interface)
     interface.set_server(server)
 
+    opi_data=None
     # config if we are using bno data
     if config['use_bno']:
-        opi_data = OpiDataProcess()
+        opi_data = OpiDataProcess(report_data=True, stop_event=stop_event, use_stop_event=use_stop_event, debug=debug)
         thrust_controller.set_data(opi_data)
         opi_data.set_server(server)
 
@@ -49,8 +50,8 @@ def main(stop_event):
 if __name__ == "__main__":
     yappi.start()
     stop_event = threading.Event()
-    thrust_controller, server, opi_data, interface = main(stop_event)
-    time.sleep(86400) # kill after 1 day (why would it even run that long?)
+    thrust_controller, server, opi_data, interface = main(stop_event, True, False)
+    time.sleep(1)
     stop_event.set()
     server.server_thread.join()
     yappi.stop()

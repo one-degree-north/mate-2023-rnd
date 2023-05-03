@@ -181,11 +181,11 @@ class MainWindow(QMainWindow):
             if e.key() == Qt.Key.Key_1:
                 self.speed = 0
             if e.key() == Qt.Key.Key_2:
-                self.speed = 0.2
+                self.speed = 0.1
             if e.key() == Qt.Key.Key_3:
-                self.speed = 0.4
+                self.speed = 0.2
             if e.key() == Qt.Key.Key_4:
-                self.speed = 0.6
+                self.speed = 0.3
             if e.key() == Qt.Key.Key_5:
                 self.speed += 0.1
             if e.key() == Qt.Key.Key_6:
