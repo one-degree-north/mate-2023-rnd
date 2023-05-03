@@ -42,7 +42,7 @@ if __name__ == "__main__":
 
     if input("Connect comms (y/n)? ") == "y":
         print("Searching for serial...")
-        comms = pi_comms.PIClient((input("enter ip: "), 27777))
+        comms = pi_comms.PIClient((input("enter ip: "), 7772))
 
     window = MainWindow(comms, 1, 2)
     window.show()

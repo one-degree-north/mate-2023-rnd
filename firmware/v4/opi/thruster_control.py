@@ -222,6 +222,19 @@ class ThrusterController:
         self.use_stop_event=use_stop_event
         self.debug = debug
 
+        self.ta = [4,2,0,6, 7,3,1,5]    # thruster pins that match with configuration
+        self.reversed = [True, False, False, False, True, False, False, False]  # reversed thrusters
+        """Thruster pin configuration
+        0: right forward, 7, backward at 1200
+        1: left forward, 2, forward at 1200
+        2: left down, 0, backward at 1200
+        3: right down, 6, backward at 1200
+        upward facing
+        4: right forward, 5, down at 1200
+        5: left forward, 3, up at 1200
+        6: left down, 1, up at 1200
+        7: right down, 4, down at 1200"""
+
     # way to solve circular dependency
     def set_interface(self, mcu_interface):
         self.mcu_interface = mcu_interface
@@ -260,15 +273,15 @@ class ThrusterController:
         # transform forward, side, up, pitch, roll, yaw to thruster speeds
         mov = move(*pos_thrust, *rot_thrust) # simplified thrusters with f, s, u, p, r, y
         total_thrust = [0, 0, 0, 0, 0, 0, 0, 0]
-        total_thrust[0] = mov.f - mov.s - mov.y
-        total_thrust[1] = mov.f + mov.s + mov.y
-        total_thrust[2] = mov.f - mov.s + mov.y
-        total_thrust[3] = mov.f + mov.s - mov.y
+        total_thrust[self.ta[0]] = mov.f - mov.s - mov.y
+        total_thrust[self.ta[1]] = mov.f + mov.s + mov.y
+        total_thrust[self.ta[2]] = mov.f - mov.s + mov.y
+        total_thrust[self.ta[3]] = mov.f + mov.s - mov.y
 
-        total_thrust[4] = mov.u + mov.p - mov.r
-        total_thrust[5] = mov.u + mov.p + mov.r
-        total_thrust[6] = mov.u - mov.p + mov.r
-        total_thrust[7] = mov.u - mov.p - mov.r
+        total_thrust[self.ta[4]] = mov.u + mov.p - mov.r
+        total_thrust[self.ta[5]] = mov.u + mov.p + mov.r
+        total_thrust[self.ta[6]] = mov.u - mov.p + mov.r
+        total_thrust[self.ta[7]] = mov.u - mov.p - mov.r
 
         # get maximum thrust present after adding
         max_thrust = 0
@@ -282,28 +295,18 @@ class ThrusterController:
                 # adjust for maximum thrust present
                 total_thrust[i] = total_thrust[i] / max_thrust*self.max_thrust
                 # adjust for microseconds (-1 to 1) to (1000 to 2000)
+        for i in range(8):
+            if self.reversed[i]:
+                total_thrust[i] = int(1500 - 500*total_thrust[i])
+            else:
                 total_thrust[i] = int(1500 + 500*total_thrust[i])
-        
-                # last adjustment in case total_thrust[i] was above maximum thrust or minmum thrust
-                lowest = 1500 - self.max_thrust*500 
-                highest = self.max_thrust*500+1500
-                if total_thrust[i] < lowest:
-                    total_thrust[i] = lowest
-                if total_thrust[i] > highest:
-                    total_thrust[i] = highest
-        else:
-            for i in range(8):
-                # adjust for maximum thrust present
-                # adjust for microseconds (-1 to 1) to (1000 to 2000)
-                total_thrust[i] = int(1500 + 500*total_thrust[i])
-
-                # last adjustment in case total_thrust[i] was above maximum thrust or minmum thrust
-                lowest = int(1500 - self.max_thrust*500)
-                highest = int(self.max_thrust*500+1500)
-                if total_thrust[i] < lowest:
-                    total_thrust[i] = lowest
-                if total_thrust[i] > highest:
-                    total_thrust[i] = highest
+            # last adjustment in case total_thrust[i] was above maximum thrust or minmum thrust
+            lowest = 1500 - self.max_thrust*500 
+            highest = self.max_thrust*500+1500
+            if total_thrust[i] < lowest:
+                total_thrust[i] = lowest
+            if total_thrust[i] > highest:
+                total_thrust[i] = highest
         return total_thrust
 
     # set all manual microseconds (1000 to 2000)
