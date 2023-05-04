@@ -222,8 +222,8 @@ class ThrusterController:
         self.use_stop_event=use_stop_event
         self.debug = debug
 
-        self.ta = [4,2,0,6, 7,3,1,5]    # thruster pins that match with configuration
-        self.reversed = [True, False, False, False, True, False, False, False]  # reversed thrusters
+        self.ta = [6,2,1,4,5,3,0,7]    # thruster pins that match with configuration
+        self.reversed = [False, True, True, True, False, True, True, True]  # reversed thrusters
         """Thruster pin configuration
         0: right forward, 7, backward at 1200
         1: left forward, 2, forward at 1200
