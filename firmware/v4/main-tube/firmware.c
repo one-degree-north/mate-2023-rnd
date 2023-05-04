@@ -220,14 +220,14 @@ void cmd_return_hello() {
 }
 
 void cmd_return_echo(u8 len, u8 *data) {
-    uart_putc(uart0, UART_HEADER);
-    uart_putc(uart0, 0x00);
-    uart_putc(uart0, 0x00);
-    uart_putc(uart0, len);
+    uart_putc(UART_CHANNEL, UART_HEADER);
+    uart_putc(UART_CHANNEL, 0x00);
+    uart_putc(UART_CHANNEL, 0x00);
+    uart_putc(UART_CHANNEL, len);
     for (int i = 0; i < len; ++i) {
-        uart_putc(uart0, data[i]);
+        uart_putc(UART_CHANNEL, data[i]);
     }
-    uart_putc(uart0, UART_FOOTER);
+    uart_putc(UART_CHANNEL, UART_FOOTER);
 }
 
 void cmd_return_thruster(u8 idx) {
@@ -325,20 +325,20 @@ u8 uart_queue_index = 0;
 u8 uart_packet_length = 0;
 
 void uart_setup() {
-    uart_init(uart0, UART_BAUD);
+    uart_init(UART_CHANNEL, UART_BAUD);
 
     gpio_set_function(UART_PIN_RX, GPIO_FUNC_UART);
     gpio_set_function(UART_PIN_TX, GPIO_FUNC_UART);
 
     // disable cts/rts
-    uart_set_hw_flow(uart0, false, false);
+    uart_set_hw_flow(UART_CHANNEL, false, false);
 
     // create interrupt
     irq_set_exclusive_handler(UART0_IRQ, uart_read);
     irq_set_enabled(UART0_IRQ, true);
 
     // enable UART interrupts for RX
-    uart_set_irq_enables(uart0, true, false);
+    uart_set_irq_enables(UART_CHANNEL, true, false);
 
     // say hi
     cmd_return_hello();
@@ -420,8 +420,8 @@ void uart_parse_byte(u8 c) {
 }
 
 void uart_read() {
-    while (uart_is_readable(uart0)) {
-        u8 c = uart_getc(uart0);
+    while (uart_is_readable(UART_CHANNEL)) {
+        u8 c = uart_getc(UART_CHANNEL);
 
         if (uart_queue_index != 0 || c == UART_HEADER) {
             uart_parse_byte(c);
@@ -430,11 +430,11 @@ void uart_read() {
 }
 
 void uart_write(u8* data, u8 length) {
-    uart_putc(uart0, UART_HEADER);
+    uart_putc(UART_CHANNEL, UART_HEADER);
     for (int i = 0; i < length; ++i) {
-        uart_putc(uart0, data[i]);
+        uart_putc(UART_CHANNEL, data[i]);
     }
-    uart_putc(uart0, UART_FOOTER);
+    uart_putc(UART_CHANNEL, UART_FOOTER);
 }
 
 /*** THRUSTERS ***/

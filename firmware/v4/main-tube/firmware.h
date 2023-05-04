@@ -45,8 +45,11 @@ void cmd_return_int(u8 param, u16 data);
 #define UART_QUEUE_SIZE 40  // max 256
 #define UART_HEADER 0xa7
 #define UART_FOOTER 0x7a
-#define UART_PIN_RX 29
-#define UART_PIN_TX 28      // A2 on the rp2040 feather
+
+// use RX1/TX1 on pins D9, D6
+#define UART_PIN_RX 9 // D9
+#define UART_PIN_TX 8 // D6
+#define UART_CHANNEL uart1
 #define UART_MAX_PACKET_LENGTH 48
 
 void uart_setup();
@@ -60,7 +63,9 @@ void uart_write(u8* data, u8 length);
 /*** THRUSTERS ***/
 #define MAX_DELTA_POS 2000 // delta us per second, TODO: replace with optimal solution on thrust curve
 #define NUM_THRUSTERS 8
-const u8 thruster_pins[] = {12, 11, 10, 9, 24, 20, 18, 19};
+// thruster group 1: D12, D11, D10, SCL
+// thruster group 2: D24, MISO, SCK, MOSI
+const u8 thruster_pins[] = {12, 11, 10, 3, 24, 20, 18, 19};
 u16 thruster_pos[NUM_THRUSTERS];
 u16 thruster_target_pos[NUM_THRUSTERS];
 u64 thruster_prev_loop_us;
@@ -70,7 +75,8 @@ void thruster_output(u8 thruster, u16 level);
 void thruster_set_target(u8 thruster, u16 level);
 void thruster_set_value(u8 thruster, u16 level);
 
-const u8 servo_pins[] = {7, 8};
+// servos: D5, RX
+const u8 servo_pins[] = {7, 1};
 u16 servo_pos[2];
 
 void servo_init_pwm_50hz(u8 pin);
